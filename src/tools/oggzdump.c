@@ -386,12 +386,14 @@ main (int argc, char ** argv)
     if (i == -1) break;
     if (i == ':') {
       usage (progname);
+	  oggz_table_delete(table);
       exit (1);
     }
 
     switch (i) {
     case 'h': /* help */
       usage (progname);
+	  oggz_table_delete(table);
       exit (0);
       break;
     case 'b': /* binary */
@@ -430,6 +432,7 @@ main (int argc, char ** argv)
 
   if (optind >= argc) {
     usage (progname);
+	oggz_table_delete(table);
     exit (1);
   }
 
@@ -442,6 +445,7 @@ main (int argc, char ** argv)
     if (outfile == NULL) {
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
+	  oggz_table_delete(table);
       exit (1);
     }
   }
@@ -449,6 +453,7 @@ main (int argc, char ** argv)
   if (revert) {
     if (dump_bits) {
       fprintf (stderr, "%s: Revert of binary dump not supported\n", progname);
+	  oggz_table_delete(table);
       exit (1);
     }
 
@@ -470,6 +475,7 @@ main (int argc, char ** argv)
 	fprintf (stderr, "%s: %s: %s\n",
 		 progname, infilename, strerror (errno));
       }
+	oggz_table_delete(table);
       exit (1);
     }
 
@@ -487,6 +493,6 @@ main (int argc, char ** argv)
     
     oggz_close (oggz);
   }
-
+  oggz_table_delete(table);
   exit (0);
 }
