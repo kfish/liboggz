@@ -1,3 +1,9 @@
+Fri May 21 16:48:34 EST 2004 Conrad Parker <conrad@annodex.net>
+
+	* Version 0.8.3
+	* fixes for win32 build procedure
+	* improved API documentation for seeking, OGGZ_AUTO and OggzIO
+
 Thu Mar 11 11:00:00 EST 2004 Silvia Pfeiffer <silvia.pfeiffer@csiro.au>
 	* Version 0.8.2
 	* fixed up the Makefiles to not include the CVS subdirectories
