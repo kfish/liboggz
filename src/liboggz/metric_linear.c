@@ -30,21 +30,49 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_MACROS_H__
-#define __OGGZ_MACROS_H__
+#include "config.h"
 
-#include <stdlib.h>
-#include <ogg/ogg.h>
+#include "oggz_private.h"
 
-/* Use the malloc and free used by ogg; defaults are those from stdlib */
-#define oggz_malloc _ogg_malloc
-#define oggz_realloc _ogg_realloc
-#define oggz_free _ogg_free
+typedef struct {
+  ogg_int64_t gr_n;
+  ogg_int64_t gr_d;
+} oggz_metric_linear_t;
 
-#undef MIN
-#define MIN(a,b) ((a)<(b)?(a):(b))
+static ogg_int64_t
+oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
+			    void * user_data)
+{
+  oggz_metric_linear_t * ldata = (oggz_metric_linear_t *)user_data;
 
-#undef MAX
-#define MAX(a,b) ((a)>(b)?(a):(b))
+  return (ldata->gr_d * granulepos / ldata->gr_n);
+}
 
-#endif /* __OGGZ_MACROS_H__ */
+int
+oggz_set_metric_linear (OGGZ * oggz, long serialno,
+			ogg_int64_t granule_rate_numerator,
+			ogg_int64_t granule_rate_denominator)
+{
+  oggz_metric_linear_t * linear_data;
+
+  /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
+   * numerator is non-zero */
+  if (granule_rate_numerator == 0) {
+    granule_rate_numerator = 1;
+    granule_rate_denominator = 0;
+  }
+
+  linear_data = oggz_malloc (sizeof (oggz_metric_linear_t));
+  linear_data->gr_n = granule_rate_numerator;
+  linear_data->gr_d = granule_rate_denominator;
+
+  return oggz_set_metric_internal (oggz, serialno, oggz_metric_default_linear,
+				   linear_data, 1);
+}
+
+int
+oggz_set_metric_zero (OGGZ * oggz, long serialno)
+{
+  return oggz_set_metric_linear (oggz, serialno, 0, 1);
+}
+

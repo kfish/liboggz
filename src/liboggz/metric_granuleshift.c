@@ -30,21 +30,59 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_MACROS_H__
-#define __OGGZ_MACROS_H__
+#include "config.h"
 
-#include <stdlib.h>
-#include <ogg/ogg.h>
+#include "oggz_private.h"
 
-/* Use the malloc and free used by ogg; defaults are those from stdlib */
-#define oggz_malloc _ogg_malloc
-#define oggz_realloc _ogg_realloc
-#define oggz_free _ogg_free
+typedef struct {
+  ogg_int64_t gr_n;
+  ogg_int64_t gr_d;
+  int granuleshift;
+} oggz_metric_granuleshift_t;
 
-#undef MIN
-#define MIN(a,b) ((a)<(b)?(a):(b))
+static ogg_int64_t
+oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
+				  ogg_int64_t granulepos, void * user_data)
+{
+  oggz_metric_granuleshift_t * gdata = (oggz_metric_granuleshift_t *)user_data;
+  ogg_int64_t iframe, pframe;
+  ogg_int64_t units;
 
-#undef MAX
-#define MAX(a,b) ((a)>(b)?(a):(b))
+  iframe = granulepos >> gdata->granuleshift;
+  pframe = granulepos - (iframe << gdata->granuleshift);
+  granulepos = (iframe + pframe);
 
-#endif /* __OGGZ_MACROS_H__ */
+  units = granulepos * gdata->gr_d / gdata->gr_n;
+
+#ifdef DEBUG
+  printf ("oggz_..._granuleshift: serialno %010ld Got frame %lld (%lld + %lld): %lld units\n",
+	  serialno, granulepos, iframe, pframe, units);
+#endif
+
+  return units;
+}
+
+int
+oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
+			      ogg_int64_t granule_rate_numerator,
+			      ogg_int64_t granule_rate_denominator,
+			      int granuleshift)
+{
+  oggz_metric_granuleshift_t * granuleshift_data;
+
+  /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
+   * numerator is non-zero */
+  if (granule_rate_numerator == 0) {
+    granule_rate_numerator = 1;
+    granule_rate_denominator = 0;
+  }
+
+  granuleshift_data = oggz_malloc (sizeof (oggz_metric_granuleshift_t));
+  granuleshift_data->gr_n = granule_rate_numerator;
+  granuleshift_data->gr_d = granule_rate_denominator;
+  granuleshift_data->granuleshift = granuleshift;
+
+  return oggz_set_metric_internal (oggz, serialno,
+				   oggz_metric_default_granuleshift,
+				   granuleshift_data, 1);
+}

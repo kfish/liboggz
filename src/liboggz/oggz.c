@@ -380,48 +380,6 @@ oggz_serialno_new (OGGZ * oggz)
 
 /******** OggzMetric management ********/
 
-typedef struct {
-  ogg_int64_t gr_n;
-  ogg_int64_t gr_d;
-} oggz_metric_linear_t;
-
-static ogg_int64_t
-oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
-			    void * user_data)
-{
-  oggz_metric_linear_t * ldata = (oggz_metric_linear_t *)user_data;
-
-  return (ldata->gr_d * granulepos / ldata->gr_n);
-}
-
-typedef struct {
-  ogg_int64_t gr_n;
-  ogg_int64_t gr_d;
-  int granuleshift;
-} oggz_metric_granuleshift_t;
-
-static ogg_int64_t
-oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
-				  ogg_int64_t granulepos, void * user_data)
-{
-  oggz_metric_granuleshift_t * gdata = (oggz_metric_granuleshift_t *)user_data;
-  ogg_int64_t iframe, pframe;
-  ogg_int64_t units;
-
-  iframe = granulepos >> gdata->granuleshift;
-  pframe = granulepos - (iframe << gdata->granuleshift);
-  granulepos = (iframe + pframe);
-
-  units = granulepos * gdata->gr_d / gdata->gr_n;
-
-#ifdef DEBUG
-  printf ("oggz_..._granuleshift: serialno %010ld Got frame %lld (%lld + %lld): %lld units\n",
-	  serialno, granulepos, iframe, pframe, units);
-#endif
-
-  return units;
-}
-
 int
 oggz_set_metric_internal (OGGZ * oggz, long serialno,
 			  OggzMetric metric, void * user_data, int internal)
@@ -455,59 +413,6 @@ oggz_set_metric (OGGZ * oggz, long serialno,
 		 OggzMetric metric, void * user_data)
 {
   return oggz_set_metric_internal (oggz, serialno, metric, user_data, 0);
-}
-
-int
-oggz_set_metric_linear (OGGZ * oggz, long serialno,
-			ogg_int64_t granule_rate_numerator,
-			ogg_int64_t granule_rate_denominator)
-{
-  oggz_metric_linear_t * linear_data;
-
-  /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
-   * numerator is non-zero */
-  if (granule_rate_numerator == 0) {
-    granule_rate_numerator = 1;
-    granule_rate_denominator = 0;
-  }
-
-  linear_data = oggz_malloc (sizeof (oggz_metric_linear_t));
-  linear_data->gr_n = granule_rate_numerator;
-  linear_data->gr_d = granule_rate_denominator;
-
-  return oggz_set_metric_internal (oggz, serialno, oggz_metric_default_linear,
-				   linear_data, 1);
-}
-
-int
-oggz_set_metric_zero (OGGZ * oggz, long serialno)
-{
-  return oggz_set_metric_linear (oggz, serialno, 0, 1);
-}
-
-int
-oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
-			      ogg_int64_t granule_rate_numerator,
-			      ogg_int64_t granule_rate_denominator,
-			      int granuleshift)
-{
-  oggz_metric_granuleshift_t * granuleshift_data;
-
-  /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
-   * numerator is non-zero */
-  if (granule_rate_numerator == 0) {
-    granule_rate_numerator = 1;
-    granule_rate_denominator = 0;
-  }
-
-  granuleshift_data = oggz_malloc (sizeof (oggz_metric_granuleshift_t));
-  granuleshift_data->gr_n = granule_rate_numerator;
-  granuleshift_data->gr_d = granule_rate_denominator;
-  granuleshift_data->granuleshift = granuleshift;
-
-  return oggz_set_metric_internal (oggz, serialno,
-				   oggz_metric_default_granuleshift,
-				   granuleshift_data, 1);
 }
 
 /*
