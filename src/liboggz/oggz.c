@@ -1,0 +1,451 @@
+/*
+   Copyright (C) 2003 Commonwealth Scientific and Industrial Research
+   Organisation (CSIRO) Australia
+
+   Redistribution and use in source and binary forms, with or without
+   modification, are permitted provided that the following conditions
+   are met:
+
+   - Redistributions of source code must retain the above copyright
+   notice, this list of conditions and the following disclaimer.
+
+   - Redistributions in binary form must reproduce the above copyright
+   notice, this list of conditions and the following disclaimer in the
+   documentation and/or other materials provided with the distribution.
+
+   - Neither the name of CSIRO Australia nor the names of its
+   contributors may be used to endorse or promote products derived from
+   this software without specific prior written permission.
+
+   THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
+   ``AS IS'' AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
+   LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A
+   PARTICULAR PURPOSE ARE DISCLAIMED.  IN NO EVENT SHALL THE ORGANISATION OR
+   CONTRIBUTORS BE LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL,
+   EXEMPLARY, OR CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO,
+   PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA, OR
+   PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF
+   LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING
+   NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*/
+
+#include "config.h"
+
+#include <assert.h>
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+#include <fcntl.h>
+#include <errno.h>
+#include <string.h>
+#include <time.h>
+
+#include <ogg/ogg.h>
+
+#include "oggz_private.h"
+
+/*#define DEBUG*/
+
+static int
+oggz_flags_disabled (int flags)
+{
+ if (flags & OGGZ_WRITE) {
+   if (!OGGZ_CONFIG_WRITE) return OGGZ_ERR_DISABLED;
+ } else {
+   if (!OGGZ_CONFIG_READ) return OGGZ_ERR_DISABLED;
+ }
+
+ return 0;
+}
+
+OGGZ *
+oggz_new (int flags)
+{
+  OGGZ * oggz;
+
+  if (oggz_flags_disabled (flags)) return NULL;
+
+  oggz = (OGGZ *) oggz_malloc (sizeof (OGGZ));
+  if (oggz == NULL) return NULL;
+
+  oggz->flags = flags;
+  oggz->fd = -1;
+
+  oggz->offset = 0;
+  oggz->offset_data_begin = 0;
+
+  oggz_vector_init (&oggz->streams, sizeof (oggz_stream_t));
+  oggz->all_at_eos = 0;
+
+  oggz->metric = NULL;
+  oggz->metric_user_data = NULL;
+  oggz->metric_internal = 0;
+
+  oggz->order = NULL;
+  oggz->order_user_data = NULL;
+
+  if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
+    oggz_write_init (oggz);
+  } else if (OGGZ_CONFIG_READ) {
+    oggz_read_init (oggz);
+  }
+
+  return oggz;
+}
+
+OGGZ *
+oggz_open (char * filename, int flags)
+{
+  OGGZ * oggz = NULL;
+  int fd = -1;
+
+  if (oggz_flags_disabled (flags)) return NULL;
+
+  if (flags & OGGZ_WRITE) {
+    fd = open (filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+  } else {
+    fd = open (filename, O_RDONLY);
+  }
+  if (fd == -1) return NULL;
+
+  oggz = oggz_new (flags);
+  oggz->fd = fd;
+
+  return oggz;
+}
+
+OGGZ *
+oggz_openfd (int fd, int flags)
+{
+  OGGZ * oggz = NULL;
+
+  if (oggz_flags_disabled (flags)) return NULL;
+
+  oggz = oggz_new (flags);
+  oggz->fd = fd;
+
+  return oggz;
+}
+
+int
+oggz_flush (OGGZ * oggz)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (oggz->fd == -1) return OGGZ_ERR_INVALID;
+
+  if (fsync (oggz->fd) == -1) {
+    return OGGZ_ERR_SYSTEM;
+  }
+
+  return 0;
+}
+
+static int
+oggz_stream_clear (void * data)
+{
+  oggz_stream_t * stream = (oggz_stream_t *) data;
+
+  if (stream->ogg_stream.serialno != -1)
+    ogg_stream_clear (&stream->ogg_stream);
+
+  if (stream->metric_internal)
+    oggz_free (stream->metric_user_data);
+
+  return 0;
+}
+
+int
+oggz_close (OGGZ * oggz)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  oggz_vector_foreach (&oggz->streams, oggz_stream_clear);
+  oggz_vector_clear (&oggz->streams);
+
+  if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
+    oggz_write_close (oggz);
+  } else if (OGGZ_CONFIG_READ) {
+    oggz_read_close (oggz);
+  }
+
+  if (oggz->fd != -1) {
+    if (close (oggz->fd) == -1) {
+      return OGGZ_ERR_SYSTEM;
+    }
+  }
+
+  oggz_free (oggz);
+
+  return 0;
+}
+
+off_t
+oggz_tell (OGGZ * oggz)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  return oggz->offset;
+}
+
+/******** oggz_stream management ********/
+
+static int
+oggz_find_stream (void * data, long serialno)
+{
+  oggz_stream_t * stream = (oggz_stream_t *) data;
+
+  return (stream->ogg_stream.serialno == serialno);
+}
+
+oggz_stream_t *
+oggz_get_stream (OGGZ * oggz, long serialno)
+{
+  if (serialno < 0) return NULL;
+
+  return oggz_vector_find (&oggz->streams, oggz_find_stream, serialno);
+}
+
+oggz_stream_t *
+oggz_add_stream (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+
+  stream = oggz_malloc (sizeof (oggz_stream_t));
+  if (stream == NULL) return NULL;
+
+  ogg_stream_init (&stream->ogg_stream, (int)serialno);
+
+  stream->delivered_non_b_o_s = 0;
+  stream->b_o_s = 1;
+  stream->e_o_s = 0;
+  stream->granulepos = 0;
+  stream->packetno = -1; /* will be incremented on first write */
+
+  stream->metric = NULL;
+  stream->metric_user_data = NULL;
+  stream->metric_internal = 0;
+  stream->order = NULL;
+  stream->order_user_data = NULL;
+  stream->read_packet = NULL;
+  stream->read_user_data = NULL;
+
+  oggz_vector_add_element (&oggz->streams, stream);
+
+  return stream;
+}
+
+int
+oggz_get_bos (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+  int i;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (serialno == -1) {
+    for (i = 0; i < oggz->streams.nr_elements; i++) {
+      stream = (oggz_stream_t *)oggz->streams.data[i];
+#if 1
+      /* If this stream has delivered a non bos packet, return FALSE */
+      if (stream->delivered_non_b_o_s) return 0;
+#else
+      /* If this stream has delivered its bos packet, return FALSE */
+      if (!stream->b_o_s) return 0;
+#endif
+    }
+    return 1;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    if (stream == NULL)
+      return OGGZ_ERR_BAD_SERIALNO;
+
+    return stream->b_o_s;
+  }
+}
+
+int
+oggz_get_eos (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+  int i;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (serialno == -1) {
+    for (i = 0; i < oggz->streams.nr_elements; i++) {
+      stream = (oggz_stream_t *)oggz->streams.data[i];
+      if (!stream->e_o_s) return 0;
+    }
+    return 1;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    if (stream == NULL)
+      return OGGZ_ERR_BAD_SERIALNO;
+
+    return stream->e_o_s;
+  }
+}
+
+int
+oggz_set_eos (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+  int i;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (serialno == -1) {
+    for (i = 0; i < oggz->streams.nr_elements; i++) {
+      stream = (oggz_stream_t *)oggz->streams.data[i];
+      stream->e_o_s = 1;
+    }
+    oggz->all_at_eos = 1;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    if (stream == NULL)
+      return OGGZ_ERR_BAD_SERIALNO;
+
+    stream->e_o_s = 1;
+
+    if (oggz_get_eos (oggz, -1))
+      oggz->all_at_eos = 1;
+  }
+
+  return 0;
+}
+
+long
+oggz_serialno_new (OGGZ * oggz)
+{
+  long serialno;
+
+  do {
+    serialno = random();
+  } while (oggz_get_stream (oggz, serialno) != NULL);
+
+  return serialno;
+}
+
+/******** OggzMetric management ********/
+
+typedef struct {
+  ogg_int64_t gr_n;
+  ogg_int64_t gr_d;
+} oggz_metric_linear_t;
+
+static ogg_int64_t
+oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
+			    void * user_data)
+{
+  oggz_metric_linear_t * ldata = (oggz_metric_linear_t *)user_data;
+
+  return (ldata->gr_n * granulepos / ldata->gr_d);
+}
+
+static int
+oggz_set_metric_internal (OGGZ * oggz, long serialno,
+			  OggzMetric metric, void * user_data, int internal)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (serialno == -1) {
+    if (oggz->metric_internal)
+      oggz_free (oggz->metric_user_data);
+    oggz->metric = metric;
+    oggz->metric_user_data = user_data;
+    oggz->metric_internal = internal;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+    if (stream->metric_internal)
+      oggz_free (stream->metric_user_data);
+    stream->metric = metric;
+    stream->metric_user_data = user_data;
+    stream->metric_internal = internal;
+  }
+
+  return 0;
+}
+
+int
+oggz_set_metric (OGGZ * oggz, long serialno,
+		 OggzMetric metric, void * user_data)
+{
+  return oggz_set_metric_internal (oggz, serialno, metric, user_data, 0);
+}
+
+int
+oggz_set_metric_linear (OGGZ * oggz, long serialno,
+			ogg_int64_t granule_rate_numerator,
+			ogg_int64_t granule_rate_denominator)
+{
+  oggz_metric_linear_t * linear_data;
+
+  linear_data = oggz_malloc (sizeof (oggz_metric_linear_t));
+  linear_data->gr_n = granule_rate_numerator;
+  linear_data->gr_d = granule_rate_denominator;
+
+  return oggz_set_metric_internal (oggz, serialno, oggz_metric_default_linear,
+				   linear_data, 1);
+}
+
+ogg_int64_t
+oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (granulepos == -1) return -1;
+
+  if (serialno == -1) {
+    if (oggz->metric)
+      return oggz->metric (oggz, serialno, granulepos,
+			   oggz->metric_user_data);
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    if (!stream) return -1;
+
+    if (stream->metric) {
+      return stream->metric (oggz, serialno, granulepos,
+			     stream->metric_user_data);
+    } else if (oggz->metric) {
+      return oggz->metric (oggz, serialno, granulepos,
+			   oggz->metric_user_data);
+    }
+  }
+
+  return -1;
+}
+
+int
+oggz_set_order (OGGZ * oggz, long serialno,
+		OggzOrder order, void * user_data)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (oggz->flags & OGGZ_WRITE) {
+    return OGGZ_ERR_INVALID;
+  }
+
+  if (serialno == -1) {
+    oggz->order = order;
+    oggz->order_user_data = user_data;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+    stream->order = order;
+    stream->order_user_data = user_data;
+  }
+
+  return 0;
+}
+

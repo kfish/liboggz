@@ -1,0 +1,34 @@
+#
+# Export file for liboggz
+#
+# Only the symbols listed in the global section will be callable from
+# applications linking to liboggz.
+#
+
+@PACKAGE@.so.0.2
+{
+        global:
+		oggz_new;
+		oggz_open;
+		oggz_openfd;
+		oggz_flush;
+		oggz_close;
+		oggz_get_bos;
+		oggz_get_eos;
+		oggz_set_read_callback;
+		oggz_read;
+		oggz_read_input;
+		oggz_write_set_hungry_callback;
+		oggz_write_feed;
+		oggz_write;
+		oggz_write_output;
+		oggz_write_get_next_page_size;
+		oggz_set_metric;
+		oggz_seek_units;
+		oggz_tell;
+		oggz_seek;
+		oggz_data_begins_here;
+		oggz_serialno_new;
+        local:
+                *;
+};
