@@ -158,10 +158,12 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
 #if _UMMODIFIED_
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
       if ((bytes = oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
+#if 0
 	if (ferror (oggz->file)) {
 	  oggz_set_error (oggz, OGGZ_ERR_SYSTEM);
 	  return -1;
 	}
+#endif
       }
 
       if (bytes == 0) {
@@ -352,10 +354,10 @@ oggz_read (OGGZ * oggz, long n)
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     if ((bytes_read = (long) oggz_io_read (oggz, buffer, bytes)) == 0) {
-
-      if (ferror (oggz->file)) {
-	return OGGZ_ERR_SYSTEM;
-      }
+      /* schyeah! */
+    }
+    if (bytes_read == OGGZ_ERR_SYSTEM) {
+      return OGGZ_ERR_SYSTEM;
     }
 
     ogg_sync_wrote (&reader->ogg_sync, bytes_read);
@@ -553,10 +555,11 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
 
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
       if ((bytes = (long) oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
-	if (ferror (oggz->file)) {
+	/* schyeah! */
+      }
+      if (bytes = OGGZ_ERR_SYSTEM) {
 	  /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
 	  return -1;
-	}
       }
 
       if (bytes == 0 || feof (oggz->file)) {
