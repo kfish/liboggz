@@ -564,6 +564,13 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
 	return -2;
       }
 
+      if (bytes == 0) {
+	return -2;
+      } else if (oggz->file && feof (oggz->file)) {
+	clearerr (oggz->file);
+	return -2;
+      }
+
       ogg_sync_wrote(&reader->ogg_sync, bytes);
 
     } else if (more < 0) {
