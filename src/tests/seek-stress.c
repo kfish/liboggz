@@ -35,6 +35,8 @@
 #include <string.h>
 #include <oggz/oggz.h>
 
+#include "oggz_tests.h"
+
 static int has_skeleton = 0;
 static int verbose = 0;
 
@@ -59,11 +61,31 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 static ogg_int64_t
 try_seek_units (OGGZ * oggz, ogg_int64_t units)
 {
+  ogg_int64_t result, diff;
+
   if (verbose)
     printf ("\tAttempt seek to %lld ms:\n", units);
-  units = oggz_seek_units (oggz, units, SEEK_SET);
+  result = oggz_seek_units (oggz, units, SEEK_SET);
+
+  if (result < 0) {
+    FAIL ("Seek failure\n");
+  }
+
+  if (result != oggz_tell_units (oggz))
+    FAIL ("oggz_seek_units() result != oggz_tell_units()\n");
+
+  if (units == 0 && result != 0)
+    FAIL ("Failed seeking to 0");
+
+  diff = result - units;
+
+  if (diff < 0)
+    FAIL ("Seek result too early");
+
   if (verbose)
-    printf ("\t%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+    printf ("\t%08lx: %lld ms (+%lld ms)\n",
+	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
+
   return units;
 }
 
