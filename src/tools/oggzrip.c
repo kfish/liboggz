@@ -51,8 +51,6 @@
 #define READ_SIZE 4096
 #define WRITE_SIZE 4096
 
-#define MAX_FILTER 64
-
 typedef struct {
   OGGZ *reader;
   FILE *outfile;
