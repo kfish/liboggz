@@ -36,6 +36,6 @@
 #include "config.h"
 
 const char *
-ot_page_identify (const ogg_page * og);
+ot_page_identify (const ogg_page * og, char ** info);
 
 #endif /* __OGGZ_TOOLS_H__ */

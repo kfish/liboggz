@@ -74,6 +74,7 @@ struct _OI_TrackInfo {
   OI_Stats pages;
   OI_Stats packets;
   const char * codec_name;
+  char * codec_info;
 };
 
 static void
@@ -150,6 +151,10 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 	  oi_bitrate (oit->pages.length_total, info->duration));
   printf ("\n");
 
+  if (oit->codec_info != NULL) {
+    puts (oit->codec_info);
+  }
+
   /* Page stats */
   oi_stats_print (info, &oit->pages, "Page");
 
@@ -201,7 +206,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
   }
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    oit->codec_name = ot_page_identify (og);
+    oit->codec_name = ot_page_identify (og, &oit->codec_info);
   }
 
   bytes = og->header_len + og->body_len;
@@ -306,6 +311,12 @@ oi_pass2 (OGGZ * oggz, OI_Info * info)
   return 0;
 }
 
+static void
+oit_delete (OI_Info * info, OI_TrackInfo * oit, long serialno)
+{
+  if (oit->codec_info) free (oit->codec_info);
+}
+
 int
 main (int argc, char ** argv)
 {
@@ -335,7 +346,7 @@ main (int argc, char ** argv)
   oggz_close (oggz);
 
   /* Print summary information */
-  printf ("Duration: %lld ms\n", info.duration);
+  printf ("Content-Duration: %lld ms\n", info.duration);
   printf ("Content-Length: %ld bytes\n", info.length_total);
   printf ("Content-Bitrate-Average: %ld bps\n",
 	  oi_bitrate (info.length_total, info.duration));
@@ -343,6 +354,7 @@ main (int argc, char ** argv)
 
   oggzinfo_apply (oit_print, &info);
 
+  oggzinfo_apply (oit_delete, &info);
   oggz_table_delete (info.tracks);
 
   return (0);

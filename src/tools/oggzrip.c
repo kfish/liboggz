@@ -180,7 +180,7 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
   stream->streamid = streamid_count++;
   stream->content_type = "unknown";
 
-  ident = ot_page_identify (og);
+  ident = ot_page_identify (og, NULL);
   if (ident != NULL) stream->content_type = ident;
    
   if (ordata->verbose)

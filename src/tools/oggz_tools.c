@@ -36,24 +36,122 @@
 #include <string.h>
 #include <oggz/oggz.h>
 
+static  ogg_uint32_t
+_le_32 (ogg_uint32_t i)
+{
+   ogg_uint32_t ret=i;
+#ifdef WORDS_BIGENDIAN
+   ret =  (i>>24);
+   ret += (i>>8) & 0x0000ff00;
+   ret += (i<<8) & 0x00ff0000;
+   ret += (i<<24);
+#endif
+   return ret;
+}
+
+static  unsigned short
+_be_16 (unsigned short s)
+{
+  unsigned short ret=s;
+#ifndef WORDS_BIGENDIAN
+  ret = (s>>8) & 0x00ffU;
+  ret += (s<<8) & 0xff00U;
+#endif
+  return ret;
+}
+
+static  ogg_uint32_t
+_be_32 (ogg_uint32_t i)
+{
+   ogg_uint32_t ret=i;
+#ifndef WORDS_BIGENDIAN
+   ret =  (i>>24);
+   ret += (i>>8) & 0x0000ff00;
+   ret += (i<<8) & 0x00ff0000;
+   ret += (i<<24);
+#endif
+   return ret;
+}
+
+#define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
+#define INT16_BE_AT(x) _be_16((*(ogg_int32_t *)(x)))
+#define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
+
+typedef char * (* OTCodecInfoFunc) (unsigned char * data, long n);
+
 typedef struct {
   const char *bos_str;
   int bos_str_len;
   const char *content_type;
+  OTCodecInfoFunc info_func;
 } OTCodecIdent;
 
+static char *
+ot_theora_info (unsigned char * data, long len)
+{
+  char * buf;
+  int width, height;
+
+  if (len < 41) return NULL;
+
+  buf = malloc (80);
+
+  width = INT16_BE_AT(&data[8]) << 4;
+  height = INT16_BE_AT(&data[10]) << 4;
+
+  snprintf (buf, 80,
+	    "\tVideo-Framerate: %.3f fps\n"
+	    "\tVideo-Width: %d\n\tVideo-Height: %d\n",
+	    (double)INT32_BE_AT(&data[22])/ (double)INT32_BE_AT(&data[26]),
+	    width, height);
+
+  return buf;
+}
+
+static char *
+ot_vorbis_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  if (len < 30) return NULL;
+
+  buf = malloc (60);
+
+  snprintf (buf, 60,
+	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
+	    INT32_LE_AT(&data[12]), (int)(data[11]));
+
+  return buf;
+}
+
+static char *
+ot_speex_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  if (len < 68) return NULL;
+
+  buf = malloc (60);
+
+  snprintf (buf, 60,
+	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
+	    INT32_LE_AT(&data[36]), INT32_LE_AT(&data[48]));
+
+  return buf;
+}
+
 static const OTCodecIdent codec_ident[] = {
-  {"\200theora", 7, "theora"},
-  {"\001vorbis", 7, "vorbis"},
-  {"Speex", 5, "speex"},
-  {"CMML\0\0\0\0", 8, "cmml"},
-  {"Annodex", 8, "annodex"},
-  {"fishead", 8, "skeleton"},
+  {"\200theora", 7, "theora", ot_theora_info},
+  {"\001vorbis", 7, "vorbis", ot_vorbis_info},
+  {"Speex", 5, "speex", ot_speex_info},
+  {"CMML\0\0\0\0", 8, "cmml", NULL},
+  {"Annodex", 8, "annodex", NULL},
+  {"fishead", 8, "skeleton", NULL},
   {NULL}
 };
 
 const char *
-ot_page_identify (const ogg_page * og)
+ot_page_identify (const ogg_page * og, char ** info)
 {
   const char * ret = NULL;
   int i;
@@ -71,6 +169,9 @@ ot_page_identify (const ogg_page * og)
     if (og->body_len >= ident->bos_str_len &&
 	memcmp (og->body, ident->bos_str, ident->bos_str_len) == 0) {
       ret = ident->content_type;
+      if (info && ident->info_func) {
+	*info = ident->info_func (og->body, og->body_len);
+      }
       break;
     }
   }
