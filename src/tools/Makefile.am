@@ -21,6 +21,8 @@ endif
 
 endif
 
+noinst_HEADERS = oggz_tools.h
+
 # Programs to build
 bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
 noinst_PROGRAMS = $(oggz_read_noinst_programs)
@@ -37,5 +39,5 @@ oggzdump_LDADD = $(OGGZ_LIBS)
 oggzmerge_SOURCES = oggzmerge.c
 oggzmerge_LDADD = $(OGGZ_LIBS)
 
-oggzrip_SOURCES = oggzrip.c
+oggzrip_SOURCES = oggzrip.c oggz_tools.c
 oggzrip_LDADD = $(OGGZ_LIBS)

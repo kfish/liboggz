@@ -45,6 +45,7 @@
 #include <errno.h>
 
 #include <oggz/oggz.h>
+#include "oggz_tools.h"
 
 #ifdef _WIN32
 /* Supply missing headers and functions for Win32 */
@@ -78,21 +79,7 @@ typedef struct {
   int bos;
 } ORStream;
 
-typedef struct {
-  const char *bos_str;
-  int bos_str_len;
-  const char *content_type;
-} ORCodecIdent;
-
 static int streamid_count = 0;
-
-static const ORCodecIdent codec_ident[] = {
-  {"\200theora", 7, "theora"},
-  {"\001vorbis", 7, "vorbis"},
-  {"Speex", 5, "speex"},
-  {"Annodex", 8, "annodex"},
-  {NULL}
-};
 
 static void
 usage (char * progname)
@@ -177,8 +164,8 @@ filter_stream_p (const ORData *ordata, ORStream *stream,
 static ORStream *
 orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
 {
-  int i;
-
+  const char * ident;
+  
   ORStream *stream = malloc (sizeof (ORStream));
   assert (stream != NULL);
 
@@ -186,19 +173,8 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
   stream->streamid = streamid_count++;
   stream->content_type = "unknown";
 
-  /* try to identify stream codec name by looking at the first bytes of the
-   * first packet */
-  for (i = 0;; i++) {
-    const ORCodecIdent *ident = &codec_ident[i];
-    
-    if (ident->bos_str == NULL)
-      break;
-    if (og->body_len >= ident->bos_str_len &&
-	memcmp (og->body, ident->bos_str, ident->bos_str_len) == 0) {
-      stream->content_type = ident->content_type;
-      break;
-    }
-  }
+  ident = ot_page_identify (og);
+  if (ident != NULL) stream->content_type = ident;
    
   if (ordata->verbose)
     fprintf (stderr, 
