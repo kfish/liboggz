@@ -22,8 +22,10 @@ oggz_write_feed			@14
 oggz_write				@15
 oggz_write_output		@16
 oggz_write_get_next_page_size		@17
+
 oggz_set_metric				@18
 oggz_set_metric_linear		@19
+oggz_set_metric_granuleshift	@50
 
 ;
 ; Ogg file seeking functions

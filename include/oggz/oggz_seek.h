@@ -222,6 +222,26 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 			    ogg_int64_t granule_rate_denominator);
 
 /**
+ * Specify that a logical bitstream has a granuleshift metric
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz to attach
+ * this granuleshift metric to. A value of -1 indicates that the metric should
+ * be attached to all unattached logical bitstreams in \a oggz.
+ * \param granule_rate_numerator The numerator of the granule rate
+ * \param granule_rate_denominator The denominator of the granule rate
+ * \param granuleshift The granuleshift
+ * \returns 0 Success
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ */
+int
+oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
+			      ogg_int64_t granule_rate_numerator,
+			      ogg_int64_t granule_rate_denominator,
+			      int granuleshift);
+
+/**
  * This is the signature of a function to correlate Ogg streams.
  * If every position in an Ogg stream can be described by a metric (eg. time)
  * then define this function that returns some arbitrary unit value.

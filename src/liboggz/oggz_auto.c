@@ -311,6 +311,7 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   unsigned char * header = op->packet;
   long fisbone_serialno; /* The serialno referred to in this fisbone */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
+  int granuleshift;
 
   if (op->bytes < 48) return 0;
 
@@ -325,16 +326,25 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   granule_rate_numerator = INT64_LE_AT(&header[20]);
   granule_rate_denominator = INT64_LE_AT(&header[28]);
+  granuleshift = (int)header[48];
+
 #ifdef DEBUG
-  printf ("Got fisbone granulerate %lld/%lld for serialno %010ld\n",
-	  granule_rate_numerator, granule_rate_denominator,
+  printf ("Got fisbone granulerate %lld/%lld, granuleshift %d for serialno %010ld\n",
+	  granule_rate_numerator, granule_rate_denominator, granuleshift,
 	  fisbone_serialno);
 #endif
 
-  oggz_set_metric_linear (oggz, fisbone_serialno,
-			  granule_rate_numerator,
-			  OGGZ_AUTO_MULT * granule_rate_denominator);
-
+  if (granuleshift == 0) {
+    oggz_set_metric_linear (oggz, fisbone_serialno,
+			    granule_rate_numerator,
+			    OGGZ_AUTO_MULT * granule_rate_denominator);
+  } else {
+    oggz_set_metric_granuleshift (oggz, fisbone_serialno,
+				  granule_rate_numerator,
+				  OGGZ_AUTO_MULT * granule_rate_denominator,
+				  granuleshift);
+  }
+				
   return 1;
 }
 
