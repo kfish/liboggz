@@ -51,10 +51,10 @@ typedef struct {
 } error_text;
 
 static error_text errors[] = {
-  {5, "Multiple bos packets"},
-  {6, "Multiple eos packets"},
-  {20, "Packet belongs to unknown serialno"},
-  {24, "Granulepos out of order within logical bitstream"},
+  {-5, "Multiple bos packets"},
+  {-6, "Multiple eos packets"},
+  {-20, "Packet belongs to unknown serialno"},
+  {-24, "Granulepos decreasing within track"},
   {0, NULL}
 };
 
@@ -134,7 +134,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   OGGZ * writer = (OGGZ *)user_data;
   timestamp_t timestamp;
   int flush;
-  int ret = 0, feed_err = 0;
+  int ret = 0, feed_err = 0, i;
 
   timestamp = gp_to_time (oggz, serialno, op->granulepos);
   if (timestamp != -1.0) {
@@ -162,9 +162,18 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     } else {
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
     }
-    fprintf (stderr,
-	     ": serialno %010ld: Packet violates Ogg framing constraints: %d\n",
-	     serialno, feed_err);
+    fprintf (stderr, ": serialno %010ld: ", serialno);
+    for (i = 0; errors[i].error; i++) {
+      if (errors[i].error == feed_err) {
+	fprintf (stderr, "%s\n", errors[i].description);
+	break;
+      }
+    }
+    if (errors[i].error == 0) {
+      fprintf (stderr,
+	       "Packet violates Ogg framing constraints: %d\n",
+	       feed_err);
+    }
   }
 
   return ret;
