@@ -48,6 +48,8 @@
 #include "oggz_macros.h"
 #include "oggz_stream.h"
 
+/*#define DEBUG*/
+
 /* Allow use of internal metrics; ie. the user_data for these gets free'd
  * when the metric is overwritten, or on close */
 int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
@@ -60,8 +62,6 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
-
-/*#define DEBUG*/
 
 #define OGGZ_AUTO_MULT 1000
 
@@ -141,8 +141,8 @@ auto_theora_metric (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
     tdata->fps_numerator;
 
 #ifdef DEBUG
-  printf ("serialno %010ld: Got theora frame %lld (%lld + %lld)\n",
-	  serialno, granulepos, iframe, pframe, tdata->keyframe_shift);
+  printf ("oggz_auto: serialno %010ld Got theora frame %lld (%lld + %lld): %lld units\n",
+	  serialno, granulepos, iframe, pframe, units);
 #endif
 
   return units;
