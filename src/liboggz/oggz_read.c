@@ -237,7 +237,7 @@ oggz_read_sync (OGGZ * oggz)
 	/* new stream ... check bos etc. */
 	if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
 	  /* error -- could not add stream */
-	  return -1;
+	  return -7;
 	}
       }
       os = &stream->ogg_stream;
@@ -246,7 +246,7 @@ oggz_read_sync (OGGZ * oggz)
 
       if(result == -1) {
 	/* hole in the data. */
-	return -1;
+	return -7;
       }
 
       if(result > 0){
@@ -287,7 +287,7 @@ oggz_read_sync (OGGZ * oggz)
       /* new stream ... check bos etc. */
       if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
 	/* error -- could not add stream */
-	return -1;
+	return -7;
       }
     }
     os = &stream->ogg_stream;
