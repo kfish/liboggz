@@ -59,14 +59,6 @@ LINK32_OBJS= \
 #====================================================================
 # C files in src
 
-	".\oggz.obj" \
-	".\oggz_io.obj" \
-	".\oggz_read.obj" \
-	".\oggz_write.obj" \
-	".\oggz_auto.obj" \
-	".\oggz_table.obj" \
-	".\oggz_vector.obj"
-
 .\oggz.obj:
 	$(CPP) $(CFLAGS) /Fo".\oggz.obj" /c "..\src\liboggz\oggz.c"
 

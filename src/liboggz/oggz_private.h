@@ -34,6 +34,7 @@
 #define __OGGZ_PRIVATE_H__
 
 #include <stdio.h>
+#include <sys/types.h>
 
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
