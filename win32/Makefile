@@ -1,60 +1,91 @@
+# Set the value of $(MSVCDir) for your installation. 
+# Please note that none of the directory names are allowed to have spaces 
+# in them. You must use the short name 
+#
+# "C:\Program Files\Microsoft Visual Studio\VC98" will not work.
+# "C:\Progra~1\Micros~1\VC98" will work.
+# MSVCDir="C:\PROGRA~1\MICROS~1.NET\Vc7"
 
-CC = @cl
-LD = @link
-CFLAGS = /nologo /c /FD /W1 /YX /I"." /I"..\src\liboggz" /I"..\include" /I"..\..\ogg\include" /D "WIN32"
-DLL_LFLAGS = /nologo ogg.lib /DLL /LIBPATH:"..\..\ogg\win32\Dynamic_Release"
-EXE_LFLAGS = /nologo
+MSVCDir="C:\PROGRA~1\Micros~3\VC98"
 
-!ifdef DEBUG
-OBJ = Debug
-CFLAGS = $(CFLAGS) /MDd /Od /Yd
-!else
-OBJ = Release
-CFLAGS = $(CFLAGS) /MD /O2
-!endif
+CPP=cl.exe
+LINK32=link.exe
 
-DLL = $(OBJ)\liboggz.dll
+LIBOGG_PATH="..\..\xiph.org\ogg\win32\Dynamic_Release"
+INCOGG_PATH="..\..\xiph.org\ogg\include"
 
-EXECUTABLES = $(OBJ)\oggzdump.exe $(OBJ)\oggzed.exe $(OBJ)\oggzinfo.exe $(OBJ)\oggzmerge.exe
+LINK32_FLAGS=$(LIBOGG_PATH)\ogg.lib /nologo /dll /incremental:no /libpath:"$(MSVCDir)\Lib" /implib:".\liboggz.lib" /machine:I386 /out:".\liboggz.dll" 
 
-DLL_OBJECTS = $(OBJ)\oggz.obj $(OBJ)\oggz_io.obj $(OBJ)\oggz_read.obj $(OBJ)\oggz_write.obj \
-	$(OBJ)\oggz_auto.obj $(OBJ)\oggz_table.obj $(OBJ)\oggz_vector.obj
+PROG_LINK_FLAGS=/nologo /incremental:no /libpath:"$(MSVCDir)\Lib" /machine:I386 /exetype:dynamic
 
-EXE_OBJECTS = $(OBJ)\oggzdump.obj $(OBJ)\oggzed.obj $(OBJ)\oggzinfo.obj $(OBJ)\oggzmerge.obj
+CFLAGS=/nologo /MD /W1 /GX /O2 /I"." /I"..\src\liboggz" /I"..\include" /I$(INCOGG_PATH) /I"$(MSVCDir)\Include"  /D "WIN32" /D "_USRDLL" /YX /FD
 
-All: $(OBJ) $(DLL) $(EXECUTABLES)
 
-$(OBJ):
-	@mkdir $(OBJ)
+#====================================================================
+# Targets
 
-$(DLL): $(DLL_OBJECTS)
-	$(LD) $(DLL_OBJECTS) $(DLL_LFLAGS) /DEF:liboggz.def /IMPLIB:$*.lib /OUT:$@
+ALL :  "attgetopt.obj" "liboggz.dll" "oggzdump.exe" "oggzinfo.exe" "oggzed.exe"
 
-$(OBJ)\oggzdump.exe : $(OBJ)\oggzdump.obj $(OBJ)\attgetopt.obj
-	@echo Linking $@...
-	$(LD) $*.obj $(OBJ)\attgetopt.obj $(EXE_LFLAGS) $(OBJ)\liboggz.lib /OUT:$@
+CLEAN:
+	-@erase ".\*.obj"
+	-@erase ".\vc60.idb"
+	-@erase ".\liboggz.dll"
+	-@erase ".\liboggz.exp"
+	-@erase ".\liboggz.lib"
 
-$(OBJ)\oggzed.exe : $(OBJ)\oggzed.obj $(OBJ)\attgetopt.obj
-	@echo Linking $@...
-	$(LD) $*.obj $(OBJ)\attgetopt.obj $(EXE_LFLAGS) $(OBJ)\liboggz.lib /OUT:$@
+#====================================================================
 
-$(OBJ)\oggzinfo.exe : $(OBJ)\oggzinfo.obj $(OBJ)\attgetopt.obj
-	@echo Linking $@...
-	$(LD) $*.obj $(OBJ)\attgetopt.obj $(EXE_LFLAGS) $(OBJ)\liboggz.lib /OUT:$@
+LINK32_OBJS= \
+	".\oggz.obj" \
+	".\oggz_io.obj" \
+	".\oggz_read.obj" \
+	".\oggz_write.obj" \
+	".\oggz_auto.obj" \
+	".\oggz_table.obj" \
+	".\oggz_vector.obj"
 
-$(OBJ)\oggzmerge.exe : $(OBJ)\oggzmerge.obj $(OBJ)\attgetopt.obj
-	@echo Linking $@...
-	$(LD) $*.obj $(OBJ)\attgetopt.obj $(EXE_LFLAGS) $(OBJ)\liboggz.lib /OUT:$@
+"liboggz.dll" : $(LINK32_OBJS) ".\liboggz.def"
+    $(LINK32) $(LINK32_FLAGS) /def:".\liboggz.def" $(LINK32_OBJS)
 
-{..\src\liboggz}.c{$(OBJ)}.obj :
-	$(CC) $(CFLAGS) /Fo$*.obj $<
+"oggzdump.exe" : "..\src\tools\oggzdump.c"
+	$(CPP) $(CFLAGS) /Fo".\oggzdump.obj" /c "..\src\tools\oggzdump.c"
+	$(LINK32) $(PROG_LINK_FLAGS) /out:"oggzdump.exe" ".\oggzdump.obj" ".\attgetopt.obj" liboggz.lib
 
-{..\src\tools}.c{$(OBJ)}.obj :
-	$(CC) $(CFLAGS) /Fo$*.obj $<
+"oggzinfo.exe" : "..\src\tools\oggzinfo.c"
+	$(CPP) $(CFLAGS) /Fo".\oggzinfo.obj" /c "..\src\tools\oggzinfo.c"
+	$(LINK32) $(PROG_LINK_FLAGS) /out:"oggzinfo.exe" ".\oggzinfo.obj" ".\attgetopt.obj" liboggz.lib
 
-.c{$(OBJ)}.obj :
-	$(CC) $(CFLAGS) /Fo$*.obj $<
+"oggzed.exe" : "..\src\tools\oggzed.c"
+	$(CPP) $(CFLAGS) /Fo".\oggzed.obj" /c "..\src\tools\oggzed.c"
+	$(LINK32) $(PROG_LINK_FLAGS) /out:"oggzed.exe" ".\oggzed.obj" ".\attgetopt.obj" liboggz.lib
 
-clean:
-	@del /sexyq $(OBJ)
-	@del /q vc60.*
+#====================================================================
+# C files in src
+
+.\oggz.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz.obj" /c "..\src\liboggz\oggz.c"
+
+.\oggz_io.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_io.obj" /c "..\src\liboggz\oggz_io.c"
+
+.\oggz_read.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_read.obj" /c "..\src\liboggz\oggz_read.c"
+
+.\oggz_write.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_write.obj" /c "..\src\liboggz\oggz_write.c"
+
+.\oggz_auto.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_auto.obj" /c "..\src\liboggz\oggz_auto.c"
+
+.\oggz_table.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_table.obj" /c "..\src\liboggz\oggz_table.c"
+
+.\oggz_vector.obj:
+	$(CPP) $(CFLAGS) /Fo".\oggz_vector.obj" /c "..\src\liboggz\oggz_vector.c"
+
+.\attgetopt.obj:
+	$(CPP) $(CFLAGS) /Fo".\attgetopt.obj" /c ".\attgetopt.c"
+
+# End of Makefile
+#====================================================================
+
