@@ -64,7 +64,7 @@
 
 /*#define DEBUG_BY_READING_PAGES*/
 
-#define CHUNKSIZE 8500
+#define CHUNKSIZE 65536
 
 #define oggz_off_t long
 
@@ -233,7 +233,7 @@ oggz_read_sync (OGGZ * oggz)
       serialno = reader->current_serialno;
 
       stream = oggz_get_stream (oggz, serialno);
-      
+
       if (stream == NULL) {
 	/* new stream ... check bos etc. */
 	if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
@@ -286,7 +286,7 @@ oggz_read_sync (OGGZ * oggz)
     reader->current_serialno = serialno; /* XXX: maybe not necessary */
 
     stream = oggz_get_stream (oggz, serialno);
-      
+
     if (stream == NULL) {
       /* new stream ... check bos etc. */
       if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
@@ -350,7 +350,7 @@ oggz_read (OGGZ * oggz, long n)
   if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
 
   while (cb_ret != -1 && cb_ret != 1 && bytes_read > 0 && remaining > 0) {
-    bytes = MIN (remaining, 4096);
+    bytes = MIN (remaining, CHUNKSIZE);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     if ((bytes_read = (long) oggz_io_read (oggz, buffer, bytes)) == 0) {
       /* schyeah! */
@@ -404,7 +404,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
     remaining -= bytes;
     nread += bytes;
 
-    cb_ret = oggz_read_sync (oggz);    
+    cb_ret = oggz_read_sync (oggz);
   }
 
   if (cb_ret == -1) oggz_purge (oggz);
@@ -815,7 +815,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 
-  if (oggz->file != NULL) { 
+  if (oggz->file != NULL) {
     if ((fd = fileno (oggz->file)) == -1) {
       /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
       return -1;
@@ -1037,7 +1037,7 @@ oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
     oggz_reset (oggz, offset_orig, -1, SEEK_SET);
     return -1;
   }
-  
+
 #ifdef DEBUG
   printf ("*** oggz_seek_end: found packet (%ld) at @%ld\n",
 	  unit_end, offset_end);
@@ -1056,7 +1056,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   if (oggz->flags & OGGZ_WRITE) {
     return -1;
   }
-  
+
   if (offset == 0) units = 0;
 
   return (off_t)oggz_reset (oggz, offset, units, whence);
@@ -1081,7 +1081,7 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   case SEEK_SET:
     return oggz_seek_set (oggz, units);
     break;
-  case SEEK_CUR: 
+  case SEEK_CUR:
     units += reader->current_unit;
     return oggz_seek_set (oggz, units);
     break;
@@ -1111,6 +1111,18 @@ oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
 
 #include <ogg/ogg.h>
 #include "oggz_private.h"
+
+OGGZ *
+oggz_read_init (OGGZ * oggz)
+{
+  return NULL;
+}
+
+OGGZ *
+oggz_read_close (OGGZ * oggz)
+{
+  return NULL;
+}
 
 int
 oggz_set_read_callback (OGGZ * oggz, long serialno,
