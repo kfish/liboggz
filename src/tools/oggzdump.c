@@ -30,13 +30,15 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include "config.h"
+#include <config.h>
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
+#ifndef WIN32
 #include <inttypes.h>
+#endif
 #include <getopt.h>
 #include <errno.h>
 
@@ -163,6 +165,9 @@ bin_dump (unsigned char * buf, long n)
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
+#ifdef WIN32
+#define PRId64 "I64d"
+#endif
   fprintf (outfile, "%08lx: serialno %010ld, "
 	   "granulepos %" PRId64 ", packetno %" PRId64,
 	   hide_offset ? -1 : oggz_tell (oggz),
@@ -231,7 +236,7 @@ revert_file (char * infilename)
   if (strcmp (infilename, "-") == 0) {
     infile = stdin;
   } else {
-    infile = fopen (infilename, "r");
+    infile = fopen (infilename, "rb");
   }
 
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT);
@@ -308,7 +313,7 @@ revert_file (char * infilename)
 		       progname);
 	      exit (1);
 	    } else {
-	      max_bytes = new_size;
+	      max_bytes = (long)new_size;
 	      packet = new_packet;
 	      op.packet = packet;
 	    }
@@ -424,7 +429,7 @@ main (int argc, char ** argv)
   if (outfilename == NULL) {
     outfile = stdout;
   } else {
-    outfile = fopen (outfilename, "w");
+    outfile = fopen (outfilename, "wb");
     if (outfile == NULL) {
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
@@ -468,7 +473,7 @@ main (int argc, char ** argv)
 	oggz_set_read_callback (oggz, serialno, my_read_packet, NULL);
       }
     }
-    
+
     while ((n = oggz_read (oggz, 1024)) > 0);
     
     oggz_close (oggz);

@@ -39,7 +39,9 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#ifndef WIN32
 #include <unistd.h>
+#endif
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -451,7 +453,7 @@ oggz_page_writeout (OGGZ * oggz, long n)
 #ifdef OGGZ_WRITE_DIRECT
     nwritten = write (fd, og->header + writer->page_offset, h);
 #else
-    nwritten = fwrite (og->header + writer->page_offset, 1, h, oggz->file);
+    nwritten = (long)fwrite (og->header + writer->page_offset, 1, h, oggz->file);
 #endif
     if (nwritten < h) {
       printf ("oggz_page_writeout: %ld < %ld\n", nwritten, h);
@@ -468,7 +470,7 @@ oggz_page_writeout (OGGZ * oggz, long n)
     nwritten = write (fd,
 		      og->body + (writer->page_offset - og->header_len), b);
 #else
-    nwritten = fwrite (og->body + (writer->page_offset - og->header_len),
+    nwritten = (long)fwrite (og->body + (writer->page_offset - og->header_len),
 		       1, b, oggz->file);
 #endif
     if (nwritten < b) {

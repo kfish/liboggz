@@ -37,7 +37,11 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -106,9 +110,9 @@ oggz_open (char * filename, int flags)
   if (oggz_flags_disabled (flags)) return NULL;
 
   if (flags & OGGZ_WRITE) {
-    file = fopen (filename, "w");
+    file = fopen (filename, "wb");
   } else {
-    file = fopen (filename, "r");
+    file = fopen (filename, "rb");
   }
   if (file == NULL) return NULL;
 
@@ -328,7 +332,13 @@ oggz_serialno_new (OGGZ * oggz)
   long serialno;
 
   do {
+
+
+#ifndef WIN32
     serialno = random();
+#else
+    serialno = rand();
+#endif
   } while (oggz_get_stream (oggz, serialno) != NULL);
 
   return serialno;

@@ -1,0 +1,37 @@
+Microsoft Visual Studio Solution File, Format Version 8.00
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "C_libOGGZ", "C_libOGGZ.vcproj", "{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "liboggz_bin_installer", "liboggz_bin_installer\liboggz_bin_installer.vdproj", "{1412AEA3-2CC9-488E-9555-C011E9985302}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGGZDump", "OGGZDump.vcproj", "{65EEF875-D215-4248-B216-8B9701AA7A31}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfiguration) = preSolution
+		Debug = Debug
+		Release = Release
+	EndGlobalSection
+	GlobalSection(ProjectConfiguration) = postSolution
+		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Debug.ActiveCfg = Debug|Win32
+		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Debug.Build.0 = Debug|Win32
+		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Release.ActiveCfg = Release|Win32
+		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Release.Build.0 = Release|Win32
+		{1412AEA3-2CC9-488E-9555-C011E9985302}.Debug.ActiveCfg = Debug
+		{1412AEA3-2CC9-488E-9555-C011E9985302}.Debug.Build.0 = Debug
+		{1412AEA3-2CC9-488E-9555-C011E9985302}.Release.ActiveCfg = Release
+		{1412AEA3-2CC9-488E-9555-C011E9985302}.Release.Build.0 = Release
+		{65EEF875-D215-4248-B216-8B9701AA7A31}.Debug.ActiveCfg = Debug|Win32
+		{65EEF875-D215-4248-B216-8B9701AA7A31}.Debug.Build.0 = Debug|Win32
+		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.ActiveCfg = Release|Win32
+		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ExtensibilityGlobals) = postSolution
+	EndGlobalSection
+	GlobalSection(ExtensibilityAddIns) = postSolution
+	EndGlobalSection
+EndGlobal

@@ -36,7 +36,11 @@
  * Conrad Parker <conrad@annodex.net>
  */
 
+#ifndef WIN32
 #include "config.h"
+#else
+#include <config.h>
+#endif
 
 #if OGGZ_CONFIG_READ
 
@@ -45,7 +49,11 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+
+#ifndef WIN32
 #include <unistd.h>
+#endif
+
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
@@ -234,7 +242,7 @@ oggz_read_sync (OGGZ * oggz)
 	}
       }
       os = &stream->ogg_stream;
-      
+
       result = ogg_stream_packetout(os, op);
 
       if(result == -1) {
@@ -335,7 +343,8 @@ oggz_read (OGGZ * oggz, long n)
   while (bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
-    if ((bytes_read = fread (buffer, 1, bytes, oggz->file)) == 0) {
+    if ((bytes_read = (long)fread (buffer, 1, bytes, oggz->file)) == 0) {
+		
       if (ferror (oggz->file)) {
 	return OGGZ_ERR_SYSTEM;
       }
@@ -506,7 +515,7 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       page_offset = 0;
 
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
-      if ((bytes = fread (buffer, 1, CHUNKSIZE, oggz->file)) == 0) {
+      if ((bytes = (long)fread (buffer, 1, CHUNKSIZE, oggz->file)) == 0) {
 	if (ferror (oggz->file)) {
 	  /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
 	  return -1;
@@ -780,15 +789,24 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 
+#ifndef WIN32
   if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
     offset_end = statbuf.st_size;
   } else {
     /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
     return -1;
   }
+#else
+	if (statbuf.st_mode & S_IFREG) {
+    offset_end = statbuf.st_size;
+  } else {
+    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
+    return -1;
+  }
+#endif
 
   if (unit_target == reader->current_unit) {
-    return reader->current_unit;
+    return (long)reader->current_unit;
   }
 
   if (unit_target == 0) {
@@ -935,7 +953,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   offset_at = oggz_reset (oggz, offset_at, unit_at, SEEK_SET);
   if (offset_at == -1) return -1;
 
-  return reader->current_unit;
+  return (long)reader->current_unit;
 
  notfound:
 #ifdef DEBUG

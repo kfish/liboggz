@@ -39,7 +39,7 @@
 #include "config.h"
 
 #if OGGZ_CONFIG_READ
-
+#include <stdlib.h>
 #include <string.h>
 
 #include <oggz/oggz.h>
@@ -143,6 +143,7 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (header[0] != 0x80) return 0;
   if (strncmp ((char *)&header[1], "theora", 6)) return 0;
   if (!op->b_o_s) return 0;
+
 
   tdata = oggz_malloc (sizeof (oggz_theora_metric_t));
 
