@@ -26,10 +26,16 @@ rw_tests = read-generated read-stop-ok read-stop-err \
 endif
 endif
 
-TESTS = $(write_tests) $(rw_tests)
+if OGGZ_CONFIG_READ
+seek_progs = seek-stress
+seek_tests = seek-stress-test.sh
+endif
 
-noinst_PROGRAMS = $(TESTS)
+noinst_SCRIPTS = $(seek_tests)
+noinst_PROGRAMS = $(write_tests) $(rw_tests) $(seek_progs)
 noinst_HEADERS = oggz_tests.h
+
+TESTS = $(write_tests) $(rw_tests) $(seek_tests)
 
 write_bad_guard_SOURCES = write-bad-guard.c
 write_bad_guard_LDADD = $(OGGZ_LIBS)
@@ -81,3 +87,6 @@ io_read_single_LDADD = $(OGGZ_LIBS)
 
 io_write_flush_SOURCES = io-write-flush.c
 io_write_flush_LDADD = $(OGGZ_LIBS)
+
+seek_stress_SOURCES = seek-stress.c
+seek_stress_LDADD = $(OGGZ_LIBS)

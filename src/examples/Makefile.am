@@ -14,7 +14,7 @@ endif
 endif
 
 if OGGZ_CONFIG_READ
-oggz_read_programs = read-file read-io seek-stress
+oggz_read_programs = read-file read-io
 endif
 
 if OGGZ_CONFIG_WRITE
@@ -33,9 +33,6 @@ read_file_LDADD = $(OGGZ_LIBS)
 
 read_io_SOURCES = read-io.c
 read_io_LDADD = $(OGGZ_LIBS)
-
-seek_stress_SOURCES = seek-stress.c
-seek_stress_LDADD = $(OGGZ_LIBS)
 
 write_feed_SOURCES = write-feed.c
 write_feed_LDADD = $(OGGZ_LIBS)
