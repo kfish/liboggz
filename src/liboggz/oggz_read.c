@@ -815,7 +815,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 
-  if (unit_target > 0 && oggz->metric == NULL) {
+  if (unit_target > 0 && !oggz_has_metrics (oggz)) {
     /* No metric defined */
     return -1;
   }
