@@ -417,6 +417,8 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 #ifdef DEBUG
       printf (" ... scanned to page %ld\n", (long)ogg_page_granulepos (og));
 #endif
+
+#if 0
       if (offset_prev != -1) {
 	offset_at = oggz_seek_raw (oggz, offset_prev, SEEK_SET);
 	if (offset_at == -1) return -1;
@@ -432,6 +434,13 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
       } else {
 	return -1;
       }
+#else
+      serialno = ogg_page_serialno (og);
+      granule_at = ogg_page_granulepos (og);
+      unit_at = oggz_get_unit (oggz, serialno, granule_at);
+      
+      return offset_at;
+#endif
     }
 
     offset_at = offset_next;
@@ -513,13 +522,11 @@ oggz_seek_guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
 {
   oggz_off_t offset_guess;
 
-  if (unit_end == -1) {
-    if (unit_at == unit_begin) {
-      offset_guess = offset_begin + (offset_end - offset_begin)/2;
-    } else {
-      offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
-			    offset_begin, offset_at);
-    }
+  if (unit_at == unit_begin) {
+    offset_guess = offset_begin + (offset_end - offset_begin)/2;
+  } else if (unit_end == -1) {
+    offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
+			  offset_begin, offset_at);
   } else if (unit_end <= unit_begin) {
 #ifdef DEBUG
     printf ("oggz_seek_guess: unit_end <= unit_begin (ERROR)\n");
@@ -670,7 +677,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     printf ("oggz_seek_set: offset_next %ld\n", offset_next);
 #endif
 
-    if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
+    if (/*unit_end == -1 &&*/ offset_next == -2) { /* reached eof, backtrack */
       hit_eof = 1;
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
 					      &serialno);
