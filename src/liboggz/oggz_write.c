@@ -272,7 +272,6 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   /* OK -- Update stream's memory of packet details */
 
   if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
-    fprintf (stderr, "oggz_write: oggz_auto()\n");
     oggz_auto (oggz, op, serialno, NULL);
   }
 
