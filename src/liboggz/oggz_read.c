@@ -455,9 +455,11 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
     return -1;
   }
 
+
   offset_at = oggz_io_tell (oggz);
 
   oggz->offset = offset_at;
+
 
   ogg_sync_reset (&reader->ogg_sync);
 
