@@ -213,10 +213,11 @@ oggz_vector_grow (OggzVector * vector)
     }
 
     new_elements =
-      realloc (vector->data, (size_t)new_max_elements * sizeof (oggz_data_t));
+      oggz_realloc (vector->data, (size_t)new_max_elements * sizeof (oggz_data_t));
 
     if (new_elements == NULL) {
       vector->nr_elements--;
+      vector->data = NULL;
       return NULL;
     }
 
@@ -306,11 +307,14 @@ oggz_vector_remove_nth (OggzVector * vector, int n)
       new_max_elements = vector->max_elements/2;
 
       new_elements =
-	realloc (vector->data,
-		 (size_t)new_max_elements * sizeof (oggz_data_t));
+        oggz_realloc (vector->data,
+        (size_t)new_max_elements * sizeof (oggz_data_t));
 
       if (new_elements == NULL)
-	return NULL;
+      {
+        vector->data = NULL;
+        return NULL;
+      }
 
       vector->max_elements = new_max_elements;
       vector->data = new_elements;
@@ -382,12 +386,12 @@ oggz_vector_pop (OggzVector * vector)
       new_max_elements = vector->max_elements/2;
 
       new_elements =
-	realloc (vector->data,
-		 (size_t)new_max_elements * sizeof (oggz_data_t));
+        oggz_realloc (vector->data,
+        (size_t)new_max_elements * sizeof (oggz_data_t));
 
       if (new_elements != NULL) {
-	vector->max_elements = new_max_elements;
-	vector->data = new_elements;
+        vector->max_elements = new_max_elements;
+        vector->data = new_elements;
       }
     }
 
