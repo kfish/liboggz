@@ -67,7 +67,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
 int
 main (int argc, char * argv[])
 {
-  char * progname, filename = NULL;
+  char * progname, * filename = NULL;
   OGGZ * oggz;
   long n;
 
