@@ -46,7 +46,9 @@ static const OTCodecIdent codec_ident[] = {
   {"\200theora", 7, "theora"},
   {"\001vorbis", 7, "vorbis"},
   {"Speex", 5, "speex"},
+  {"CMML\0\0\0\0", 8, "cmml"},
   {"Annodex", 8, "annodex"},
+  {"fishead", 8, "skeleton"},
   {NULL}
 };
 
