@@ -90,6 +90,7 @@ oggz_read_close (OGGZ * oggz)
 {
   OggzReader * reader = &oggz->x.reader;
 
+  ogg_stream_clear (&reader->ogg_stream);
   ogg_sync_clear (&reader->ogg_sync);
 
   return oggz;
