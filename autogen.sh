@@ -157,7 +157,8 @@ distribution directories, e.g.:
 
  export CPPFLAGS="-I/sw/include \$CPPFLAGS"
  export LDFLAGS="-L/sw/lib \$LDFLAGS"
- export PKG_CONFIG_PATH="/sw/lib/pkgconfig:\$PKG_CONFIG_PATH"
+ export PKG_CONFIG_PATH="/usr/local/lib/pkgconfig:/sw/lib/pkgconfig:\$PKG_CONFIG_PATH"
+
  ./configure
 
 EOF
