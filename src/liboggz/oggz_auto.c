@@ -340,8 +340,7 @@ static const OggzReadPacket auto_readers[] = {
   auto_anxdata,
   auto_flac,
   auto_cmml,
-  /* XXX: don't set a metric on the fishead, so the fisbones are inspected */
-  /*auto_fishead,*/
+  auto_fishead,
   auto_fisbone,
   NULL
 };
