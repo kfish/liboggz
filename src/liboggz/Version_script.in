@@ -15,15 +15,19 @@
 		oggz_close;
 		oggz_get_bos;
 		oggz_get_eos;
+
 		oggz_set_read_callback;
 		oggz_set_read_page;
 		oggz_read;
 		oggz_read_input;
+		oggz_purge;
+
 		oggz_write_set_hungry_callback;
 		oggz_write_feed;
 		oggz_write;
 		oggz_write_output;
 		oggz_write_get_next_page_size;
+
 		oggz_set_metric;
 		oggz_set_metric_linear;
 
