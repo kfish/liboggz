@@ -156,6 +156,8 @@ oggz_stream_clear (void * data)
   if (stream->metric_internal)
     oggz_free (stream->metric_user_data);
 
+  oggz_free (stream);
+
   return 0;
 }
 
