@@ -33,6 +33,8 @@
 #ifndef __OGGZ_BYTEORDER_H__
 #define __OGGZ_BYTEORDER_H__
 
+#include "config.h"
+
 #ifdef _UNUSED_
 static  unsigned short
 _le_16 (unsigned short s)
@@ -44,7 +46,7 @@ _le_16 (unsigned short s)
 #endif
   return ret;
 }
-#endif
+#endif /* _UNUSED_ */
 
 static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
