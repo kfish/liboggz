@@ -114,6 +114,8 @@ oggz_write_init (OGGZ * oggz)
   writer->packet_offset = 0;
   writer->page_offset = 0;
 
+  writer->current_stream = NULL;
+
   return oggz;
 }
 

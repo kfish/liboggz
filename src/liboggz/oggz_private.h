@@ -134,8 +134,8 @@ struct _OggzWriter {
 
   int flushing; /* whether current packet is being flushed or just paged out */
 
-  int eog; /* end of page */
 #if 0
+  int eog; /* end of page */
   int eop; /* end of packet */
 #endif
   int eos; /* end of stream */
