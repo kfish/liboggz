@@ -167,6 +167,12 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   tdata->fps_numerator = INT32_BE_AT(&header[22]);
   tdata->fps_denominator = INT32_BE_AT(&header[26]);
 
+  /* Very old theora versions used a value of 0 to mean 1.
+   * Unfortunately theora hasn't incremented its version field,
+   * hence we hardcode this workaround for old or broken streams.
+   */
+  if (tdata->fps_numerator == 0) tdata->fps_numerator = 1;
+
 #if USE_THEORA_PRE_ALPHA_3_FORMAT
   /* old header format, used by Theora alpha2 and earlier */
   keyframe_granule_shift = (header[36] & 0xf8) >> 3;
