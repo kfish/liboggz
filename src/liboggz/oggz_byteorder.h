@@ -33,13 +33,7 @@
 #ifndef __OGGZ_BYTEORDER_H__
 #define __OGGZ_BYTEORDER_H__
 
-#ifdef WIN32
-#define __INLINE__ __inline
-#else
-#define __INLINE__ __inline__
-#endif
-
-static __INLINE__ unsigned short
+static  unsigned short
 _le_16 (unsigned short s)
 {
   unsigned short ret=s;
@@ -50,7 +44,7 @@ _le_16 (unsigned short s)
   return ret;
 }
 
-static __INLINE__ ogg_uint32_t
+static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
 {
    ogg_uint32_t ret=i;
@@ -63,7 +57,7 @@ _le_32 (ogg_uint32_t i)
    return ret;
 }
 
-static __INLINE__ ogg_uint32_t
+static  ogg_uint32_t
 _be_32 (ogg_uint32_t i)
 {
    ogg_uint32_t ret=i;
@@ -76,7 +70,7 @@ _be_32 (ogg_uint32_t i)
    return ret;
 }
 
-static __INLINE__ ogg_int64_t
+static  ogg_int64_t
 _le_64 (ogg_int64_t l)
 {
   ogg_int64_t ret=l;

@@ -2,7 +2,7 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="7.10"
-	Name="C_libOGGZ"
+	Name="libOggz"
 	ProjectGUID="{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}"
 	Keyword="Win32Proj">
 	<Platforms>
@@ -36,7 +36,7 @@
 				RegisterOutput="FALSE"
 				AdditionalOptions="/DEF:liboggz.def"
 				AdditionalDependencies="ogg.lib"
-				OutputFile="$(OutDir)/C_libOGGZ.dll"
+				OutputFile="$(OutDir)/libOGGZ.dll"
 				LinkIncremental="2"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release"
 				GenerateDebugInformation="TRUE"

@@ -47,18 +47,10 @@
 #undef OGGZ_CONFIG_EXPERIMENTAL
 
 /* Do not build reading support */
-#ifdef WIN32
 #define OGGZ_CONFIG_READ 1
-#else
-#undef OGGZ_CONFIG_READ
-#endif
 
 /* Do not build writing support */
-#ifdef WIN32
 #define OGGZ_CONFIG_WRITE 1
-#else
-#undef OGGZ_CONFIG_WRITE
-#endif
 
 /* Name of package */
 #undef PACKAGE
