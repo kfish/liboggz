@@ -36,27 +36,12 @@
 #include <oggz/oggz.h>
 
 static int has_skeleton = 0;
+static int verbose = 0;
 
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
- unsigned char * header = op->packet;
- 
-#if 0
-  if (got_an_eos) {
-    printf ("[%010ld]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,
-	    (long)op->granulepos);
-  }
-
-  if (op->b_o_s) {
-    printf ("%010ld: [%ld] BOS %8s\n", serialno, op->granulepos, op->packet);
-  }
-
-  if (op->e_o_s) {
-    got_an_eos = 1;
-    printf ("%010ld: [%ld] EOS\n", serialno, op->granulepos);
-  }
-#endif
+  unsigned char * header = op->packet;
 
   if (op->b_o_s) {
     if (op->bytes >= 8 && !strncmp ((char *)header, "fishead", 8))
@@ -74,27 +59,41 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 static ogg_int64_t
 try_seek_units (OGGZ * oggz, ogg_int64_t units)
 {
-  printf ("Attempt seek to %lld ms:\n", units);
+  if (verbose)
+    printf ("\tAttempt seek to %lld ms:\n", units);
   units = oggz_seek_units (oggz, units, SEEK_SET);
-  printf ("%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+  if (verbose)
+    printf ("\t%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
   return units;
 }
 
 int
-main (int argc, char ** argv)
+main (int argc, char * argv[])
 {
   OGGZ * oggz;
   ogg_int64_t max_units;
+  char * filename = NULL;
+  int i;
   long n;
 
-  if (argc < 2) {
-    printf ("usage: %s filename\n", argv[0]);
+  for (i = 1; i < argc; i++) {
+    if (!strcmp (argv[i], "--verbose")) {
+      verbose = 1;
+    } else {
+      filename = argv[i];
+    }
   }
 
-  if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
-    printf ("unable to open file %s\n", argv[1]);
+  if (filename == NULL) {
+    printf ("usage: %s [--verbose] filename\n", argv[0]);
+  }
+
+  if ((oggz = oggz_open (filename, OGGZ_READ | OGGZ_AUTO)) == NULL) {
+    printf ("%s: unable to open file %s\n", argv[0], filename);
     exit (1);
   }
+
+  printf ("Testing %s ...\n", filename);
 
   oggz_set_read_callback (oggz, -1, read_packet, NULL);
 
@@ -102,13 +101,15 @@ main (int argc, char ** argv)
   oggz_set_data_start (oggz, oggz_tell (oggz));
   
   max_units = oggz_seek_units (oggz, 0, SEEK_END);
-  printf ("%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+  if (verbose)
+    printf ("\t%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
 
   try_seek_units (oggz, max_units / 2);
   try_seek_units (oggz, 0);
   try_seek_units (oggz, max_units / 3);
   try_seek_units (oggz, 3 * max_units / 4);
-  try_seek_units (oggz, 99 * max_units / 100);
+  try_seek_units (oggz, 0);
+  try_seek_units (oggz, 999 * max_units / 1000);
   try_seek_units (oggz, max_units / 100);
 
   oggz_close (oggz);
