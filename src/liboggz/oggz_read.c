@@ -349,11 +349,19 @@ oggz_read (OGGZ * oggz, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
+#if 0
   if (cb_ret == OGGZ_READ_EMPTY) {
     /* If there's nothing to read yet, don't return 0 (eof) */
     if (reader->current_unit == 0) cb_ret = 0;
-    else return 0;
+    else {
+#if 0
+      printf ("oggz_read: EMPTY, current_unit %ld != 0\n",
+	      reader->current_unit);
+      return 0;
+#endif
+    }
   }
+#endif
 
   while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK &&
 	 bytes_read > 0 && remaining > 0) {
@@ -388,7 +396,11 @@ oggz_read (OGGZ * oggz, long n)
     }
 
     switch (cb_ret) {
-    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: return 0; break;
+    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: 
+#ifdef DEBUG
+      printf ("oggz_read: nread==0, cb_ret==%d, returning 0\n", cb_ret);
+#endif
+      return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
@@ -416,11 +428,13 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
+#if 0
   if (cb_ret == OGGZ_READ_EMPTY) {
     /* If there's nothing to read yet, don't return 0 (eof) */
     if (reader->current_unit == 0) cb_ret = 0;
     else return 0;
   }
+#endif
 
   while (cb_ret != -1 && cb_ret != 1 && /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
