@@ -49,7 +49,14 @@ read_page (OGGZ * oggz, const ogg_page * og, void * user_data);
 static void
 usage (char * progname)
 {
-  printf ("Usage: %s [options] filename\n", progname);
+  printf ("Usage: %s [options] filename ...\n", progname);
+  printf ("\nMiscellaneous options\n");
+  printf ("  -o filename, --output filename\n");
+  printf ("                         Specify output filename\n");
+  printf ("  -h, --help             Display this help and exit\n");
+  printf ("  -v, --version          Output version information and exit\n");
+  printf ("\n");
+
 }
 
 typedef struct _OMData OMData;
@@ -225,6 +232,9 @@ oggz_merge (OMData * omdata, FILE * outfile)
 int
 main (int argc, char * argv[])
 {
+  int show_version = 0;
+  int show_help = 0;
+
   char * progname;
   char * infilename = NULL, * outfilename = NULL;
   FILE * infile = NULL, * outfile = NULL;
@@ -241,11 +251,12 @@ main (int argc, char * argv[])
   omdata = omdata_new();
 
   while (1) {
-    char * optstring = "ho:";
+    char * optstring = "hvo:";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
+      {"version", no_argument, 0, 'v'},
       {"output", required_argument, 0, 'o'},
       {0,0,0,0}
     };
@@ -257,29 +268,44 @@ main (int argc, char * argv[])
     if (i == -1) break;
     if (i == ':') {
       usage (progname);
-      omdata_delete (omdata);
-      return (1);
+      goto exit_err;
     }
 
     switch (i) {
     case 'h': /* help */
-      usage (progname);
-      omdata_delete (omdata);
-      return (0);
+      show_help = 1;
+      break;
+    case 'v': /* version */
+      show_version = 1;
       break;
     case 'o': /* output */
       outfilename = optarg;
       break;
     default:
-      printf ("Random option %c\n", i);
       break;
     }
   }
 
+  if (show_version) {
+    printf ("%s version " VERSION "\n", progname);
+  }
+
+  if (show_help) {
+    usage (progname);
+  }
+
+  if (show_version || show_help) {
+    goto exit_ok;
+  }
+
   if (optind >= argc) {
     usage (progname);
-    omdata_delete (omdata);
-    return (1);
+    goto exit_err;
+  }
+
+  if (optind >= argc) {
+    usage (progname);
+    goto exit_err;
   }
 
   while (optind < argc) {
@@ -300,14 +326,17 @@ main (int argc, char * argv[])
     if (outfile == NULL) {
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
-      omdata_delete (omdata);
-      return (1);
+      goto exit_err;
     }
   }
 
   oggz_merge (omdata, outfile);
 
+ exit_ok:
   omdata_delete (omdata);
+  exit (0);
 
-  return (0);
+ exit_err:
+  omdata_delete (omdata);
+  exit (1);
 }
