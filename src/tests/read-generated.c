@@ -142,7 +142,7 @@ main (int argc, char * argv[])
   oggz_set_read_callback (reader, -1, read_packet, NULL);
 
   while ((n = oggz_write_output (writer, buf, 1024)) > 0) {
-    oggz_read_input (reader, buf, 1024);
+    oggz_read_input (reader, buf, n);
   }
 
   if (oggz_close (reader) != 0)
