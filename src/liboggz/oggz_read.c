@@ -132,6 +132,25 @@ oggz_set_read_callback (OGGZ * oggz, long serialno,
   return 0;
 }
 
+int
+oggz_set_read_page (OGGZ * oggz, OggzReadPage read_page, void * user_data)
+{
+  OggzReader * reader;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  reader =  &oggz->x.reader;
+
+  if (oggz->flags & OGGZ_WRITE) {
+    return OGGZ_ERR_INVALID;
+  }
+
+  reader->read_page = read_page;
+  reader->read_page_user_data = user_data;
+
+  return 0;
+}
+
 /*
  * oggz_get_next_page_7 (oggz, og, do_read)
  *
@@ -261,10 +280,12 @@ oggz_read_sync (OGGZ * oggz)
 	  oggz_auto (oggz, op, serialno, NULL);
 	}
 
+#if 0 /* set unit on last packet of page */
 	if ((oggz->metric || stream->metric) && granulepos != -1) {
 	  reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
 	}
-#ifndef DEBUG_BY_READING_PAGES
+#endif
+
 	if (stream->read_packet) {
 	  cb_ret =
 	    stream->read_packet (oggz, op, serialno, stream->read_user_data);
@@ -272,7 +293,6 @@ oggz_read_sync (OGGZ * oggz)
 	  cb_ret =
 	    reader->read_packet (oggz, op, serialno, reader->read_user_data);
 	}
-#endif /* DEBUG_BY_READING_PAGES */
       }
       else
 	break;
@@ -299,25 +319,20 @@ oggz_read_sync (OGGZ * oggz)
     }
     os = &stream->ogg_stream;
 
-#ifdef DEBUG_BY_READING_PAGES
     {
-      ogg_packet op_debug;
-      op_debug.packet = og.body;
-      op_debug.bytes = og.body_len;
-      op_debug.b_o_s = ogg_page_bos (&og);
-      op_debug.e_o_s = ogg_page_eos (&og);
-      op_debug.granulepos = ogg_page_granulepos (&og);
-      op_debug.packetno = ogg_page_packets (&og);
+      ogg_int64_t granulepos;
 
-      if (stream->read_packet) {
-	cb_ret = stream->read_packet (oggz, &op_debug, serialno,
-				      stream->read_user_data);
-      } else if (reader->read_packet) {
-	cb_ret = reader->read_packet (oggz, &op_debug, serialno,
-				      reader->read_user_data);
+      granulepos = ogg_page_granulepos (&og);
+      if ((oggz->metric || stream->metric) && granulepos != -1) {
+	reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
+      } else if (granulepos == 0) {
+	reader->current_unit = 0;
       }
     }
-#endif
+
+    if (reader->read_page) {
+      cb_ret = reader->read_page (oggz, &og, reader->read_page_user_data);
+    }
 
 #if 0
     /* bitrate tracking; add the header's bytes here, the body bytes

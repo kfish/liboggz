@@ -94,6 +94,37 @@ int oggz_set_read_callback (OGGZ * oggz, long serialno,
 			    OggzReadPacket read_packet, void * user_data);
 
 /**
+ * This is the signature of a callback which you must provide for Oggz
+ * to call whenever it finds a new page in the Ogg stream associated
+ * with \a oggz.
+ *
+ * \param oggz The OGGZ handle
+ * \param op The full ogg_page (see <ogg/ogg.h>)
+ * \param user_data A generic pointer you have provided earlier
+ * \returns 0 to continue, non-zero to instruct OGGZ to stop.
+ */
+typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og,
+			     void * user_data);
+
+/**
+ * Set a callback for Oggz to call when a new Ogg page is found in the
+ * stream.
+ *
+ * \param oggz An OGGZ handle previously opened for reading
+ * \param read_page Your OggzReadPage callback function
+ * \param user_data Arbitrary data you wish to pass to your callback
+ * \retval 0 Success
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ *
+ * \note It is safe to call this callback from within an OggzReadPage
+ * function, in order to specify that subsequent pages should be handled
+ * by a different OggzReadPage function.
+ */
+int oggz_set_read_page (OGGZ * oggz, OggzReadPage read_page, void * user_data);
+
+
+/**
  * Read n bytes into \a oggz, calling any read callbacks on the fly.
  * \param oggz An OGGZ handle previously opened for reading
  * \param n A count of bytes to ingest

@@ -44,7 +44,7 @@
 #define READ_SIZE 4096
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data);
+read_page (OGGZ * oggz, const ogg_page * og, void * user_data);
 
 static void
 usage (char * progname)
@@ -57,34 +57,48 @@ typedef struct _OMInput OMInput;
 typedef struct _OMITrack OMITrack;
 
 struct _OMData {
-  OGGZ * writer;
   OggzTable * inputs;
 };
 
 struct _OMInput {
   OMData * omdata;
   OGGZ * reader;
-  OggzTable * tracks;
+  const ogg_page * og;
 };
 
 struct _OMITrack {
   long output_serialno;
 };
 
+static ogg_page *
+_ogg_page_copy (ogg_page * og)
+{
+  ogg_page * new_og;
+
+  new_og = malloc (sizeof (*og));
+  new_og->header = malloc (og->header_len);
+  new_og->header_len = og->header_len;
+  memcpy (new_og->header, og->header, og->header_len);
+  new_og->body = malloc (og->body_len);
+  new_og->body_len = og->body_len;
+  memcpy (new_og->body, og->body, og->body_len);
+
+  return new_og;
+}
+
+static int
+_ogg_page_free (ogg_page * og)
+{
+  free (og->header);
+  free (og->body);
+  free (og);
+  return 0;
+}
+
 static void
 ominput_delete (OMInput * input)
 {
-  int i, ntracks;
-  OMITrack * track;
-
   oggz_close (input->reader);
-
-  ntracks = oggz_table_size (input->tracks);
-  for (i = 0; i < ntracks; i++) {
-    track = oggz_table_nth (input->tracks, i, NULL);
-    free (track);
-  }
-  oggz_table_delete (input->tracks);
 
   free (input);
 }
@@ -96,7 +110,6 @@ omdata_new (void)
 
   omdata = (OMData *) malloc (sizeof (OMData));
 
-  omdata->writer = oggz_new (OGGZ_WRITE);
   omdata->inputs = oggz_table_new ();
 
   return omdata;
@@ -107,8 +120,6 @@ omdata_delete (OMData * omdata)
 {
   OMInput * input;
   int i, ninputs;
-
-  oggz_close (omdata->writer);
 
   ninputs = oggz_table_size (omdata->inputs);
   for (i = 0; i < ninputs; i++) {
@@ -130,10 +141,10 @@ omdata_add_input (OMData * omdata, FILE * infile)
   if (input == NULL) return -1;
 
   input->omdata = omdata;
-  input->reader = oggz_open_stdio (infile, OGGZ_READ);
-  input->tracks = oggz_table_new ();
+  input->reader = oggz_open_stdio (infile, OGGZ_READ|OGGZ_AUTO);
+  input->og = NULL;
 
-  oggz_set_read_callback (input->reader, -1, read_packet, input);
+  oggz_set_read_page (input->reader, read_page, input);
 
   nfiles = oggz_table_size (omdata->inputs);
   if (!oggz_table_insert (omdata->inputs, nfiles++, input)) {
@@ -145,31 +156,11 @@ omdata_add_input (OMData * omdata, FILE * infile)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_page (OGGZ * oggz, const ogg_page * og, void * user_data)
 {
   OMInput * input = (OMInput *) user_data;
-  OGGZ * writer = input->omdata->writer;
-  OMITrack * itrack;
-  int flush;
-  int ret;
 
-  itrack = oggz_table_lookup (input->tracks, serialno);
-  if (itrack == NULL) {
-    itrack = (OMITrack *) malloc (sizeof (OMITrack));
-    itrack->output_serialno = oggz_serialno_new (writer);
-    oggz_table_insert (input->tracks, serialno, itrack);
-  }
-
-  if (op->granulepos == -1) {
-    flush = 0;
-  } else {
-    flush = OGGZ_FLUSH_AFTER;
-  }
-
-  if ((ret = oggz_write_feed (writer, op, itrack->output_serialno,
-			      flush, NULL)) != 0) {
-    printf ("oggz_write_feed: %d\n", ret);
-  }
+  input->og = _ogg_page_copy (og);
 
   return OGGZ_STOP_OK;
 }
@@ -179,25 +170,55 @@ oggz_merge (OMData * omdata, FILE * outfile)
 {
   unsigned char buf[READ_SIZE];
   OMInput * input;
-  int ninputs, i;
+  int ninputs, i, min_i;
   long key, n;
+  ogg_int64_t units, min_units;
+  const ogg_page * og;
+  int active;
 
   while ((ninputs = oggz_table_size (omdata->inputs)) > 0) {
-    for (i = 0; i < oggz_table_size (omdata->inputs); i++) {
+    min_units = -1;
+    min_i = -1;
+    active = 1;
+
+    /* Reload all pages, and find the min (earliest) */
+    for (i = 0; active && i < oggz_table_size (omdata->inputs); i++) {
       input = (OMInput *) oggz_table_nth (omdata->inputs, i, &key);
       if (input != NULL) {
-	n = oggz_read (input->reader, READ_SIZE);
-	if (n == 0) {
-	  oggz_table_remove (omdata->inputs, key);
-	  ominput_delete (input);
+	if (input->og == NULL) {
+	  n = oggz_read (input->reader, READ_SIZE);
+	  if (n == 0) {
+	    oggz_table_remove (omdata->inputs, key);
+	    ominput_delete (input);
+	    input = NULL;
+	  }
+	}
+	if (input && input->og) {
+	  if (ogg_page_bos (input->og)) {
+	    min_i = i;
+	    active = 0;
+	  }
+	  units = oggz_tell_units (input->reader);
+	  printf ("cmp units %lld < %lld ?\n", units, min_units);
+	  if (min_units == -1 || units == 0 ||
+	      (units > -1 && units < min_units)) {
+	    min_units = units;
+	    min_i = i;
+	  }
 	}
       }
     }
 
-    while ((n = oggz_write_output (omdata->writer, buf, READ_SIZE)) > 0) {
-      fwrite (buf, 1, n, outfile);
-    }
+    /* Write the earliest page */
+    if (min_i != -1) {
+      input = (OMInput *) oggz_table_nth (omdata->inputs, min_i, &key);
+      og = input->og;
+      fwrite (og->header, 1, og->header_len, outfile);
+      fwrite (og->body, 1, og->body_len, outfile);
 
+      _ogg_page_free (og);
+      input->og = NULL;
+    }
   }
 
   return 0;
