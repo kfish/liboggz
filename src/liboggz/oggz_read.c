@@ -454,7 +454,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
     switch (cb_ret) {
-    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: return 0; break;
+    case OGGZ_CONTINUE: /*case OGGZ_READ_EMPTY:*/ return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
