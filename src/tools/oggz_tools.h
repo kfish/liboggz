@@ -38,4 +38,6 @@
 const char *
 ot_page_identify (const ogg_page * og, char ** info);
 
+int ot_print_time (double seconds);
+
 #endif /* __OGGZ_TOOLS_H__ */

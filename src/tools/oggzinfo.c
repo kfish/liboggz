@@ -346,7 +346,9 @@ main (int argc, char ** argv)
   oggz_close (oggz);
 
   /* Print summary information */
-  printf ("Content-Duration: %lld ms\n", info.duration);
+  fputs ("Content-Duration: ", stdout);
+  ot_print_time ((double)info.duration / 1000.0);
+  putchar ('\n');
   printf ("Content-Length: %ld bytes\n", info.length_total);
   printf ("Content-Bitrate-Average: %ld bps\n",
 	  oi_bitrate (info.length_total, info.duration));

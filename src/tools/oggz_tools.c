@@ -178,3 +178,26 @@ ot_page_identify (const ogg_page * og, char ** info)
 
   return ret;
 }
+
+int
+ot_print_time (double seconds)
+{
+  int hrs, min;
+  double sec;
+  char * sign;
+
+  sign = (seconds < 0.0) ? "-" : "";
+
+  if (seconds < 0.0) seconds = -seconds;
+
+  hrs = (int) (seconds/3600.0);
+  min = (int) ((seconds - ((double)hrs * 3600.0)) / 60.0);
+  sec = seconds - ((double)hrs * 3600.0)- ((double)min * 60.0);
+
+  /* XXX: %02.3f workaround */
+  if (sec < 10.0) {
+    return printf ("%s%02d:%02d:0%2.3f", sign, hrs, min, sec);
+  } else {
+    return printf ("%s%02d:%02d:%02.3f", sign, hrs, min, sec);
+  }
+}
