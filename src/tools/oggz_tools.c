@@ -32,6 +32,7 @@
 
 #include "config.h"
 
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <oggz/oggz.h>
@@ -234,21 +235,21 @@ ot_page_identify (const ogg_page * og, char ** info)
  * using standard abbreviations (GB, MB, kB, byte[s])
  */
 int
-ot_print_bytes (long nr_bytes)
+ot_fprint_bytes (FILE * stream, long nr_bytes)
 {
   if (nr_bytes > (1L<<30)) {
-    return printf ("%0.3f GB",
+    return fprintf (stream, "%0.3f GB",
 		   (double)nr_bytes / (1024.0 * 1024.0 * 1024.0));
   } else if (nr_bytes > (1L<<20)) {
-    return printf ("%0.3f MB",
+    return fprintf (stream, "%0.3f MB",
 		   (double)nr_bytes / (1024.0 * 1024.0));
   } else if (nr_bytes > (1L<<10)) {
-    return printf ("%0.3f kB",
+    return fprintf (stream, "%0.3f kB",
 		   (double)nr_bytes / (1024.0));
   } else if (nr_bytes == 1) {
-    return printf ("1 byte");
+    return fprintf (stream, "1 byte");
   } else {
-    return printf ("%ld bytes", nr_bytes);
+    return fprintf (stream, "%ld bytes", nr_bytes);
   }
 }
 

@@ -168,11 +168,11 @@ static void
 oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 {
   printf ("\t%s-Length-Maximum: ", label);
-  ot_print_bytes (stats->length_max);
+  ot_fprint_bytes (stdout, stats->length_max);
   putchar ('\n');
 
   printf ("\t%s-Length-StdDev: ", label);
-  ot_print_bytes (stats->length_stddev);
+  ot_fprint_bytes (stdout, stats->length_stddev);
   putchar ('\n');
 
 #if 0
@@ -197,7 +197,7 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 
   if (show_length) {
     fputs("\tContent-Length: ", stdout);
-    ot_print_bytes (oit->pages.length_total);
+    ot_fprint_bytes (stdout, oit->pages.length_total);
     putchar ('\n');
   }
 
@@ -506,7 +506,7 @@ main (int argc, char ** argv)
     
     if (show_length) {
       fputs ("Content-Length: ", stdout);
-      ot_print_bytes (info.length_total);
+      ot_fprint_bytes (stdout, info.length_total);
       putchar ('\n');
     }
     
