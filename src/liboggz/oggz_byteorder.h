@@ -61,6 +61,19 @@ _le_32 (ogg_uint32_t i)
    return ret;
 }
 
+#ifdef _UNUSED_
+static  unsigned short
+_be_16 (unsigned short s)
+{
+  unsigned short ret=s;
+#ifndef WORDS_BIGENDIAN
+  ret = (s>>8) & 0x00ffU;
+  ret += (s<<8) & 0xff00U;
+#endif
+  return ret;
+}
+#endif /* _UNUSED_ */
+
 static  ogg_uint32_t
 _be_32 (ogg_uint32_t i)
 {
