@@ -108,12 +108,6 @@ auto_vorbis (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
-typedef struct {
-  ogg_int32_t fps_numerator;
-  ogg_int32_t fps_denominator;
-  int keyframe_shift;
-} oggz_theora_metric_t;
-
 #if USE_THEORA_PRE_ALPHA_3_FORMAT
 static int intlog(int num) {
   int ret=0;
@@ -125,35 +119,13 @@ static int intlog(int num) {
 }
 #endif
 
-static ogg_int64_t
-auto_theora_metric (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
-		    void * user_data)
-{
-  oggz_theora_metric_t * tdata = (oggz_theora_metric_t *)user_data;
-  ogg_int64_t iframe, pframe;
-  ogg_int64_t units;
-
-  iframe = granulepos >> tdata->keyframe_shift;
-  pframe = granulepos - (iframe << tdata->keyframe_shift);
-  granulepos = (iframe + pframe);
-
-  units = OGGZ_AUTO_MULT * granulepos * tdata->fps_denominator /
-    tdata->fps_numerator;
-
-#ifdef DEBUG
-  printf ("oggz_auto: serialno %010ld Got theora frame %lld (%lld + %lld): %lld units\n",
-	  serialno, granulepos, iframe, pframe, units);
-#endif
-
-  return units;
-}
-
 static int
 auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
+  ogg_int32_t fps_numerator, fps_denominator;
   char keyframe_granule_shift = 0;
-  oggz_theora_metric_t * tdata;
+  int keyframe_shift;
 
   if (op->bytes < 41) return 0;
 
@@ -161,36 +133,33 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (strncmp ((char *)&header[1], "theora", 6)) return 0;
   if (!op->b_o_s) return 0;
 
-
-  tdata = oggz_malloc (sizeof (oggz_theora_metric_t));
-
-  tdata->fps_numerator = INT32_BE_AT(&header[22]);
-  tdata->fps_denominator = INT32_BE_AT(&header[26]);
+  fps_numerator = INT32_BE_AT(&header[22]);
+  fps_denominator = INT32_BE_AT(&header[26]);
 
   /* Very old theora versions used a value of 0 to mean 1.
    * Unfortunately theora hasn't incremented its version field,
    * hence we hardcode this workaround for old or broken streams.
    */
-  if (tdata->fps_numerator == 0) tdata->fps_numerator = 1;
+  if (fps_numerator == 0) fps_numerator = 1;
 
 #if USE_THEORA_PRE_ALPHA_3_FORMAT
   /* old header format, used by Theora alpha2 and earlier */
   keyframe_granule_shift = (header[36] & 0xf8) >> 3;
-  tdata->keyframe_shift = intlog (keyframe_granule_shift - 1);
+  keyframe_shift = intlog (keyframe_granule_shift - 1);
 #else
   keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
   keyframe_granule_shift |= (header[41] & 0xe0) >> 5;
-  tdata->keyframe_shift = keyframe_granule_shift;
+  keyframe_shift = keyframe_granule_shift;
 #endif
 
 #ifdef DEBUG
   printf ("Got theora fps %d/%d, keyframe_shift %d\n",
-	  tdata->fps_numerator, tdata->fps_denominator,
-	  tdata->keyframe_shift);
+	  fps_numerator, fps_denominator, keyframe_shift);
 #endif
 
-  oggz_set_metric_internal (oggz, serialno, auto_theora_metric, tdata, 1);
-  /*oggz_set_metric (oggz, serialno, auto_theora_metric, tdata);*/
+  oggz_set_granulerate (oggz, serialno, (ogg_int64_t)fps_numerator,
+			OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
+  oggz_set_granuleshift (oggz, serialno, keyframe_shift);
 
   return 1;
 }
