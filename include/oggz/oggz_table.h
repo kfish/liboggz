@@ -71,6 +71,16 @@ void *
 oggz_table_insert (OggzTable * table, long key, void * data);
 
 /**
+ * Remove the element of an OggzTable indexed by a given key
+ * \param table An OggzTable
+ * \param key a key
+ * \retval 0 Success
+ * \retval -1 Not found
+ */
+int
+oggz_table_remove (OggzTable * table, long key);
+
+/**
  * Retrieve the element of an OggzTable indexed by a given key
  * \param table An OggzTable
  * \param key a key
@@ -89,11 +99,11 @@ int
 oggz_table_size (OggzTable * table);
 
 /**
- * Retrieve the nth element of an OggzTable
+ * Retrieve the nth element of an OggzTable, and optionally its key
  * \param table An OggzTable
  * \param n An index into the \a table
- * \param key Return value for key corresponding to nth data element
- *        of \a table
+ * \param key Return pointer for key corresponding to nth data element
+ *        of \a table. Ignored if NULL.
  * \returns The nth data element of \a table
  * \retval NULL \a table is undefined, or \a n is out of range
  */

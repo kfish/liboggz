@@ -47,6 +47,7 @@
 		oggz_table_new;
 		oggz_table_delete;
 		oggz_table_insert;
+		oggz_table_remove;
 		oggz_table_lookup;
 		oggz_table_size;
 		oggz_table_nth;

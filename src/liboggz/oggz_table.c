@@ -107,6 +107,26 @@ oggz_table_insert (OggzTable * table, long key, void * data)
 }
 
 int
+oggz_table_remove (OggzTable * table, long key)
+{
+  void * old_data;
+
+  if ((old_data = oggz_table_lookup (table, key)) != NULL) {
+    if (oggz_vector_remove_l (table->keys, key) == NULL)
+      return -1;
+
+    if (oggz_vector_remove_p (table->data, old_data) == NULL) {
+      /* XXX: This error condition can only happen if the previous
+       * removal succeeded, and this removal failed, ie. there was
+       * an error reallocing table->data->data downwards. */
+      return -1;
+    }
+  }
+  
+  return 0;
+}
+
+int
 oggz_table_size (OggzTable * table)
 {
   if (table == NULL) return 0;
