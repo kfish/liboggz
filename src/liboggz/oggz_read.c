@@ -203,7 +203,6 @@ static int
 oggz_read_sync (OGGZ * oggz)
 {
   OggzReader * reader = &oggz->x.reader;
-  long nread = 0;
 
   oggz_stream_t * stream;
   ogg_stream_state * os;
@@ -215,21 +214,79 @@ oggz_read_sync (OGGZ * oggz)
 
   int cb_ret = 0;
 
+  oggz->status = OGGZ_STATUS_READ_ACTIVE;
+
   /*os = &reader->ogg_stream;*/
   op = &packet;
 
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
-  while(cb_ret == 0){
+  while(cb_ret == OGGZ_CONTINUE) {
 
     if (reader->current_serialno != -1) {
-    /* process a packet if we can.  If the machine isn't loaded,
-       neither is a page */
-    while(cb_ret == 0) {
-      ogg_int64_t granulepos;
-      int result;
+      /* process a packet if we can.  If the machine isn't loaded,
+	 neither is a page */
+      while(cb_ret == OGGZ_CONTINUE) {
+	ogg_int64_t granulepos;
+	int result;
 
-      serialno = reader->current_serialno;
+	serialno = reader->current_serialno;
+
+	stream = oggz_get_stream (oggz, serialno);
+      
+	if (stream == NULL) {
+	  /* new stream ... check bos etc. */
+	  if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
+	    /* error -- could not add stream */
+	    oggz->status = OGGZ_STATUS_INTERNAL_ERROR;
+	    return -7;
+	  }
+	}
+	os = &stream->ogg_stream;
+
+	result = ogg_stream_packetout(os, op);
+
+	if(result == -1) {
+	  /* hole in the data. */
+	  oggz->status = OGGZ_STATUS_INTERNAL_ERROR;
+	  return -7;
+	}
+
+	if(result > 0){
+	  /* got a packet.  process it */
+	  granulepos = op->granulepos;
+
+	  if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
+	    oggz_auto (oggz, op, serialno, NULL);
+	  }
+
+	  if ((oggz->metric || stream->metric) && granulepos != -1) {
+	    reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
+	  }
+#ifndef DEBUG_BY_READING_PAGES
+	  if (stream->read_packet) {
+	    cb_ret =
+	      stream->read_packet (oggz, op, serialno, stream->read_user_data);
+	  } else if (reader->read_packet) {
+	    cb_ret =
+	      reader->read_packet (oggz, op, serialno, reader->read_user_data);
+	  }
+#endif /* DEBUG_BY_READING_PAGES */
+	}
+	else
+	  break;
+      }
+    }
+
+    if (cb_ret == OGGZ_CONTINUE) {
+      if(oggz_get_next_page_7 (oggz, &og) < 0) {
+	if (reader->current_unit != 0)
+	  oggz->status = OGGZ_STATUS_READ_EOF;
+	return -404; /* eof. leave unitialized */
+      }
+
+      serialno = ogg_page_serialno (&og);
+      reader->current_serialno = serialno; /* XXX: maybe not necessary */
 
       stream = oggz_get_stream (oggz, serialno);
       
@@ -237,91 +294,48 @@ oggz_read_sync (OGGZ * oggz)
 	/* new stream ... check bos etc. */
 	if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
 	  /* error -- could not add stream */
+	  oggz->status = OGGZ_STATUS_INTERNAL_ERROR;
 	  return -7;
 	}
       }
       os = &stream->ogg_stream;
 
-      result = ogg_stream_packetout(os, op);
-
-      if(result == -1) {
-	/* hole in the data. */
-	return -7;
-      }
-
-      if(result > 0){
-	/* got a packet.  process it */
-	granulepos = op->granulepos;
-
-	if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
-	  oggz_auto (oggz, op, serialno, NULL);
-	}
-
-	if ((oggz->metric || stream->metric) && granulepos != -1) {
-	  reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
-	}
-#ifndef DEBUG_BY_READING_PAGES
-	if (stream->read_packet) {
-	  cb_ret =
-	    stream->read_packet (oggz, op, serialno, stream->read_user_data);
-	} else if (reader->read_packet) {
-	  cb_ret =
-	    reader->read_packet (oggz, op, serialno, reader->read_user_data);
-	}
-#endif /* DEBUG_BY_READING_PAGES */
-      }
-      else
-	break;
-    }
-    }
-
-    /* If we've got a stop already, don't read more data in */
-    if (cb_ret != 0) return cb_ret;
-
-    if(oggz_get_next_page_7 (oggz, &og) < 0)
-      return -404; /* eof. leave unitialized */
-
-    serialno = ogg_page_serialno (&og);
-    reader->current_serialno = serialno; /* XXX: maybe not necessary */
-
-    stream = oggz_get_stream (oggz, serialno);
-      
-    if (stream == NULL) {
-      /* new stream ... check bos etc. */
-      if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
-	/* error -- could not add stream */
-	return -7;
-      }
-    }
-    os = &stream->ogg_stream;
-
 #ifdef DEBUG_BY_READING_PAGES
-    {
-      ogg_packet op_debug;
-      op_debug.packet = og.body;
-      op_debug.bytes = og.body_len;
-      op_debug.b_o_s = ogg_page_bos (&og);
-      op_debug.e_o_s = ogg_page_eos (&og);
-      op_debug.granulepos = ogg_page_granulepos (&og);
-      op_debug.packetno = ogg_page_packets (&og);
+      {
+	ogg_packet op_debug;
+	op_debug.packet = og.body;
+	op_debug.bytes = og.body_len;
+	op_debug.b_o_s = ogg_page_bos (&og);
+	op_debug.e_o_s = ogg_page_eos (&og);
+	op_debug.granulepos = ogg_page_granulepos (&og);
+	op_debug.packetno = ogg_page_packets (&og);
 
-      if (stream->read_packet) {
-	cb_ret = stream->read_packet (oggz, &op_debug, serialno,
-				      stream->read_user_data);
-      } else if (reader->read_packet) {
-	cb_ret = reader->read_packet (oggz, &op_debug, serialno,
-				      reader->read_user_data);
+	if (stream->read_packet) {
+	  cb_ret = stream->read_packet (oggz, &op_debug, serialno,
+					stream->read_user_data);
+	} else if (reader->read_packet) {
+	  cb_ret = reader->read_packet (oggz, &op_debug, serialno,
+					reader->read_user_data);
+	}
       }
-    }
 #endif
 
 #if 0
-    /* bitrate tracking; add the header's bytes here, the body bytes
-       are done by packet above */
-    vf->bittrack+=og.header_len*8;
+      /* bitrate tracking; add the header's bytes here, the body bytes
+	 are done by packet above */
+      vf->bittrack+=og.header_len*8;
 #endif
 
-    ogg_stream_pagein(os, &og);
+      ogg_stream_pagein(os, &og);
+    }
+
+    if (cb_ret == OGGZ_CONTINUE) {
+      oggz->status = OGGZ_STATUS_READ_ACTIVE;
+    } else if (cb_ret == OGGZ_STOP_ERR) {
+      oggz->status = OGGZ_STATUS_READ_STOP_ERR;
+    } else {
+      oggz->status = OGGZ_STATUS_READ_STOP_OK;
+    }
   }
 
   return cb_ret;
@@ -345,17 +359,15 @@ oggz_read (OGGZ * oggz, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
-  /* If there's nothing to read yet, don't flag an error */
-  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
-
-  while (cb_ret != -1 && cb_ret != 1 && bytes_read > 0 && remaining > 0) {
+  while (oggz->status == OGGZ_STATUS_READ_ACTIVE &&
+	 bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     if ((bytes_read = (long) oggz_io_read (oggz, buffer, bytes)) == 0) {
-
-      if (ferror (oggz->file)) {
-	return OGGZ_ERR_SYSTEM;
-      }
+      /* schyeah! */
+    }
+    if (bytes_read == OGGZ_ERR_SYSTEM) {
+      return OGGZ_ERR_SYSTEM;
     }
 
     ogg_sync_wrote (&reader->ogg_sync, bytes_read);
@@ -366,7 +378,8 @@ oggz_read (OGGZ * oggz, long n)
     cb_ret = oggz_read_sync (oggz);
   }
 
-  if (cb_ret == -1) oggz_purge (oggz);
+  if (oggz->status == OGGZ_STATUS_READ_STOP_ERR)
+    oggz_purge (oggz);
 
   return nread;
 }
@@ -378,7 +391,6 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   OggzReader * reader;
   char * buffer;
   long bytes, remaining = n, nread = 0;
-  int cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -388,12 +400,10 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   reader = &oggz->x.reader;
 
-  cb_ret = oggz_read_sync (oggz);
+  oggz_read_sync (oggz);
 
-  /* If there's nothing to read yet, don't flag an error */
-  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
-
-  while (cb_ret != -1 && cb_ret != 1 && /* !oggz->eos && */ remaining > 0) {
+  while (oggz->status == OGGZ_STATUS_READ_ACTIVE && /* !oggz->eos && */
+	 remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     memcpy (buffer, buf, bytes);
@@ -403,10 +413,11 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
     remaining -= bytes;
     nread += bytes;
 
-    cb_ret = oggz_read_sync (oggz);    
+    oggz_read_sync (oggz);    
   }
 
-  if (cb_ret == -1) oggz_purge (oggz);
+  if (oggz->status == OGGZ_STATUS_READ_STOP_ERR)
+    oggz_purge (oggz);
 
   return nread;
 }
@@ -511,8 +522,6 @@ oggz_reset (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 int
 oggz_purge (OGGZ * oggz)
 {
-  long reset_ret;
-
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (oggz->flags & OGGZ_WRITE) {
@@ -1071,7 +1080,7 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
     return -1;
   }
 
-  if (oggz->metric == NULL) {
+  if (!oggz_has_metrics (oggz)) {
     return -1;
   }
 

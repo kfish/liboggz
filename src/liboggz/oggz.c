@@ -100,6 +100,8 @@ oggz_new (int flags)
     oggz_read_init (oggz);
   }
 
+  oggz->status = OGGZ_STATUS_INITIALIZED;
+
   return oggz;
 }
 
@@ -418,6 +420,26 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
 
   return oggz_set_metric_internal (oggz, serialno, oggz_metric_default_linear,
 				   linear_data, 1);
+}
+
+/*
+ * Check if an oggz has metrics for all streams
+ */
+int
+oggz_has_metrics (OGGZ * oggz)
+{
+  int i, size;
+  oggz_stream_t * stream;
+
+  if (oggz->metric != NULL) return 1;
+
+  size = oggz_vector_size (oggz->streams);
+  for (i = 0; i < size; i++) {
+    stream = (oggz_stream_t *)oggz_vector_nth_p (oggz->streams, i);
+    if (stream->metric == NULL) return 0;
+  }
+
+  return 1;
 }
 
 ogg_int64_t

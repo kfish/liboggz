@@ -58,6 +58,9 @@
 
 /* #define ALWAYS_FLUSH */
 
+/* #define ZPACKET_CMP */
+
+#ifdef ZPACKET_CMP
 static int
 oggz_zpacket_cmp (oggz_writer_packet_t * a, oggz_writer_packet_t * b,
 		  void * user_data)
@@ -75,6 +78,7 @@ oggz_zpacket_cmp (oggz_writer_packet_t * a, oggz_writer_packet_t * b,
   if (unit_a < unit_b) return -1;
   else return (unit_a > unit_b);
 }
+#endif
 
 OGGZ *
 oggz_write_init (OGGZ * oggz)
@@ -85,7 +89,7 @@ oggz_write_init (OGGZ * oggz)
 
   writer->packet_queue = oggz_vector_new ();
 
-#if 0
+#ifdef ZPACKET_CMP
   /* XXX: comparison function should only kick in when a metric is set */
   oggz_vector_set_cmp (writer->packet_queue, 
 		       (OggzCmpFunc)oggz_zpacket_cmp, oggz);

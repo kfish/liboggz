@@ -166,6 +166,8 @@ struct _OggzIO {
 
 struct _OGGZ {
   int flags;
+  enum OggzStatus status;
+
   FILE * file;
   OggzIO * io;
 
@@ -205,6 +207,7 @@ ogg_int64_t oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos);
 
 int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
 			      void * user_data, int internal);
+int oggz_has_metrics (OGGZ * oggz);
 
 int oggz_purge (OGGZ * oggz);
 
