@@ -50,8 +50,8 @@ _le_32 (ogg_uint32_t i)
    return ret;
 }
 
-static  unsigned short
-_be_16 (unsigned short s)
+static  ogg_uint16_t
+_be_16 (ogg_uint16_t s)
 {
   unsigned short ret=s;
 #ifndef WORDS_BIGENDIAN
@@ -103,7 +103,7 @@ _le_64 (ogg_int64_t l)
 }
 
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
-#define INT16_BE_AT(x) _be_16((*(ogg_int32_t *)(x)))
+#define INT16_BE_AT(x) _be_16((*(ogg_uint16_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
@@ -126,8 +126,8 @@ ot_theora_info (unsigned char * data, long len)
 
   buf = malloc (80);
 
-  width = INT16_BE_AT(&data[8]) << 4;
-  height = INT16_BE_AT(&data[10]) << 4;
+  width = INT16_BE_AT(&data[10]) << 4;
+  height = INT16_BE_AT(&data[12]) << 4;
 
   snprintf (buf, 80,
 	    "\tVideo-Framerate: %.3f fps\n"
