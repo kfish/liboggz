@@ -9,22 +9,22 @@ manpage.1: manpage.sgml
   -->
  
   <!-- Fill in your name for FIRSTNAME and SURNAME. -->
-  <!ENTITY dhfirstname "<firstname>Conrad</firstname>">
-  <!ENTITY dhsurname   "<surname>Parker</surname>">
+  <!ENTITY dhfirstname "<firstname>David</firstname>">
+  <!ENTITY dhsurname   "<surname>Kuehling</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>September 21, 2004</date>">
+  <!ENTITY dhdate      "<date>January  1, 2005</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
   <!ENTITY dhemail     "<email>conrad.parker@csiro.au</email>">
   <!ENTITY dhusername  "CSIRO Australia">
-  <!ENTITY dhucpackage "<refentrytitle>oggzmerge</refentrytitle>">
-  <!ENTITY dhpackage   "oggzmerge">
+  <!ENTITY dhucpackage "<refentrytitle>oggzrip</refentrytitle>">
+  <!ENTITY dhpackage   "oggzrip">
                                                                                  <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
   <!ENTITY gnu         "<acronym>GNU</acronym>">
 ]>
 
-<refentry id="oggzmerge">
+<refentry id="oggzrip">
 
   <refentryinfo>
     <address>
@@ -35,7 +35,7 @@ manpage.1: manpage.sgml
       &dhsurname;
     </author>
     <copyright>
-      <year>2004</year>
+      <year>2005</year>
       <holder>&dhusername;</holder>
     </copyright>
     &dhdate;
@@ -48,8 +48,7 @@ manpage.1: manpage.sgml
 
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>Merge Ogg files together, interleaving pages in order of
-      presentation time.
+    <refpurpose>Extract one or more logical bitstreams from an Ogg file.
     </refpurpose>
   </refnamediv>
 
@@ -78,10 +77,8 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>Description</title>
     <para>
-      <command>&dhpackage;</command> merges Ogg files together, interleaving
-      pages in order of presentation time. It correctly interprets the
-      granulepos timestamps of Ogg Vorbis, Speex and Theora bitstreams, and
-      all bitstreams of Annodex files.
+      <command>&dhpackage;</command> extracts one or more logical bitstreams
+      from an Ogg file.
     </para>
   </refsect1>
   
@@ -109,6 +106,34 @@ manpage.1: manpage.sgml
 	
       </variablelist>
     </refsect2>
+    <refsect2>
+      <title>Filter options</title>
+      <para>
+        These options can be used multiple times. Pages matching ANY of
+        the filter options will be included into the output.
+      </para>
+      <variablelist>
+        <varlistentry>
+          <term>-s <parameter>serialno</parameter>, --serialno <parameter>serialno</parameter></term>
+          <listitem><para>Output streams with given serialno.</para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>-i <parameter>streamid</parameter>, --streamid <parameter>streamid</parameter></term>
+          <listitem><para>Filter by stream-ID, IDs are assigned to
+                         streams in the order of their BOS pages,
+                         starting at 0.
+          </para></listitem>
+        </varlistentry>
+        <varlistentry>
+          <term>-c <parameter>codec-name</parameter> --codec-name <parameter>codec-name</parameter></term>
+          <listitem><para>Filter by codec-name.  The following codecs
+                         are currently detected: "theora",
+                         "vorbis", "speex", "annodex"
+          </para></listitem>
+        </varlistentry>
+      </variablelist>
+    </refsect2>
+
   </refsect1>
 
   <refsect1>
@@ -124,7 +149,7 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>COPYRIGHT</title>
     <para>
-      Copyright &copy; 2004 &dhusername;
+      Copyright &copy; 2005 &dhusername;
     </para>
   </refsect1>
 
@@ -132,7 +157,7 @@ manpage.1: manpage.sgml
     <title>SEE ALSO</title>
     <para>
       <citerefentry>
-	<refentrytitle>oggzrip</refentrytitle>
+	<refentrytitle>oggzmerge</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>

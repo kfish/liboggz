@@ -51,24 +51,21 @@
 .ds f4\"
 '\" t 
 .ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
-.TH "oggzmerge" "1" 
+.TH "oggzrip" "1" 
 .SH "NAME" 
-oggzmerge \(em Merge Ogg files together, interleaving pages in order of 
-presentation time. 
+oggzrip \(em Extract one or more logical bitstreams from an Ogg file. 
  
 .SH "SYNOPSIS" 
 .PP 
-\fBoggzmerge\fR [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-h  | --help ] filename  
+\fBoggzrip\fR [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-h  | --help ] filename  
 .SH "Description" 
 .PP 
-\fBoggzmerge\fR merges Ogg files together, interleaving 
-pages in order of presentation time. It correctly interprets the 
-granulepos timestamps of Ogg Vorbis, Speex and Theora bitstreams, and 
-all bitstreams of Annodex files. 
+\fBoggzrip\fR extracts one or more logical bitstreams 
+from an Ogg file. 
  
 .SH "Options" 
 .PP 
-\fBoggzmerge\fR accepts the following options: 
+\fBoggzrip\fR accepts the following options: 
  
 .SS "Miscellaneous options" 
 .IP "-o \fBfilename\fR, --output \fBfilename\fR" 10 
@@ -78,16 +75,33 @@ standard output.
  
 .IP "-h, --help" 10 
 Display usage information and exit. 
+.SS "Filter options" 
+.PP 
+These options can be used multiple times. Pages matching ANY of 
+the filter options will be included into the output. 
+ 
+.IP "-s \fBserialno\fR, --serialno \fBserialno\fR" 10 
+Output streams with given serialno. 
+.IP "-i \fBstreamid\fR, --streamid \fBstreamid\fR" 10 
+Filter by stream-ID, IDs are assigned to 
+streams in the order of their BOS pages, 
+starting at 0. 
+ 
+.IP "-c \fBcodec-name\fR --codec-name \fBcodec-name\fR" 10 
+Filter by codec-name.  The following codecs 
+are currently detected: "theora", 
+"vorbis", "speex", "annodex" 
+ 
 .SH "AUTHOR" 
 .PP 
-Conrad Parker        September 21, 2004;      
+David Kuehling        January  1, 2005;      
 .SH "COPYRIGHT" 
 .PP 
-Copyright \(co 2004 CSIRO Australia 
+Copyright \(co 2005 CSIRO Australia 
  
 .SH "SEE ALSO" 
 .PP 
-\fBoggzrip\fP\fB(1)\fP, 
+\fBoggzmerge\fP\fB(1)\fP, 
 \fBoggzdump\fP\fB(1)\fP, 
 \fBoggzdiff\fP\fB(1)\fP      
-.\" created by instant / docbook-to-man, Sat 22 Jan 2005, 13:47 
+.\" created by instant / docbook-to-man, Sat 22 Jan 2005, 14:09 
