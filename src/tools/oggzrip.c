@@ -109,8 +109,8 @@ usage (char * progname)
   printf ("  the filter options will be included into the output.\n\n");
   printf ("  -s serialno, --serialno serialno\n");
   printf ("                         Output streams with given serialno.\n");
-  printf ("  -i streamid, --streamid streamid\n");
-  printf ("                         Filter by stream-ID, IDs are assigned to\n");
+  printf ("  -i index, --stream-index index\n");
+  printf ("                         Filter by stream index. These are assigned to\n");
   printf ("                         streams in the order of their BOS pages,\n");
   printf ("                         starting at 0.\n");
   printf ("  -c content-type --content-type content-type\n");
@@ -338,7 +338,7 @@ main (int argc, char * argv[])
       {"output", required_argument, 0, 'o'},
       {"verbose", no_argument, 0, 'V'},
       {"serialno", required_argument, 0, 's'},
-      {"streamid", required_argument, 0, 'i'},
+      {"stream-index", required_argument, 0, 'i'},
       {"content-type", required_argument, 0, 'c'},
       {0,0,0,0}
     };
@@ -376,9 +376,9 @@ main (int argc, char * argv[])
 	goto exit_err;
 
       break;
-    case 'i': /* streamid */
+    case 'i': /* stream index */
       if (ordata->num_streamids >= MAX_FILTER) {
-	fprintf (stderr, "ERROR: too many streamids on command line\n");
+	fprintf (stderr, "ERROR: too many stream indexes on command line\n");
 	goto exit_err;
       }
       if (or_get_long (optarg, currentopt, 

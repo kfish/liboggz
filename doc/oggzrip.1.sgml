@@ -118,8 +118,8 @@ manpage.1: manpage.sgml
           <listitem><para>Output streams with given serialno.</para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>-i <parameter>streamid</parameter>, --streamid <parameter>streamid</parameter></term>
-          <listitem><para>Filter by stream-ID, IDs are assigned to
+          <term>-i <parameter>index</parameter>, --stream-index <parameter>index</parameter></term>
+          <listitem><para>Filter by stream index. These are assigned to
                          streams in the order of their BOS pages,
                          starting at 0.
           </para></listitem>
