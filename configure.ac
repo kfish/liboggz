@@ -100,6 +100,9 @@ fi
 dnl Overall configuration success flag
 oggz_config_ok=yes
 
+oggz_read_programs=""
+oggz_rw_programs=""
+
 dnl
 dnl  Configuration option for building of experimental code.
 dnl
@@ -124,6 +127,7 @@ AC_ARG_ENABLE(read,
 
 if test "x${ac_enable_read}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_READ, [1], [Build reading support])
+    oggz_read_programs="oggzdump oggzinfo"
 else
     AC_DEFINE(OGGZ_CONFIG_READ, [0], [Do not build reading support]) 
 fi
@@ -140,6 +144,9 @@ AC_ARG_ENABLE(write,
 
 if test "x${ac_enable_write}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_WRITE, [1], [Build writing support])
+    if test "x${ac_enable_read}" = xyes ; then
+      oggz_rw_programs="oggzrip oggzmerge"
+    fi
 else
     AC_DEFINE(OGGZ_CONFIG_WRITE, [0], [Do not build writing support])
 fi
@@ -285,9 +292,14 @@ AC_MSG_RESULT([
     Reading support: ............. ${ac_enable_read}
     Writing support: ............. ${ac_enable_write}
 
+  Tools:
+
+    ${oggz_read_programs} ${oggz_rw_programs}
+
   Installation paths:
 
     liboggz: ..................... ${prefix}/lib
+    Tools: ....................... ${prefix}/bin
     C header files: .............. ${prefix}/include/oggz
     Documentation: ............... ${prefix}/share/doc/$PACKAGE
 
