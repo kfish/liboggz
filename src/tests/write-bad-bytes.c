@@ -56,12 +56,13 @@ hungry (OGGZ * oggz, int empty, void * user_data)
   op.granulepos = granulepos;
   op.packetno = packetno;
   
+  if (bytes < 0) INFO ("Feeding packet with negative byte count");
+
   err = oggz_write_feed (oggz, &op, serialno, 0, NULL);
   if (packetno == 0) {
     if (err != 0)
       FAIL ("Could not feed OGGZ");
   } else {
-    INFO ("Feeding packet with negative byte count");
     if (err != OGGZ_ERR_BAD_BYTES)
       FAIL ("Bad bytes not detected");
 

@@ -34,6 +34,7 @@
 
 #include "oggz_tests.h"
 
+static unsigned char buf[1];
 static long serialno;
 static int guard = 0;
 static long b_o_s = 1;
@@ -42,7 +43,6 @@ static ogg_int64_t packetno = 0;
 static int
 hungry (OGGZ * oggz, int empty, void * user_data)
 {
-  unsigned char buf[1];
   ogg_packet op;
   int ret;
 
