@@ -65,7 +65,13 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
 
   if (verbose)
     printf ("\tAttempt seek to %lld ms:\n", units);
+
   result = oggz_seek_units (oggz, units, SEEK_SET);
+  diff = result - units;
+
+  if (verbose)
+    printf ("\t%08lx: %lld ms (+%lld ms)\n",
+	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
 
   if (result < 0) {
     FAIL ("Seek failure\n");
@@ -77,14 +83,8 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
   if (units == 0 && result != 0)
     FAIL ("Failed seeking to 0");
 
-  diff = result - units;
-
   if (diff < 0)
     FAIL ("Seek result too early");
-
-  if (verbose)
-    printf ("\t%08lx: %lld ms (+%lld ms)\n",
-	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
 
   return units;
 }
