@@ -37,6 +37,7 @@
 
 /* Use the malloc and free used by ogg; defaults are those from stdlib */
 #define oggz_malloc _ogg_malloc
+#define oggz_realloc _ogg_realloc
 #define oggz_free _ogg_free
 
 #undef MIN
