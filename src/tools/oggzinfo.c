@@ -36,6 +36,8 @@
 #include <math.h>
 #include <oggz/oggz.h>
 
+#include "oggz_tools.h"
+
 #ifndef WIN32
 #include <inttypes.h>
 #else
@@ -71,6 +73,7 @@ struct _OI_Stats {
 struct _OI_TrackInfo {
   OI_Stats pages;
   OI_Stats packets;
+  const char * codec_name;
 };
 
 static void
@@ -137,7 +140,7 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 static void
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
-  printf ("%010ld:\n", serialno);
+  printf ("%s: serialno %010ld\n", oit->codec_name, serialno);
 
   printf ("\t%ld packets in %ld pages, %.3f packets/page\n",
 	  oit->packets.count, oit->pages.count,
@@ -195,6 +198,10 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
   if (oit == NULL) {
     oit = oggzinfo_trackinfo_new ();
     oggz_table_insert (info->tracks, serialno, oit);
+  }
+
+  if (ogg_page_bos ((ogg_page *)og)) {
+    oit->codec_name = ot_page_identify (og);
   }
 
   bytes = og->header_len + og->body_len;
