@@ -289,6 +289,7 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
+  int granuleshift;
 
   if (op->bytes < 28) return 0;
 
@@ -297,6 +298,11 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   granule_rate_numerator = INT64_LE_AT(&header[12]);
   granule_rate_denominator = INT64_LE_AT(&header[20]);
+  if (op->bytes > 28)
+    granuleshift = (int)header[28];
+  else
+    granuleshift = 0;
+
 #ifdef DEBUG
   printf ("Got CMML rate %lld/%lld\n", granule_rate_numerator,
 	  granule_rate_denominator);
@@ -305,6 +311,7 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   oggz_set_granulerate (oggz, serialno,
 			granule_rate_numerator,
 			OGGZ_AUTO_MULT * granule_rate_denominator);
+  oggz_set_granuleshift (oggz, serialno, granuleshift);
 
   return 1;
 }
