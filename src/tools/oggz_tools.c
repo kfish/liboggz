@@ -73,9 +73,38 @@ _be_32 (ogg_uint32_t i)
    return ret;
 }
 
+static  ogg_int64_t
+_le_64 (ogg_int64_t l)
+{
+  ogg_int64_t ret=l;
+  unsigned char *ucptr = (unsigned char *)&ret;
+#ifdef WORDS_BIGENDIAN
+  unsigned char temp;
+
+  temp = ucptr [0] ;
+  ucptr [0] = ucptr [7] ;
+  ucptr [7] = temp ;
+
+  temp = ucptr [1] ;
+  ucptr [1] = ucptr [6] ;
+  ucptr [6] = temp ;
+
+  temp = ucptr [2] ;
+  ucptr [2] = ucptr [5] ;
+  ucptr [5] = temp ;
+
+  temp = ucptr [3] ;
+  ucptr [3] = ucptr [4] ;
+  ucptr [4] = temp ;
+
+#endif
+  return (*(ogg_int64_t *)ucptr);
+}
+
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
 #define INT16_BE_AT(x) _be_16((*(ogg_int32_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
+#define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
 typedef char * (* OTCodecInfoFunc) (unsigned char * data, long n);
 
@@ -140,13 +169,30 @@ ot_speex_info (unsigned char * data, long len)
   return buf;
 }
 
+static char *
+ot_skeleton_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  if (len < 64) return NULL;
+
+  buf = malloc (60);
+
+  snprintf (buf, 60,
+	    "\tPresentation-Time: %.3f\n\tBasetime: %.3f\n",
+	    (double)INT64_LE_AT(&data[12]) / (double)INT64_LE_AT(&data[20]),
+	    (double)INT64_LE_AT(&data[28]) / (double)INT64_LE_AT(&data[36]));
+
+  return buf;
+}
+
 static const OTCodecIdent codec_ident[] = {
   {"\200theora", 7, "Theora", ot_theora_info},
   {"\001vorbis", 7, "Vorbis", ot_vorbis_info},
   {"Speex", 5, "Speex", ot_speex_info},
   {"CMML\0\0\0\0", 8, "CMML", NULL},
   {"Annodex", 8, "Annodex", NULL},
-  {"fishead", 8, "Skeleton", NULL},
+  {"fishead", 8, "Skeleton", ot_skeleton_info},
   {NULL}
 };
 
