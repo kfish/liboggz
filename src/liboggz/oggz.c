@@ -367,7 +367,7 @@ oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
 {
   oggz_metric_linear_t * ldata = (oggz_metric_linear_t *)user_data;
 
-  return (ldata->gr_n * granulepos / ldata->gr_d);
+  return (ldata->gr_d * granulepos / ldata->gr_n);
 }
 
 int
@@ -411,6 +411,13 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
 			ogg_int64_t granule_rate_denominator)
 {
   oggz_metric_linear_t * linear_data;
+
+  /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
+   * numerator is non-zero */
+  if (granule_rate_numerator == 0) {
+    granule_rate_numerator = 1;
+    granule_rate_denominator = 0;
+  }
 
   linear_data = oggz_malloc (sizeof (oggz_metric_linear_t));
   linear_data->gr_n = granule_rate_numerator;
