@@ -118,7 +118,9 @@ oggz_open (char * filename, int flags)
   }
   if (file == NULL) return NULL;
 
-  oggz = oggz_new (flags);
+  if ((oggz = oggz_new (flags)) == NULL)
+    return NULL;
+
   oggz->file = file;
 
   return oggz;
@@ -131,7 +133,9 @@ oggz_open_stdio (FILE * file, int flags)
 
   if (oggz_flags_disabled (flags)) return NULL;
 
-  oggz = oggz_new (flags);
+  if ((oggz = oggz_new (flags)) == NULL)
+    return NULL;
+
   oggz->file = file;
 
   return oggz;
