@@ -187,6 +187,10 @@ oggz_close (OGGZ * oggz)
     }
   }
 
+  if (oggz->io != NULL) {
+    oggz_free (oggz->io);
+  }
+
   oggz_free (oggz);
 
   return 0;
