@@ -61,6 +61,7 @@
 #include "oggz_private.h"
 
 /*#define DEBUG*/
+/* #define DEBUG_VERBOSE */
 
 #define CHUNKSIZE 65536
 
@@ -213,12 +214,12 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
       return -2;
 #endif
     } else if (more < 0) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
       printf ("get_next_page: skipped %ld bytes\n", -more);
 #endif
       page_offset -= more;
     } else {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
       printf ("get_next_page: page has %ld bytes\n", more);
 #endif
       found = 1;
@@ -296,11 +297,10 @@ oggz_read_sync (OGGZ * oggz)
 	  oggz_auto (oggz, op, serialno, NULL);
 	}
 
-#if 0 /* set unit on last packet of page */
+	/* set unit on last packet of page */
 	if ((oggz->metric || stream->metric) && granulepos != -1) {
 	  reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
 	}
-#endif
 
 	if (stream->read_packet) {
 	  cb_ret =
@@ -339,6 +339,7 @@ oggz_read_sync (OGGZ * oggz)
       ogg_int64_t granulepos;
 
       granulepos = ogg_page_granulepos (&og);
+
       if ((oggz->metric || stream->metric) && granulepos != -1) {
 	reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
       } else if (granulepos == 0) {
@@ -652,12 +653,12 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       }
 
       if (bytes == 0) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf ("get_next_page: bytes == 0, returning -2\n");
 #endif
 	return -2;
       } else if (oggz->file && feof (oggz->file)) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
 	printf ("get_next_page: feof (oggz->file), returning -2\n");
 #endif
 	clearerr (oggz->file);
@@ -667,12 +668,12 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       ogg_sync_wrote(&reader->ogg_sync, bytes);
 
     } else if (more < 0) {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
       printf ("get_next_page: skipped %ld bytes\n", -more);
 #endif
       page_offset -= more;
     } else {
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
       printf ("get_next_page: page has %ld bytes\n", more);
 #endif
       found = 1;
@@ -873,13 +874,13 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 
     if (unit_at < unit_target) {
 #ifdef DEBUG
-      printf (" scan: (%ld) < (%ld)\n", unit_at, unit_target);
+      printf (" scan: (%lld) < (%lld)\n", unit_at, unit_target);
 #endif
       offset_prev = offset_next;
       offset_begin = offset_next+1;
     } else if (unit_at > unit_target) {
 #ifdef DEBUG
-      printf (" scan: (%ld) > (%ld)\n", unit_at, unit_target);
+      printf (" scan: (%lld) > (%lld)\n", unit_at, unit_target);
 #endif
 #if 0
       /* hole ? */
@@ -899,7 +900,7 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 #endif
     } else if (unit_at == unit_target) {
 #ifdef DEBUG
-      printf (" scan: (%ld) == (%ld)\n", unit_at, unit_target);
+      printf (" scan: (%lld) == (%lld)\n", unit_at, unit_target);
 #endif
       break;
     }
@@ -909,6 +910,30 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 }
 
 #define GUESS_MULTIPLIER (1<<16)
+
+static ogg_int64_t
+guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
+       ogg_int64_t unit_begin, ogg_int64_t unit_end,
+       oggz_off_t offset_begin, oggz_off_t offset_end)
+{
+  ogg_int64_t guess_ratio;
+  oggz_off_t offset_guess;
+
+  guess_ratio =
+    GUESS_MULTIPLIER * (unit_target - unit_begin) /
+    (unit_at - unit_begin);
+
+#ifdef DEBUG
+  printf ("oggz_seek::guess: guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
+	  guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
+#endif
+  
+  offset_guess = offset_begin +
+    (oggz_off_t)(((offset_end - offset_begin) * guess_ratio) /
+		 GUESS_MULTIPLIER);
+  
+  return offset_guess;
+}
 
 static ogg_int64_t
 oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
@@ -921,7 +946,6 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   ogg_int64_t granule_at;
   ogg_int64_t unit_at, unit_begin = 0, unit_end = -1;
   long serialno;
-  ogg_int64_t guess_ratio;
   ogg_page * og;
 
   if (oggz == NULL) {
@@ -929,7 +953,9 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   }
 
   if (unit_target > 0 && !oggz_has_metrics (oggz)) {
-    /* No metric defined */
+#ifdef DEBUG
+    printf ("oggz_seek_set: No metric defined, FAIL\n");
+#endif
     return -1;
   }
 
@@ -984,11 +1010,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   offset_at = oggz_tell_raw (oggz);
   if (offset_at == -1) return -1;
 
-#if 0
-  offset_orig = offset_at;
-#else
   offset_orig = oggz->offset;
-#endif
 
   offset_begin = 0;
 
@@ -1007,55 +1029,20 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
     if (unit_end == -1) {
       if (unit_at == unit_begin) {
-#ifdef DEBUG
-	printf ("*G1*");
-#endif
 	offset_guess = offset_begin + (offset_end - offset_begin)/2;
       } else {
-#ifdef DEBUG
-	printf ("*G2*");
-#endif
-	guess_ratio =
-	  GUESS_MULTIPLIER * (unit_target - unit_begin) /
-	  (unit_at - unit_begin);
-
-#ifdef DEBUG
-	printf ("\noggz_seek_set: [B] guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
-		guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
-#endif
-
-	offset_guess = offset_begin +
-	  (oggz_off_t)(((offset_at - offset_begin) * guess_ratio) /
-		       GUESS_MULTIPLIER);
+	offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
+			      offset_begin, offset_at);
       }
     } else if (unit_end <= unit_begin) {
 #ifdef DEBUG
-      printf ("unit_end <= unit_begin\n");
+      printf ("oggz_seek_set: unit_end <= unit_begin (ERROR)\n");
 #endif
       break;
     } else {
-#if 1
-      guess_ratio =
-	GUESS_MULTIPLIER * (unit_target - unit_begin) /
-	(unit_end - unit_begin);
-
-      offset_guess = offset_begin +
-	(oggz_off_t)(((offset_end - offset_begin) * guess_ratio) /
-		     GUESS_MULTIPLIER);
-
-      /*
-      if (offset_guess <= offset_begin) {
-	offset_guess = offset_begin + 1;
-      }
-      */
-#else
-      offset_guess = offset_begin + (offset_end - offset_begin)/2;
-#endif
+      offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
+			    offset_begin, offset_end);
     }
-
-#ifdef DEBUG
-    printf ("%ld ->", offset_guess);
-#endif
 
     offset_at = oggz_seek_raw (oggz, offset_guess, SEEK_SET);
     if (offset_at == -1) {
@@ -1063,10 +1050,6 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     }
 
     offset_next = oggz_get_next_start_page (oggz, og);
-
-#ifdef DEBUG
-    printf ("\n");
-#endif
 
     if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
@@ -1087,12 +1070,9 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     }
 
     if (offset_next < offset_end) {
-      offset_next = oggz_scan_for_page (oggz, og, unit_target,
-					offset_begin, offset_end);
-
-      if (offset_next < 0) {
-	goto notfound;
-      }
+      offset_next =
+	oggz_scan_for_page (oggz, og, unit_target, offset_begin, offset_end);
+      if (offset_next < 0) goto notfound;
 
       offset_at = offset_next;
       serialno = ogg_page_serialno (og);
@@ -1197,13 +1177,25 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   OggzReader * reader = &oggz->x.reader;
 
-  if (oggz == NULL) return -1;
+  if (oggz == NULL) {
+#ifdef DEBUG
+    printf ("oggz_seek_units: oggz NULL, FAIL\n");
+#endif
+    return -1;
+  }
+
 
   if (oggz->flags & OGGZ_WRITE) {
+#ifdef DEBUG
+    printf ("oggz_seek_units: is OGGZ_WRITE, FAIL\n");
+#endif
     return -1;
   }
 
   if (!oggz_has_metrics (oggz)) {
+#ifdef DEBUG
+    printf ("oggz_seek_units: !has_metrics, FAIL\n");
+#endif
     return -1;
   }
 
