@@ -2,5 +2,6 @@
 
 # Include files to install
 includedir = $(prefix)/include/oggz
-include_HEADERS = oggz.h oggz_constants.h oggz_io.h oggz_table.h
+include_HEADERS = oggz.h oggz_constants.h oggz_io.h oggz_table.h\
+	oggz_deprecated.h
 
