@@ -42,7 +42,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <oggz/oggz.h>
+#include "oggz_private.h"
 #include "oggz_auto.h"
 #include "oggz_byteorder.h"
 #include "oggz_macros.h"
@@ -52,11 +52,15 @@
 int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
 			      void * user_data, int internal);
 
+int oggz_set_metric_linear (OGGZ * oggz, long serialno,
+			    ogg_int64_t granule_rate_numerator,
+			    ogg_int64_t granule_rate_denominator);
+
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
-#define DEBUG
+/*#define DEBUG*/
 
 #define OGGZ_AUTO_MULT 1000
 
@@ -294,7 +298,8 @@ static int
 auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
-  long fisbone_serialno;
+  long fisbone_serialno; /* The serialno referred to in this fisbone */
+  oggz_stream_t * fisbone_stream; /* The stream of that serialno */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
 
   if (op->bytes < 48) return 0;
@@ -302,6 +307,10 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (strncmp ((char *)header, "fisbone", 7)) return 0;
 
   fisbone_serialno = (long) INT32_LE_AT(&header[12]);
+  fisbone_stream = oggz_get_stream (oggz, fisbone_serialno);
+
+  /* Don't override an already assigned metric */
+  if (fisbone_stream->metric) return 1;
 
   granule_rate_numerator = INT64_LE_AT(&header[20]);
   granule_rate_denominator = INT64_LE_AT(&header[28]);
