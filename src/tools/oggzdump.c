@@ -69,6 +69,25 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename\n", progname);
+  printf ("Hexdump packets of an Ogg file, or revert an Ogg file from such a hexdump\n");
+  printf ("\nDump format options\n");
+  printf ("  -b, --binary           Generate a binary dump of each packet\n");
+  printf ("  -x, --hexadecimal      Generate a hexadecimal dump of each packet\n");
+  printf ("\nFiltering options\n");
+  printf ("  -n, --new              Only dump the first packet of each logical bitstream\n");
+  printf ("  -s serialno, --serialno serialno\n");
+  printf ("                         Dump only the logical bitstream with specified serialno\n");
+  printf ("  -O, --hide-offset      Hide the byte offset of each packet\n");
+  printf ("  -S, --hide-serialno    Hide the serialno field of each packet\n");
+  printf ("  -G, --hide-granulepos  Hide the granulepos field of each packet\n");
+  printf ("  -P, --hide-packetno    Hide the packetno field of each packet\n");
+  printf ("\nMode options\n");
+  printf ("  -r, --revert           Revert an oggzdump. Generates an Ogg bitstream\n");
+  printf ("                         as prescribed in the input oggzdump\n");
+  printf ("\nMiscellaneous options\n");
+  printf ("  -o filename, --output filename\n");
+  printf ("                         Specify output filename\n");
+  printf ("  -h, --help             Display this help and exit\n");
 }
 
 static void
