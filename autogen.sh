@@ -80,21 +80,22 @@ fi
 #
 
 if grep -q PKG_CHECK_MODULES configure.*; then
-  if ! which pkg-config > /dev/null 2> /dev/null; then
+  if ! pkg-config --version > /dev/null 2> /dev/null; then
     cat << EOF
-$0: pkg-config is required, but it's not installed or can't be found in your
+pkg-config is required, but it's not installed or can't be found in your
 search path.
 
 EOF
     # be nice to the user if they have fink!
     if test -d /sw ; then
       cat << EOF
-You can install it via Fink with the command
+You can install it via Fink with the command:
 
  apt-get install pkgconfig
 
 EOF
     fi
+    exit 1
   fi
 fi
 
