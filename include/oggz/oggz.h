@@ -62,6 +62,8 @@
  *   seeking on multitrack Ogg data
  * - A packet queue for feeding incoming packets for writing, with callback
  *   based notification when this queue is empty
+ * - A means of overriding the \link oggz_io.h IO functions \endlink used by
+ *   Oggz, for easier integration with media frameworks and similar systems.
  * - A handy \link oggz_table.h table \endlink structure for storing
  *   information on each logical bitstream
  * 
@@ -383,7 +385,7 @@
  * in one of three ways:
  *
  * - oggz_open() - Open a full pathname
- * - oggz_open_stdio() - Use an already opened FILE
+ * - oggz_open_stdio() - Use an already opened FILE *
  * - oggz_new() - Create an anonymous OGGZ object, which you can later
  *   handle via memory buffers
  *
@@ -409,6 +411,18 @@
  * handle for reading, and ensure that an \link metric OggzMetric \endlink
  * function is defined to translate packet positions into units such as time.
  * See the \ref seek_api section for details.
+ *
+ * \section io Overriding the IO methods
+ *
+ * When an OGGZ handle is instantiated by oggz_open() or oggz_open_stdio(),
+ * Oggz uses stdio functions internally to access the raw data. However for
+ * some applications, the raw data cannot be accessed via stdio -- this
+ * commonly occurs when integrating with media frameworks. For such
+ * applications, you can provide Oggz with custom IO methods that it should
+ * use to access the raw data. Oggz will then use these custom methods,
+ * rather than using stdio methods, to access the raw data internally.
+ *
+ * For details, see \link oggz_io.h <oggz/oggz_io.h> \endlink.
  *
  * \section headers Headers
  *
@@ -767,7 +781,37 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
 /** \}
  */
 
+/** \defgroup auto OGGZ_AUTO
+ *
+ * \section auto Automatic Metrics
+ *
+ * Oggz can automatically provide \link metric metrics \endlink for the
+ * common media codecs
+ * <a href="http://www.speex.org/">Speex</a>,
+ * <a href="http://www.vorbis.com/">Vorbis</a>,
+ * and <a href="http://www.theora.org/">Theora</a>,
+ * as well as all <a href="http://www.annodex.net/">Annodex</a> streams.
+ * You need do nothing more than open the file with the OGGZ_AUTO flag set.
+ *
+ * - Create an OGGZ handle for reading with \a flags = OGGZ_READ | OGGZ_AUTO
+ * - Read data, ensuring that you have received all b_o_s pages before
+ *   attempting to seek.
+ *
+ * Oggz will silently parse known codec headers and associate metrics
+ * appropriately; if you attempt to seek before you have received all
+ * b_o_s pages, Oggz will not have had a chance to parse the codec headers
+ * and associate metrics.
+ * It is safe to seek once you have received a packet with \a b_o_s == 0;
+ * see the \link basics Ogg basics \endlink section for more details.
+ *
+ * \note This functionality is provided for convenience. Oggz parses
+ * these codec headers internally, and so liboggz is \b not linked to
+ * libspeex, libvorbis, libtheora or libannodex.
+ */
+
 /** \defgroup metric Using OggzMetric
+ *
+ * \section metric_intro Introduction
  *
  * An OggzMetric is a helper function for Oggz's seeking mechanism.
  *
@@ -783,32 +827,13 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  *
  * \section setting How to set metrics
  *
- * Some common media codecs can be handled automatically by Oggz. For most
- * others it is simply a matter of providing a linear multiplication factor
- * (such as a sampling rate, if each packet's granulepos represents a
+ * You don't need to set metrics for Vorbis, Speex, Theora or Annodex.
+ * These can be handled \link auto automatically \endlink by Oggz.
+ *
+ * For most others it is simply a matter of providing a linear multiplication
+ * factor (such as a sampling rate, if each packet's granulepos represents a
  * sample number). For non-linear data streams, you will need to explicitly
  * provide your own OggzMetric function.
- *
- * \subsection auto Automatic Metrics
- *
- * Oggz can automatically provide metrics for the common media codecs
- * Speex, Vorbis, and Theora, as well as all Annodex streams. You need do
- * nothing more than open the file with the OGGZ_AUTO flag set.
- *
- * - Create an OGGZ handle for reading with \a flags = OGGZ_READ | OGGZ_AUTO
- * - Read data, ensuring that you have received all b_o_s pages before
- *   attempting to seek.
- *
- * Oggz will silently parse known codec headers and associate metrics
- * appropriately; if you attempt to seek before you have received all
- * b_o_s pages, Oggz will not have had a chance to parse the codec headers
- * and associate metrics.
- * It is safe to seek once you have received a packet with \a b_o_s == 0;
- * see the \link basics Ogg basics \endlink section for more details.
- *
- * \note This functionality is provided for convenience. Oggz parses
- * these codec headers internally, and so liboggz is \b not linked to
- *  libspeex, libvorbis, libtheora or libannodex.
  *
  * \subsection linear Linear Metrics
  *
@@ -817,7 +842,7 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  *
  * \subsection custom Custom Metrics
  *
- * For some streams, neither of the above methods are appropriate. 
+ * For streams with non-linear granulepos, you need to set a custom metric:
  *
  * - Implement an OggzMetric callback
  * - Set the OggzMetric callback using oggz_set_metric()
@@ -847,7 +872,9 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  *
  */
 
-/** \defgroup seek_api OGGZ Seek API
+/** \defgroup seek_semantics Semantics of seeking in Ogg bitstreams
+ *
+ * \section seek_semantics_intro Introduction
  *
  * The seeking semantics of the Ogg file format were outlined by Monty in
  * <a href="http://www.xiph.org/archives/theora-dev/200209/0040.html">a
@@ -873,12 +900,27 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  * such as 'time', OGGZ can efficiently navigate through an Ogg stream
  * by use of an OggzMetric callback, thus allowing automatic seeking to
  * points in 'time'.
+ *
  * For common codecs you can ask Oggz to set this for you automatically by
  * instantiating the OGGZ handle with the OGGZ_AUTO flag set. For others
  * you can specify a multiplier with oggz_set_metric_linear(), or a generic
  * non-linear metric with oggz_set_metric().
  *
- * - See the section on \link metric Using OggzMetrics \endlink for details
+ */
+
+/** \defgroup seek_api OGGZ Seek API
+ *
+ * Oggz can seek on multitrack, multicodec bitstreams.
+ *
+ * - If you are expecting to only handle
+ *   <a href="http://www.annodex.net/">Annodex</a> bitstreams,
+ *   or any combination of <a href="http://www.vorbis.com/">Vorbis</a>,
+ *   <a href="http://www.speex.org/">Speex</a> and
+ *   <a href="http://www.theora.org/">Theora</a> logical bitstreams, seeking
+ *   is built-in to Oggz. See \link auto OGGZ_AUTO \endlink for details.
+ *
+ * - For other data streams, you will need to provide a metric function;
+ *   see the section on \link metric Using OggzMetrics \endlink for details
  *   of setting up and seeking with metrics.
  *
  * - It is always possible to seek to exact byte positions using oggz_seek().
@@ -886,6 +928,9 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  * - A mechanism to aid seeking across non-metric spaces for which a partial
  *   order exists (ie. data that is not synchronised by a measure such as time,
  *   but is nevertheless somehow seekably structured), is also planned.
+ *
+ * For a full description of the seeking methods possible in Ogg, see
+ * \link seek_semantics Semantics of seeking in Ogg bitstreams \endlink.
  *
  * \{
  */
