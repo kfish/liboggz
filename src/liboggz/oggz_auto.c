@@ -128,6 +128,11 @@ auto_theora_metric (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
   units = OGGZ_AUTO_MULT * granulepos * tdata->fps_denominator /
     tdata->fps_numerator;
 
+#ifdef DEBUG
+  printf ("serialno %010ld: Got theora frame %lld (%lld + %lld)\n",
+	  serialno, granulepos, iframe, pframe, tdata->keyframe_shift);
+#endif
+
   return units;
 }
 
@@ -153,16 +158,17 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #if USE_THEORA_PRE_ALPHA_3_FORMAT
   /* old header format, used by Theora alpha2 and earlier */
   keyframe_granule_shift = (header[36] & 0xf8) >> 3;
+  tdata->keyframe_shift = intlog (keyframe_granule_shift - 1);
 #else
   keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
   keyframe_granule_shift |= (header[41] & 0xe0) >> 5;
+  tdata->keyframe_shift = keyframe_granule_shift;
 #endif
-  tdata->keyframe_shift = intlog (keyframe_granule_shift - 1);
 
 #ifdef DEBUG
-  printf ("Got theora fps %d/%d, keyframe_granule_shift %d\n",
+  printf ("Got theora fps %d/%d, keyframe_shift %d\n",
 	  tdata->fps_numerator, tdata->fps_denominator,
-	  keyframe_granule_shift);
+	  tdata->keyframe_shift);
 #endif
 
   /*oggz_set_metric_internal (oggz, serialno, auto_theora_metric, tdata, 1);*/
