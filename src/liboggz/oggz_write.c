@@ -502,6 +502,14 @@ oggz_page_writeout (OGGZ * oggz, long n)
 
   b = MIN (n, og->header_len + og->body_len - writer->page_offset);
   if (b > 0) {
+#ifdef DEBUG
+    {
+      unsigned char * c = &og->body[writer->page_offset - og->header_len];
+      printf ("oggz_page_writeout [%d] (@%ld): %c%c%c%c ...\n",
+	      ogg_page_serialno (og), (long) ogg_page_granulepos (og),
+	      c[0], c[1], c[2], c[3]);
+    }
+#endif
 #ifdef OGGZ_WRITE_DIRECT
     nwritten = write (fd,
 		      og->body + (writer->page_offset - og->header_len), b);
@@ -529,10 +537,18 @@ oggz_dequeue_packet (OGGZ * oggz)
   oggz_writer_packet_t * next_zpacket;
 
   if (writer->next_zpacket != NULL) {
+#ifdef DEBUG
+    printf ("oggz_dequeue_packet: queue EMPTY\n");
+#endif
     next_zpacket = writer->next_zpacket;
     writer->next_zpacket = NULL;
   } else {
     next_zpacket = oggz_vector_pop (writer->packet_queue);
+
+#ifdef DEBUG
+    printf ("oggz_dequeue_packet: dequeued packet, queue size %d\n",
+	    oggz_vector_size (writer->packet_queue));
+#endif
 
     if (next_zpacket == NULL) {
       if (writer->hungry) {
