@@ -31,6 +31,7 @@ oggz_tell				@18
 oggz_seek				@19
 oggz_seek_units				@20
 oggz_purge				@21
+oggz_tell_units			@22
 
 ;
 ;oggz table functions.
@@ -42,4 +43,17 @@ oggz_table_delete			@33
 oggz_table_nth				@34
 oggz_table_size				@35
 
+;
+;oggz io functions
+;
 
+oggz_io_set_read							@50
+oggz_io_get_read_user_handle				@51
+oggz_io_set_write							@52
+oggz_io_get_write_user_handle				@53
+oggz_io_set_seek							@54		
+oggz_io_get_seek_user_handle				@55
+oggz_io_set_tell							@56
+oggz_io_get_tell_user_handle				@57
+oggz_io_set_flush							@58
+oggz_io_get_flush_user_handle				@59

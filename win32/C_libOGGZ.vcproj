@@ -143,6 +143,9 @@
 				RelativePath="..\src\liboggz\oggz_auto.c">
 			</File>
 			<File
+				RelativePath="..\src\liboggz\oggz_io.c">
+			</File>
+			<File
 				RelativePath="..\src\liboggz\oggz_read.c">
 			</File>
 			<File

@@ -1,5 +1,5 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "C_libOGGZ", "C_libOGGZ.vcproj", "{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libOggz", "C_libOGGZ.vcproj", "{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -8,6 +8,10 @@ Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "liboggz_bin_installer", "li
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGGZDump", "OGGZDump.vcproj", "{65EEF875-D215-4248-B216-8B9701AA7A31}"
+	ProjectSection(ProjectDependencies) = postProject
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testOggzPause", "..\..\..\..\..\testOggzPause\testOggzPause.vcproj", "{B99582B1-5F9E-458A-B89B-219807747301}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
@@ -29,6 +33,10 @@ Global
 		{65EEF875-D215-4248-B216-8B9701AA7A31}.Debug.Build.0 = Debug|Win32
 		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.ActiveCfg = Release|Win32
 		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.Build.0 = Release|Win32
+		{B99582B1-5F9E-458A-B89B-219807747301}.Debug.ActiveCfg = Debug|Win32
+		{B99582B1-5F9E-458A-B89B-219807747301}.Debug.Build.0 = Debug|Win32
+		{B99582B1-5F9E-458A-B89B-219807747301}.Release.ActiveCfg = Release|Win32
+		{B99582B1-5F9E-458A-B89B-219807747301}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
