@@ -33,6 +33,10 @@
 #ifndef __OGGZ_READ_H__
 #define __OGGZ_READ_H__
 
+/** \file
+ * Interfaces for reading Ogg files and streams
+ */
+
 /** \defgroup read_api OGGZ Read API
  *
  * OGGZ parses Ogg bitstreams, forming ogg_packet structures, and calling

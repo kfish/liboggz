@@ -33,6 +33,10 @@
 #ifndef __OGGZ_DEPRECATED_H__
 #define __OGGZ_DEPRECATED_H__
 
+/** \file
+ * Deprecated interfaces
+ */
+
 /**
  * DEPRECATED CONSTANT.
  * OGGZ_ERR_USER_STOPPED was introduced during development (post 0.8.3),

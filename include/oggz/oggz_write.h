@@ -33,6 +33,10 @@
 #ifndef __OGGZ_WRITE_H__
 #define __OGGZ_WRITE_H__
 
+/** \file
+ * Interfaces for writing Ogg files and streams
+ */
+
 /** \defgroup force_feed Writing by force feeding OGGZ
  *
  * Force feeding involves synchronously:

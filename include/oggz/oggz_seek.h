@@ -33,6 +33,9 @@
 #ifndef __OGGZ_SEEK_H__
 #define __OGGZ_SEEK_H__
 
+/** \file
+ * Seeking within files
+ */
 
 /** \defgroup auto OGGZ_AUTO
  *
