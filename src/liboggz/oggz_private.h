@@ -42,6 +42,7 @@
 #include "oggz_vector.h"
 
 typedef struct _OGGZ OGGZ;
+typedef struct _OggzIO OggzIO;
 typedef struct _OggzReader OggzReader;
 typedef struct _OggzWriter OggzWriter;
 
@@ -56,6 +57,13 @@ typedef int (*OggzOrder) (OGGZ * oggz, ogg_packet * op, void * target,
 			  void * user_data);
 
 typedef int (*OggzWriteHungry) (OGGZ * oggz, int empty, void * user_data);
+
+/* oggz_io */
+typedef size_t (*OggzIORead) (void * user_handle, void * buf, size_t n);
+typedef size_t (*OggzIOWrite) (void * user_handle, void * buf, size_t n);
+typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
+typedef long (*OggzIOTell) (void * user_handle);
+typedef int (*OggzIOFlush) (void * user_handle);
 
 typedef struct {
   ogg_stream_state ogg_stream;
@@ -139,9 +147,27 @@ struct _OggzWriter {
   ogg_stream_state * current_stream;
 };
 
+struct _OggzIO {
+  OggzIORead read;
+  void * read_user_handle;
+
+  OggzIOWrite write;
+  void * write_user_handle;
+
+  OggzIOSeek seek;
+  void * seek_user_handle;
+
+  OggzIOTell tell;
+  void * tell_user_handle;
+
+  OggzIOFlush flush;
+  void * flush_user_handle;
+};
+
 struct _OGGZ {
   int flags;
   FILE * file;
+  OggzIO * io;
 
   ogg_packet current_packet;
   ogg_page current_page;
@@ -183,5 +209,12 @@ int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
 int oggz_purge (OGGZ * oggz);
 
 int oggz_auto (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data);
+
+/* oggz_io */
+size_t oggz_io_read (OGGZ * oggz, void * buf, size_t n);
+size_t oggz_io_write (OGGZ * oggz, void * buf, size_t n);
+int oggz_io_seek (OGGZ * oggz, long offset, int whence);
+long oggz_io_tell (OGGZ * oggz);
+int oggz_io_flush (OGGZ * oggz);
 
 #endif /* __OGGZ_PRIVATE_H__ */

@@ -455,11 +455,14 @@ oggz_page_writeout (OGGZ * oggz, long n)
 #ifdef OGGZ_WRITE_DIRECT
     nwritten = write (fd, og->header + writer->page_offset, h);
 #else
-    nwritten = (long)fwrite (og->header + writer->page_offset, 1, h, oggz->file);
+    nwritten = (long)oggz_io_write (oggz, og->header + writer->page_offset, h);
 #endif
+
+#ifdef DEBUG
     if (nwritten < h) {
       printf ("oggz_page_writeout: %ld < %ld\n", nwritten, h);
     }
+#endif
     writer->page_offset += h;
     n -= h;
   } else {
@@ -472,12 +475,13 @@ oggz_page_writeout (OGGZ * oggz, long n)
     nwritten = write (fd,
 		      og->body + (writer->page_offset - og->header_len), b);
 #else
-    nwritten = (long)fwrite (og->body + (writer->page_offset - og->header_len),
-		       1, b, oggz->file);
+    nwritten = (long)oggz_io_write (oggz, og->body + (writer->page_offset - og->header_len), b);
 #endif
+#ifdef DEBUG
     if (nwritten < b) {
       printf ("oggz_page_writeout: %ld < %ld\n", nwritten, b);
     }
+#endif
     writer->page_offset += b;
     n -= b;
   } else {

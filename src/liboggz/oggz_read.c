@@ -157,7 +157,7 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
       page_offset = 0;
 #if _UMMODIFIED_
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
-      if ((bytes = fread (buffer, 1, CHUNKSIZE, oggz->file)) == 0) {
+      if ((bytes = oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
 	if (ferror (oggz->file)) {
 	  oggz_set_error (oggz, OGGZ_ERR_SYSTEM);
 	  return -1;
@@ -188,7 +188,7 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
 
   /* Calculate the byte offset of the page which was found */
   if (bytes > 0) {
-    oggz->offset = ftell (oggz->file) - bytes + page_offset;
+    oggz->offset = oggz_io_tell (oggz) - bytes + page_offset;
     ret = oggz->offset;
   } else {
     /* didn't need to do any reading -- accumulate the page_offset */
@@ -275,6 +275,9 @@ oggz_read_sync (OGGZ * oggz)
     }
     }
 
+    /* If we've got a stop already, don't read more data in */
+    if (cb_ret != 0) return cb_ret;
+
     if(oggz_get_next_page_7 (oggz, &og) < 0)
       return -404; /* eof. leave unitialized */
 
@@ -348,7 +351,7 @@ oggz_read (OGGZ * oggz, long n)
   while (cb_ret != -1 && cb_ret != 1 && bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
-    if ((bytes_read = (long)fread (buffer, 1, bytes, oggz->file)) == 0) {
+    if ((bytes_read = (long) oggz_io_read (oggz, buffer, bytes)) == 0) {
 
       if (ferror (oggz->file)) {
 	return OGGZ_ERR_SYSTEM;
@@ -432,7 +435,7 @@ oggz_tell_raw (OGGZ * oggz)
 {
   oggz_off_t offset_at;
 
-  offset_at = ftell (oggz->file);
+  offset_at = oggz_io_tell (oggz);
 
   return offset_at;
 }
@@ -446,16 +449,11 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
   OggzReader * reader = &oggz->x.reader;
   oggz_off_t offset_at;
 
-  if (fseek (oggz->file, offset, whence) == -1) {
-    if (errno == ESPIPE) {
-      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-    } else {
-      /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
-    }
+  if (oggz_io_seek (oggz, offset, whence) == -1) {
     return -1;
   }
 
-  offset_at = ftell (oggz->file);
+  offset_at = oggz_io_tell (oggz);
 
   oggz->offset = offset_at;
 
@@ -554,7 +552,7 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       page_offset = 0;
 
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
-      if ((bytes = (long)fread (buffer, 1, CHUNKSIZE, oggz->file)) == 0) {
+      if ((bytes = (long) oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
 	if (ferror (oggz->file)) {
 	  /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
 	  return -1;

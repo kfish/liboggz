@@ -63,6 +63,17 @@ enum OggzFlags {
   OGGZ_AUTO         = 0x20
 };
 
+enum OggzStopCtl {
+  /** Continue calling read callbacks */
+  OGGZ_CONTINUE     = 0,
+
+  /** Stop calling callbacks, but retain buffered packet data */
+  OGGZ_STOP_OK      = 1,
+
+  /** Stop calling callbacks, and purge buffered packet data */
+  OGGZ_STOP_ERR     = -1
+};
+
 /**
  * Flush options for oggz_write_feed; can be or'ed together
  */

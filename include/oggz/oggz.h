@@ -1094,5 +1094,6 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  */
 long oggz_serialno_new (OGGZ * oggz);
 
+#include <oggz/oggz_io.h>
 
 #endif /* __OGGZ_H__ */

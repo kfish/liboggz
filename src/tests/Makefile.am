@@ -17,7 +17,14 @@ write_tests = write-bad-guard write-unmarked-guard write-recursive \
 	write-bad-granulepos write-bad-packetno
 endif
 
-TESTS = $(write_tests)
+if OGGZ_CONFIG_READ
+if OGGZ_CONFIG_WRITE
+rw_tests = read-generated read-stop-ok read-stop-err \
+	io-read io-seek io-write
+endif
+endif
+
+TESTS = $(write_tests) $(rw_tests)
 
 noinst_PROGRAMS = $(TESTS)
 noinst_HEADERS = oggz_tests.h
@@ -48,3 +55,21 @@ write_bad_granulepos_LDADD = $(OGGZ_LIBS)
 
 write_bad_packetno_SOURCES = write-bad-packetno.c
 write_bad_packetno_LDADD = $(OGGZ_LIBS)
+
+read_generated_SOURCES = read-generated.c
+read_generated_LDADD = $(OGGZ_LIBS)
+
+read_stop_ok_SOURCES = read-stop-ok.c
+read_stop_ok_LDADD = $(OGGZ_LIBS)
+
+read_stop_err_SOURCES = read-stop-err.c
+read_stop_err_LDADD = $(OGGZ_LIBS)
+
+io_read_SOURCES = io-read.c
+io_read_LDADD = $(OGGZ_LIBS)
+
+io_seek_SOURCES = io-seek.c
+io_seek_LDADD = $(OGGZ_LIBS)
+
+io_write_SOURCES = io-write.c
+io_write_LDADD = $(OGGZ_LIBS)

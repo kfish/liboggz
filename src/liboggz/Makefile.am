@@ -12,6 +12,7 @@ lib_LTLIBRARIES = liboggz.la
 liboggz_la_SOURCES = \
 	oggz.c \
 	oggz_private.h oggz_byteorder.h oggz_compat.h oggz_macros.h \
+	oggz_io.c \
 	oggz_read.c oggz_write.c \
 	oggz_auto.c oggz_auto.h \
 	oggz_table.c \

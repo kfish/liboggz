@@ -79,6 +79,7 @@ oggz_new (int flags)
 
   oggz->flags = flags;
   oggz->file = NULL;
+  oggz->io = NULL;
 
   oggz->offset = 0;
   oggz->offset_data_begin = 0;
@@ -141,13 +142,7 @@ oggz_flush (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
-  if (oggz->file == NULL) return OGGZ_ERR_INVALID;
-
-  if (fflush (oggz->file) == EOF) {
-    return OGGZ_ERR_SYSTEM;
-  }
-
-  return 0;
+  return oggz_io_flush (oggz);
 }
 
 static int

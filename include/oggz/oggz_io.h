@@ -62,7 +62,7 @@
  * \retval 0 to indicate that there is no more data to read (End of file)
  * \retval "<  0" An error condition
  */
-typedef long (*OggzIORead) (void * user_handle, void * buf, long n);
+typedef size_t (*OggzIORead) (void * user_handle, void * buf, size_t n);
 
 /**
  * This is the signature of a function which you provide for Oggz
@@ -75,7 +75,7 @@ typedef long (*OggzIORead) (void * user_handle, void * buf, long n);
  * \a n if a write error has occurred)
  * \retval "<  0" An error condition
  */
-typedef long (*OggzIOWrite) (void * user_handle, void * buf, long n);
+typedef size_t (*OggzIOWrite) (void * user_handle, void * buf, size_t n);
 
 /**
  * This is the signature of a function which you provide for Oggz
@@ -86,8 +86,11 @@ typedef long (*OggzIOWrite) (void * user_handle, void * buf, long n);
  * \param whence SEEK_SET, SEEK_CUR or SEEK_END (as for stdio.h)
  * \retval ">= 0" The offset seeked to
  * \retval "<  0" An error condition
+ *
+ * \note If you provide an OggzIOSeek function, you MUST also provide
+ * an OggzIOTell function, or else all your seeks will fail.
  */
-typedef off_t (*OggzIOSeek) (void * user_handle, off_t offset, int whence);
+typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
 
 /**
  * This is the signature of a function which you provide for Oggz
@@ -98,7 +101,7 @@ typedef off_t (*OggzIOSeek) (void * user_handle, off_t offset, int whence);
  * \retval ">= 0" The offset
  * \retval "<  0" An error condition
  */
-typedef off_t (*OggzIOTell) (void * user_handle);
+typedef long (*OggzIOTell) (void * user_handle);
 
 /**
  * This is the signature of a function which you provide for Oggz
@@ -165,6 +168,9 @@ void * oggz_io_get_write_user_handle (OGGZ * oggz);
  * \retval 0 Success
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ *
+ * \note If you provide an OggzIOSeek function, you MUST also provide
+ * an OggzIOTell function, or else all your seeks will fail.
  */
 int oggz_io_set_seek (OGGZ * oggz, OggzIOSeek seek, void * user_handle);
 
