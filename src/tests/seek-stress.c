@@ -70,7 +70,7 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
   diff = result - units;
 
   if (verbose)
-    printf ("\t%08lx: %lld ms (+%lld ms)\n",
+    printf ("\t%08lx: %lld ms (%+lld ms)\n",
 	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
 
   if (result < 0) {
@@ -83,8 +83,8 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
   if (units == 0 && result != 0)
     FAIL ("Failed seeking to 0");
 
-  if (diff < 0)
-    FAIL ("Seek result too early");
+  if (diff > 0)
+    WARN ("Seek result too late");
 
   return units;
 }

@@ -252,12 +252,12 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
   /* Calculate the byte offset of the page which was found */
   if (bytes > 0) {
     oggz->offset = oggz_tell_raw (oggz) - bytes + page_offset;
-    ret = oggz->offset;
   } else {
     /* didn't need to do any reading -- accumulate the page_offset */
-    ret = oggz->offset + page_offset;
-    oggz->offset += page_offset + more;
+    oggz->offset += page_offset;
   }
+  
+  ret = oggz->offset + more;
 
   return ret;
 }
@@ -292,9 +292,9 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 			 ogg_int64_t * granule, long * serialno)
 {
   oggz_off_t offset_at, offset_start;
-  oggz_off_t page_offset, prev_offset = 0;
+  oggz_off_t page_offset, found_offset = 0;
   ogg_int64_t unit_at;
-  long granule_at = -1;
+  ogg_int64_t granule_at = -1;
 
 #if 0
   offset_at = oggz_tell_raw (oggz);
@@ -307,7 +307,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
   do {
 
-    offset_start = offset_at - CHUNKSIZE;
+    offset_start = offset_start - CHUNKSIZE;
     if (offset_start < 0) offset_start = 0;
 
     offset_start = oggz_seek_raw (oggz, offset_start, SEEK_SET);
@@ -324,10 +324,13 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
     page_offset = 0;
 
     do {
-      prev_offset = page_offset;
-
       page_offset = oggz_get_next_start_page (oggz, og);
-      if (page_offset == -1) return -1;
+      if (page_offset == -1) {
+#ifdef DEBUG
+	printf ("get_prev_start_page: page_offset = -1\n");
+#endif
+	return -1;
+      }
       if (page_offset == -2) {
 #ifdef DEBUG
 	printf ("*** get_prev_start_page: page_offset = -2\n");
@@ -335,10 +338,10 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 	break;
       }
 
-      granule_at = (long)ogg_page_granulepos (og);
+      granule_at = ogg_page_granulepos (og);
 
 #ifdef DEBUG_VERBOSE
-      printf ("get_prev_start_page: GOT page (%ld) @%ld\tat @%ld\n",
+      printf ("get_prev_start_page: GOT page (%lld) @%ld\tat @%ld\n",
 	      granule_at, page_offset, offset_at);
 #endif
 
@@ -346,6 +349,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
        * will be overwritten by the time we realise this was the desired
        * prev page */
       if (page_offset >= 0 && page_offset < offset_at) {
+	found_offset = page_offset;
 	*granule = granule_at;
 	*serialno = ogg_page_serialno (og);
       }
@@ -354,27 +358,27 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
 #ifdef DEBUG
     printf ("get_prev_start_page: [B] offset_at: @%ld\toffset_start: @%ld\n"
-	    "prev_offset: @%ld\tpage_offset: @%ld\n",
-	    offset_at, offset_start, prev_offset, page_offset);
+	    "found_offset: @%ld\tpage_offset: @%ld\n",
+	    offset_at, offset_start, found_offset, page_offset);
 #endif
     /* reset the file offset */
-    offset_at = offset_start;
+    /*offset_at = offset_start;*/
 
-  } while (offset_at > 0 && prev_offset == 0);
+  } while (found_offset == 0 && offset_start > 0);
 
   unit_at = oggz_get_unit (oggz, *serialno, *granule);
-  offset_at = oggz_reset (oggz, prev_offset, unit_at, SEEK_SET);
+  offset_at = oggz_reset (oggz, found_offset, unit_at, SEEK_SET);
 
 #ifdef DEBUG
     printf ("get_prev_start_page: [C] offset_at: @%ld\t"
-	    "prev_offset: @%ld\tunit_at: %lld\n",
-	    offset_at, prev_offset, unit_at);
+	    "found_offset: @%ld\tunit_at: %lld\n",
+	    offset_at, found_offset, unit_at);
 #endif
 
   if (offset_at == -1) return -1;
 
   if (offset_at >= 0)
-    return prev_offset;
+    return found_offset;
   else
     return -1;
 }
@@ -736,12 +740,21 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   }
 
  found:
-#ifdef DEBUG
-  printf ("oggz_seek_set: FOUND (%lld)\n", unit_at);
-#endif
+  offset_at = oggz_get_prev_start_page (oggz, og, &granule_at, &serialno);
+
+  unit_at = oggz_get_unit (oggz, serialno, granule_at);
+
+  if (offset_at < 0) {
+    oggz_reset (oggz, offset_orig, -1, SEEK_SET);
+    return -1;
+  }
 
   offset_at = oggz_reset (oggz, offset_at, unit_at, SEEK_SET);
   if (offset_at == -1) return -1;
+
+#ifdef DEBUG
+  printf ("oggz_seek_set: FOUND (%lld)\n", unit_at);
+#endif
 
   return (long)reader->current_unit;
 
@@ -781,7 +794,7 @@ oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
   }
 
 #ifdef DEBUG
-  printf ("*** oggz_seek_end: found packet (%ld) at @%ld [%ld]\n",
+  printf ("*** oggz_seek_end: found packet (%lld) at @%ld [%lld]\n",
 	  unit_end, offset_end, granulepos);
 #endif
 
