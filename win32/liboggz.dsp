@@ -54,7 +54,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ogg.lib /nologo /dll /machine:I386 /libpath:"..\..\ogg\win32\Dynamic_Release"
+# ADD LINK32 ogg.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /machine:I386 /libpath:"..\..\ogg\win32\Dynamic_Release"
 
 !ELSEIF  "$(CFG)" == "liboggz - Win32 Debug"
 
@@ -81,7 +81,7 @@ BSC32=bscmake.exe
 # ADD BSC32 /nologo
 LINK32=link.exe
 # ADD BASE LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /debug /machine:I386 /pdbtype:sept
-# ADD LINK32 kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ogg_static.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"..\..\xiph.org\ogg\win32\Static_Release"
+# ADD LINK32 ogg_static.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib ogg.lib /nologo /dll /debug /machine:I386 /pdbtype:sept /libpath:"..\..\xiph.org\ogg\win32\Static_Release"
 
 !ENDIF 
 
@@ -98,6 +98,10 @@ SOURCE=.\liboggz.def
 # End Source File
 # Begin Source File
 
+SOURCE=..\src\liboggz\metric_internal.c
+# End Source File
+# Begin Source File
+
 SOURCE=..\src\liboggz\oggz.c
 # End Source File
 # Begin Source File
@@ -111,6 +115,14 @@ SOURCE=..\src\liboggz\oggz_io.c
 # Begin Source File
 
 SOURCE=..\src\liboggz\oggz_read.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\liboggz\oggz_seek.c
+# End Source File
+# Begin Source File
+
+SOURCE=..\src\liboggz\oggz_stream.c
 # End Source File
 # Begin Source File
 
