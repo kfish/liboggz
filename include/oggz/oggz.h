@@ -40,6 +40,10 @@
 #include <oggz/oggz_constants.h>
 #include <oggz/oggz_table.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 /** \mainpage
  *
  * \section intro Oggz makes programming with Ogg easy!
@@ -66,7 +70,7 @@
  *   Oggz, for easier integration with media frameworks and similar systems.
  * - A handy \link oggz_table.h table \endlink structure for storing
  *   information on each logical bitstream
- * 
+ *
  * \subsection contents Contents
  *
  * - \link basics Basics \endlink:
@@ -111,7 +115,7 @@
  *
  * The raw data of an Ogg stream, as read directly from a file or network
  * socket, is called a <i>physical bitstream</i>.
- * 
+ *
 <pre>
    The result of an Ogg encapsulation is called the "Physical (Ogg)
    Bitstream".  It encapsulates one or several encoder-created
@@ -241,14 +245,14 @@
    following diagram shows a schematic example of such a physical
    bitstream that obeys all the rules of both grouped and chained
    multiplexed bitstreams.
-   
-               physical bitstream with pages of 
+
+               physical bitstream with pages of
           different logical bitstreams grouped and chained
       -------------------------------------------------------------
       |*A*|*B*|*C*|A|A|C|B|A|B|#A#|C|...|B|C|#B#|#C#|*D*|D|...|#D#|
       -------------------------------------------------------------
        bos bos bos             eos           eos eos bos       eos
-   
+
    In this example, there are two chained physical bitstreams, the first
    of which is a grouped stream of three logical bitstreams A, B, and C.
    The second physical bitstream is chained after the end of the grouped
@@ -330,7 +334,7 @@
  * - Any attempt to call oggz_new(), oggz_open() or oggz_open_stdio()
  *    with \a flags == OGGZ_READ will fail, returning NULL
  * - Any attempt to call oggz_read(), oggz_read_input(),
- *   oggz_set_read_callback(), oggz_seek(), or oggz_seek_units() will return 
+ *   oggz_set_read_callback(), oggz_seek(), or oggz_seek_units() will return
  *   OGGZ_ERR_DISABLED
  *
  */
@@ -378,7 +382,7 @@
 
 /** \file
  * The liboggz C API.
- * 
+ *
  * \section general Generic semantics
  *
  * All access is managed via an OGGZ handle. This can be instantiated
@@ -451,7 +455,7 @@ OGGZ * oggz_new (int flags);
  * \return A new OGGZ handle
  * \retval NULL System error; check errno for details
  */
-OGGZ * oggz_open (char * filename, int flags);
+OGGZ * oggz_open (const char * filename, int flags);
 
 /**
  * Create an OGGZ handle associated with a stdio stream
@@ -517,7 +521,7 @@ int oggz_get_eos (OGGZ * oggz, long serialno);
  * more detail).
  *
  * See \ref seek_api for information on seeking on interleaved Ogg data.
- * 
+ *
  * \{
  */
 
@@ -1149,5 +1153,9 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
 long oggz_serialno_new (OGGZ * oggz);
 
 #include <oggz/oggz_io.h>
+
+#ifdef __cplusplus
+}
+#endif
 
 #endif /* __OGGZ_H__ */
