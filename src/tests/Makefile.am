@@ -2,7 +2,7 @@
 
 AM_CFLAGS = -Wall -pedantic
 
-INCLUDES = -I$(top_srcdir)/include
+INCLUDES = -I$(top_srcdir)/include @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@

@@ -35,6 +35,8 @@ AC_TYPE_SIZE_T
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove random])
 
+# Check for pkg-config
+AC_CHECK_PROG(HAVE_PKG_CONFIG, pkg-config, yes)
 
 # Check for doxygen
 AC_CHECK_PROG(HAVE_DOXYGEN, doxygen, true, false)
@@ -160,11 +162,18 @@ dnl Detect Ogg
 dnl
 
 HAVE_OGG=no
-XIPH_PATH_OGG(HAVE_OGG="yes", HAVE_OGG="no")
-if test "x$HAVE_OGG" = xno ; then
-  oggz_config_ok="no"
-  AC_CHECK_LIB(ogg, ogg_stream_init, HAVE_OGG="maybe")
+if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
+  PKG_CHECK_MODULES(OGG, ogg >= 1.0, HAVE_OGG=yes, HAVE_OGG=no)
 fi
+
+if test "x$HAVE_OGG" = "xno" ; then
+  XIPH_PATH_OGG(HAVE_OGG="yes", HAVE_OGG="no")
+  if test "x$HAVE_OGG" = xno ; then
+    oggz_config_ok="no"
+    AC_CHECK_LIB(ogg, ogg_stream_init, HAVE_OGG="maybe")
+  fi
+fi
+
 AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
 
 # Checks for header files.
