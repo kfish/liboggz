@@ -38,6 +38,12 @@
 const char *
 ot_page_identify (const ogg_page * og, char ** info);
 
+/*
+ * Print a number of bytes to 3 significant figures
+ * using standard abbreviations (GB, MB, kB, byte[s])
+ */
+int ot_print_bytes (long nr_bytes);
+
 int ot_print_time (double seconds);
 
 #endif /* __OGGZ_TOOLS_H__ */

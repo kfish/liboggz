@@ -183,6 +183,29 @@ ot_page_identify (const ogg_page * og, char ** info)
   return ret;
 }
 
+/*
+ * Print a number of bytes to 3 significant figures
+ * using standard abbreviations (GB, MB, kB, byte[s])
+ */
+int
+ot_print_bytes (long nr_bytes)
+{
+  if (nr_bytes > (1L<<30)) {
+    return printf ("%0.3f GB",
+		   (double)nr_bytes / (1024.0 * 1024.0 * 1024.0));
+  } else if (nr_bytes > (1L<<20)) {
+    return printf ("%0.3f MB",
+		   (double)nr_bytes / (1024.0 * 1024.0));
+  } else if (nr_bytes > (1L<<10)) {
+    return printf ("%0.3f kB",
+		   (double)nr_bytes / (1024.0));
+  } else if (nr_bytes == 1) {
+    return printf ("1 byte");
+  } else {
+    return printf ("%ld bytes", nr_bytes);
+  }
+}
+
 int
 ot_print_time (double seconds)
 {

@@ -155,6 +155,15 @@ oi_bitrate (long bytes, ogg_int64_t ms)
 static void
 oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 {
+  printf ("\t%s-Length-Maximum: ", label);
+  ot_print_bytes (stats->length_max);
+  putchar ('\n');
+
+  printf ("\t%s-Length-StdDev: ", label);
+  ot_print_bytes (stats->length_stddev);
+  putchar ('\n');
+
+#if 0
   printf ("\t%s-Length-Maximum: %ld bytes\n", label, stats->length_max);
   /*printf ("\t%s-Length-Average: %ld bytes\n", label, stats->length_avg);*/
   printf ("\t%s-Length-StdDev: %.0f bytes\n", label, stats->length_stddev);
@@ -162,6 +171,7 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
   printf ("\tRange: [%ld - %ld] bytes, Std.Dev. %.3f bytes\n",
 	  stats->length_min, stats->length_max, stats->length_stddev);
   */
+#endif
 }
 
 /* oggzinfo_trackinfo_print() */
@@ -480,7 +490,9 @@ main (int argc, char ** argv)
     putchar ('\n');
     
     if (show_length) {
-      printf ("Content-Length: %ld bytes\n", info.length_total);
+      fputs ("Content-Length: ", stdout);
+      ot_print_bytes (info.length_total);
+      putchar ('\n');
     }
     
     if (show_bitrate) {
