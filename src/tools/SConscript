@@ -1,9 +1,0 @@
-Import('env')
-env.Append(LIBS = ['oggz', 'ogg'])
-env.Append(LIBPATH = '../liboggz')
-
-env.Program('oggzinfo', 'oggzinfo.c')
-env.Program('oggzed', 'oggzed.c')
-env.Program('oggzdump', 'oggzdump.c')
-env.Program('oggzmerge', 'oggzmerge.c')
-env.Program('oggzrip', 'oggzrip.c')
