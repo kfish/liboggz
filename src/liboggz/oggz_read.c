@@ -66,6 +66,8 @@
 
 #define CHUNKSIZE 65536
 
+#define OGGZ_READ_EOF (-404)
+
 #define oggz_off_t long
 
 OGGZ *
@@ -278,10 +280,10 @@ oggz_read_sync (OGGZ * oggz)
     }
 
     /* If we've got a stop already, don't read more data in */
-    if (cb_ret != 0) return cb_ret;
+    if (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR) return cb_ret;
 
     if(oggz_get_next_page_7 (oggz, &og) < 0)
-      return -404; /* eof. leave unitialized */
+      return OGGZ_READ_EOF; /* eof. leave unitialized */
 
     serialno = ogg_page_serialno (&og);
     reader->current_serialno = serialno; /* XXX: maybe not necessary */
@@ -348,7 +350,7 @@ oggz_read (OGGZ * oggz, long n)
   cb_ret = oggz_read_sync (oggz);
 
   /* If there's nothing to read yet, don't flag an error */
-  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
+  if (reader->current_unit == 0 && cb_ret == OGGZ_READ_EOF) cb_ret = 0;
 
   while (cb_ret != -1 && cb_ret != 1 && bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, CHUNKSIZE);
@@ -369,6 +371,10 @@ oggz_read (OGGZ * oggz, long n)
   }
 
   if (cb_ret == -1) oggz_purge (oggz);
+
+  /* Don't return 0 unless it's actually an EOF condition */
+  if (nread == 0 && (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR))
+    return OGGZ_ERR_USER_STOPPED;
 
   return nread;
 }
@@ -393,7 +399,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   cb_ret = oggz_read_sync (oggz);
 
   /* If there's nothing to read yet, don't flag an error */
-  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
+  if (reader->current_unit == 0 && cb_ret == OGGZ_READ_EOF) cb_ret = 0;
 
   while (cb_ret != -1 && cb_ret != 1 && /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
@@ -409,6 +415,10 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   }
 
   if (cb_ret == -1) oggz_purge (oggz);
+
+  /* Don't return 0 unless it's actually an EOF condition */
+  if (nread == 0 && (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR))
+    return OGGZ_ERR_USER_STOPPED;
 
   return nread;
 }
