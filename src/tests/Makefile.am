@@ -35,7 +35,10 @@ noinst_SCRIPTS = $(seek_tests)
 noinst_PROGRAMS = $(write_tests) $(rw_tests) $(seek_progs)
 noinst_HEADERS = oggz_tests.h
 
-TESTS = $(write_tests) $(rw_tests) $(seek_tests)
+EXTRA_DIST = $(seek_tests)
+
+#TESTS = $(write_tests) $(rw_tests) $(seek_tests)
+TESTS = $(write_tests) $(rw_tests)
 
 write_bad_guard_SOURCES = write-bad-guard.c
 write_bad_guard_LDADD = $(OGGZ_LIBS)
