@@ -212,7 +212,7 @@ auto_anxdata (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
-static OggzReadPacket auto_readers[] = {
+static const OggzReadPacket auto_readers[] = {
   auto_speex,
   auto_vorbis,
   auto_theora,
