@@ -237,6 +237,32 @@ auto_anxdata (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 }
 
 static int
+auto_flac0 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+  int content;
+  ogg_int64_t granule_rate = 0;
+
+  if (op->b_o_s) {
+    if (op->bytes < 4) return 0;
+    if (strncmp ((char *)header, "fLaC", 4)) return 0;
+    oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_FLAC0);
+  } else {
+    content = oggz_stream_get_content (oggz, serialno);
+    if (content != OGGZ_CONTENT_FLAC0) return 0;
+
+    granule_rate = (ogg_int64_t) (header[14] << 12) | (header[15] << 4) | ((header[16] >> 4)&0xf);
+#ifdef DEBUG
+    printf ("Got flac rate %d\n", (int)granule_rate);
+#endif
+    
+    oggz_set_metric_linear (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+  }
+
+  return 1;
+}
+
+static int
 auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
@@ -354,6 +380,7 @@ static const OggzReadPacket auto_readers[] = {
   auto_theora,
   auto_annodex,
   auto_anxdata,
+  auto_flac0,
   auto_flac,
   auto_cmml,
   auto_fishead,

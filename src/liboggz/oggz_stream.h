@@ -35,7 +35,8 @@
 
 enum {
   OGGZ_CONTENT_UNKNOWN = 0,
-  OGGZ_CONTENT_SKELETON = 1
+  OGGZ_CONTENT_SKELETON = 1,
+  OGGZ_CONTENT_FLAC0 = 13
 };
 
 typedef struct _oggz_stream_t oggz_stream_t;
