@@ -811,45 +811,46 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 
-  if (oggz->file == NULL) {
-    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-    return -1;
-  }
+  if (oggz->file != NULL) { 
+    if ((fd = fileno (oggz->file)) == -1) {
+      /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
+      return -1;
+    }
 
-  if ((fd = fileno (oggz->file)) == -1) {
-    /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
-    return -1;
-  }
-
-  if (fstat (fd, &statbuf) == -1) {
-    /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
-    return -1;
-  }
+    if (fstat (fd, &statbuf) == -1) {
+      /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
+      return -1;
+    }
 
 #if 0
 #ifndef WIN32
-  if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-    offset_end = statbuf.st_size;
-  } else {
-    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-    return -1;
-  }
+    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
+      offset_end = statbuf.st_size;
+    } else {
+      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
+      return -1;
+    }
 #else
-  if (statbuf.st_mode & S_IFREG) {
-    offset_end = statbuf.st_size;
-  } else {
-    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-    return -1;
-  }
+    if (statbuf.st_mode & S_IFREG) {
+      offset_end = statbuf.st_size;
+    } else {
+      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
+      return -1;
+    }
 #endif
 #else
-  if (oggz_stat_regular (statbuf.st_mode)) {
-    offset_end = statbuf.st_size;
-  } else {
-    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-    return -1;
-  }
+    if (oggz_stat_regular (statbuf.st_mode)) {
+      offset_end = statbuf.st_size;
+    } else {
+      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
+      return -1;
+    }
 #endif
+  } else {
+    if (oggz->io == NULL || oggz->io->seek == NULL)
+      /* No file, and no io seek method */
+      return -1;
+  }
 
   if (unit_target == reader->current_unit) {
     return (long)reader->current_unit;
