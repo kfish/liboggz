@@ -1,6 +1,6 @@
 LIBRARY  liboggz.dll
 ;DESCRIPTION "Provides an abstraction layer to ogg"
-EXPORTS		
+EXPORTS
 
 ;
 ; Ogg file reading functions
@@ -41,7 +41,7 @@ oggz_io_set_read			@30
 oggz_io_get_read_user_handle		@31
 oggz_io_set_write			@32
 oggz_io_get_write_user_handle		@33
-oggz_io_set_seek			@34		
+oggz_io_set_seek			@34
 oggz_io_get_seek_user_handle		@35
 oggz_io_set_tell			@36
 oggz_io_get_tell_user_handle		@37
@@ -57,4 +57,4 @@ oggz_table_insert			@42
 oggz_table_lookup			@43
 oggz_table_size				@44
 oggz_table_nth				@45
-
+oggz_table_remove			@46
