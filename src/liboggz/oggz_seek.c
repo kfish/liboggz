@@ -373,7 +373,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
   if (offset_at == -1) return -1;
 
-  if (offset_at > 0)
+  if (offset_at >= 0)
     return prev_offset;
   else
     return -1;
@@ -479,7 +479,7 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 
 #define GUESS_MULTIPLIER (1<<16)
 
-static ogg_int64_t
+static oggz_off_t
 guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
        ogg_int64_t unit_begin, ogg_int64_t unit_end,
        oggz_off_t offset_begin, oggz_off_t offset_end)
@@ -505,30 +505,40 @@ guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
   return offset_guess;
 }
 
-static ogg_int64_t
-oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
+static oggz_off_t
+oggz_seek_guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
+		 ogg_int64_t unit_begin, ogg_int64_t unit_end,
+		 oggz_off_t offset_at,
+		 oggz_off_t offset_begin, oggz_off_t offset_end)
 {
-  OggzReader * reader = &oggz->x.reader;
+  oggz_off_t offset_guess;
+
+  if (unit_end == -1) {
+    if (unit_at == unit_begin) {
+      offset_guess = offset_begin + (offset_end - offset_begin)/2;
+    } else {
+      offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
+			    offset_begin, offset_at);
+    }
+  } else if (unit_end <= unit_begin) {
+#ifdef DEBUG
+    printf ("oggz_seek_guess: unit_end <= unit_begin (ERROR)\n");
+#endif
+    offset_guess = -1;
+  } else {
+    offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
+			  offset_begin, offset_end);
+  }
+
+  return offset_guess;
+}
+
+static oggz_off_t
+oggz_offset_end (OGGZ * oggz)
+{
   int fd;
   struct stat statbuf;
-  oggz_off_t offset_orig, offset_at, offset_guess;
-  oggz_off_t offset_begin, offset_end = -1, offset_next;
-  ogg_int64_t granule_at;
-  ogg_int64_t unit_at, unit_begin = 0, unit_end = -1, unit_last_iter = -1;
-  long serialno;
-  ogg_page * og;
-  int looping = 0;
-
-  if (oggz == NULL) {
-    return -1;
-  }
-
-  if (unit_target > 0 && !oggz_has_metrics (oggz)) {
-#ifdef DEBUG
-    printf ("oggz_seek_set: No metric defined, FAIL\n");
-#endif
-    return -1;
-  }
+  oggz_off_t offset_end = -1;
 
   if (oggz->file != NULL) {
     if ((fd = fileno (oggz->file)) == -1) {
@@ -544,7 +554,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (oggz_stat_regular (statbuf.st_mode)) {
       offset_end = statbuf.st_size;
 #ifdef DEBUG
-      printf ("oggz_seek_set: stat size %ld\n", offset_end);
+      printf ("oggz_offset_end: stat size %ld\n", offset_end);
 #endif
     } else {
       /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
@@ -569,6 +579,36 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (oggz_io_seek (oggz, offset_save, SEEK_SET) == -1) {
       return -1; /* fubar */
     }
+  }
+
+  return offset_end;
+}
+
+static ogg_int64_t
+oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
+{
+  OggzReader * reader = &oggz->x.reader;
+  oggz_off_t offset_orig, offset_at, offset_guess;
+  oggz_off_t offset_begin, offset_end = -1, offset_next;
+  ogg_int64_t granule_at;
+  ogg_int64_t unit_at, unit_begin = 0, unit_end = -1, unit_last_iter = -1;
+  long serialno;
+  ogg_page * og;
+  int hit_eof = 0;
+
+  if (oggz == NULL) {
+    return -1;
+  }
+
+  if (unit_target > 0 && !oggz_has_metrics (oggz)) {
+#ifdef DEBUG
+    printf ("oggz_seek_set: No metric defined, FAIL\n");
+#endif
+    return -1;
+  }
+
+  if ((offset_end = oggz_offset_end (oggz)) == -1) {
+    return -1;
   }
 
   if (unit_target == reader->current_unit) {
@@ -597,33 +637,18 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   for ( ; ; ) {
 
     unit_last_iter = unit_at;
+    hit_eof = 0;
 
 #ifdef DEBUG
     printf ("oggz_seek_set: [A] want u%lld: (u%lld - u%lld) [@%ld - @%ld]\n",
 	    unit_target, unit_begin, unit_end, offset_begin, offset_end);
 #endif
 
-    if (unit_end == -1) {
-      if (unit_at == unit_begin) {
-	offset_guess = offset_begin + (offset_end - offset_begin)/2;
-      } else {
-	offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
-			      offset_begin, offset_at);
-      }
-    } else if (unit_end == unit_begin) {
-#ifdef DEBUG
-      printf ("oggz_seek_set: unit_end == unit_begin (FOUND)\n");
-#endif
-      goto found;
-    } else if (unit_end <= unit_begin) {
-#ifdef DEBUG
-      printf ("oggz_seek_set: unit_end <= unit_begin (ERROR)\n");
-#endif
-      break;
-    } else {
-      offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
-			    offset_begin, offset_end);
-    }
+    offset_guess = oggz_seek_guess (unit_at, unit_target,
+				    unit_begin, unit_end,
+				    offset_at,
+				    offset_begin, offset_end);
+    if (offset_guess == -1) break;
 
 #ifdef DEBUG
     printf ("oggz_seek_set: guessed %ld\n", offset_guess);
@@ -631,7 +656,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
     if (offset_guess == offset_at) {
       /* Already there, looping */
-      looping = 1;
+      break;
     }
 
     offset_at = oggz_seek_raw (oggz, offset_guess, SEEK_SET);
@@ -646,6 +671,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 #endif
 
     if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
+      hit_eof = 1;
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
 					      &serialno);
       unit_end = oggz_get_unit (oggz, serialno, granule_at);
@@ -664,7 +690,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
       goto notfound;
     }
 
-    if (offset_next > offset_end) {
+    if (hit_eof || offset_next > offset_end) {
       offset_next =
 	oggz_scan_for_page (oggz, og, unit_target, offset_begin, offset_end);
       if (offset_next < 0) goto notfound;
@@ -682,19 +708,21 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
     unit_at = oggz_get_unit (oggz, serialno, granule_at);
 
-    if (unit_at == unit_last_iter) looping = 1;
+    if (unit_at == unit_last_iter) break;
 
 #ifdef DEBUG
     printf ("oggz_seek_set: [D] want u%lld, got page u%lld @%ld g%lld\n",
 	    unit_target, unit_at, offset_at, granule_at);
 #endif
 
-    if (!looping && unit_at < unit_target) {
+    if (unit_at < unit_target) {
       offset_begin = offset_at;
       unit_begin = unit_at;
-    } else if (!looping && unit_at > unit_target) {
+      if (unit_end == unit_begin) break;
+    } else if (unit_at > unit_target) {
       offset_end = offset_at-1;
       unit_end = unit_at;
+      if (unit_end == unit_begin) break;
     } else {
       break;
     }
