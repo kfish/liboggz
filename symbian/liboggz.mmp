@@ -34,6 +34,6 @@ TARGET        liboggz.lib
 TARGETTYPE    lib
 UID           0
 SOURCEPATH    ..\src\liboggz
-SOURCE        oggz.c oggz_auto.c oggz_io.c oggz_read.c oggz_table.c oggz_vector.c oggz_write.c
+SOURCE        oggz.c oggz_auto.c oggz_io.c oggz_read.c oggz_stream.c oggz_table.c oggz_vector.c oggz_write.c
 USERINCLUDE   .
 SYSTEMINCLUDE \epoc32\include \epoc32\include\libc ..\include ..\..\ogg\include ..\..\ogg\symbian
