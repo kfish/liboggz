@@ -47,6 +47,11 @@
 #include "oggz_byteorder.h"
 #include "oggz_macros.h"
 
+/* Allow use of internal metrics; ie. the user_data for these gets free'd
+ * when the metric is overwritten, or on close */
+int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
+			      void * user_data, int internal);
+
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
@@ -173,8 +178,8 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 	  tdata->keyframe_shift);
 #endif
 
-  /*oggz_set_metric_internal (oggz, serialno, auto_theora_metric, tdata, 1);*/
-  oggz_set_metric (oggz, serialno, auto_theora_metric, tdata);
+  oggz_set_metric_internal (oggz, serialno, auto_theora_metric, tdata, 1);
+  /*oggz_set_metric (oggz, serialno, auto_theora_metric, tdata);*/
 
   return 1;
 }

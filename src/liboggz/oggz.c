@@ -185,6 +185,9 @@ oggz_close (OGGZ * oggz)
   oggz_vector_foreach (oggz->streams, oggz_stream_clear);
   oggz_vector_delete (oggz->streams);
 
+  if (oggz->metric_internal)
+    oggz_free (oggz->metric_user_data);
+
   if (oggz->file != NULL) {
     if (fclose (oggz->file) == EOF) {
       return OGGZ_ERR_SYSTEM;
