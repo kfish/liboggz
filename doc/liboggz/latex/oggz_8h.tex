@@ -1,0 +1,234 @@
+\section{oggz.h File Reference}
+\label{oggz_8h}\index{oggz.h@{oggz.h}}
+
+
+\subsection{Detailed Description}
+The liboggz C API. 
+
+\subsection{Generic semantics}\label{general}
+All access is managed via an OGGZ handle. This can be instantiated in one of three ways:
+
+\begin{itemize}
+\item {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})} - Open a full pathname\item {\bf oggz\_\-open\_\-stdio()}{\rm (p.\,\pageref{oggz_8h_a6})} - Use an already opened FILE\item {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})} - Create an anonymous OGGZ object, which you can later handle via memory buffers\end{itemize}
+
+
+To finish using an OGGZ handle, it should be closed with {\bf oggz\_\-close()}{\rm (p.\,\pageref{oggz_8h_a8})}.\subsection{Reading Ogg data}\label{reading}
+To read from Ogg files or streams you must instantiate an OGGZ handle with flags set to OGGZ\_\-READ, and provide an Oggz\-Read\-Packet callback with {\bf oggz\_\-set\_\-read\_\-callback()}{\rm (p.\,\pageref{group__read__api_a1})}. See the {\bf OGGZ Read API}{\rm (p.\,\pageref{group__read__api})} section for details.\subsection{Writing Ogg data}\label{writing}
+To write to Ogg files or streams you must instantiate an OGGZ handle with flags set to OGGZ\_\-WRITE, and provide an Oggz\-Write\-Packet callback with oggz\_\-set\_\-write\_\-callback(). See the {\bf OGGZ Write API}{\rm (p.\,\pageref{group__write__api})} section for details.\subsection{Seeking on Ogg data}\label{seeking}
+To seek while reading Ogg files or streams you must instantiate an OGGZ handle for reading, and ensure that an {\bf Oggz\-Metric }{\rm (p.\,\pageref{group__metric})} function is defined to translate packet positions into units such as time. See the {\bf OGGZ Seek API}{\rm (p.\,\pageref{group__seek__api})} section for details.\subsection{Headers}\label{headers}
+{\bf oggz.h}{\rm (p.\,\pageref{oggz_8h})} provides direct access to libogg types such as ogg\_\-packet, defined in $<$ogg/ogg.h$>$.
+
+{\tt \#include $<$stdio.h$>$}\par
+{\tt \#include $<$ogg/ogg.h$>$}\par
+{\tt \#include $<$oggz/oggz\_\-constants.h$>$}\par
+{\tt \#include $<$oggz/oggz\_\-table.h$>$}\par
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef void {\bf OGGZ}
+\begin{CompactList}\small\item\em An opaque handle to an Ogg file. \item\end{CompactList}\item 
+typedef int($\ast$ {\bf Oggz\-Read\-Packet} )({\bf OGGZ} $\ast$oggz, ogg\_\-packet $\ast$op, long serialno, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em This is the signature of a callback which you must provide for Oggz to call whenever it finds a new packet in the Ogg stream associated with {\em oggz\/}. \item\end{CompactList}\item 
+typedef int($\ast$ {\bf Oggz\-Write\-Hungry} )({\bf OGGZ} $\ast$oggz, int empty, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em This is the signature of a callback which Oggz will call when {\em oggz\/} is {\bf hungry }{\rm (p.\,\pageref{group__hungry})}. \item\end{CompactList}\item 
+typedef ogg\_\-int64\_\-t($\ast$ {\bf Oggz\-Metric} )({\bf OGGZ} $\ast$oggz, long serialno, ogg\_\-int64\_\-t granulepos, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em This is the signature of a function to correlate Ogg streams. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+{\bf OGGZ} $\ast$ {\bf oggz\_\-new} (int flags)
+\begin{CompactList}\small\item\em Create a new OGGZ object. \item\end{CompactList}\item 
+{\bf OGGZ} $\ast$ {\bf oggz\_\-open} (char $\ast$filename, int flags)
+\begin{CompactList}\small\item\em Open an Ogg file, creating an OGGZ handle for it. \item\end{CompactList}\item 
+{\bf OGGZ} $\ast$ {\bf oggz\_\-open\_\-stdio} (FILE $\ast$file, int flags)
+\begin{CompactList}\small\item\em Create an OGGZ handle associated with a stdio stream. \item\end{CompactList}\item 
+int {\bf oggz\_\-flush} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Ensure any associated stdio streams are flushed. \item\end{CompactList}\item 
+int {\bf oggz\_\-close} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Close an OGGZ handle. \item\end{CompactList}\item 
+int {\bf oggz\_\-get\_\-bos} ({\bf OGGZ} $\ast$oggz, long serialno)
+\begin{CompactList}\small\item\em Determine if a given logical bitstream is at bos (beginning of stream). \item\end{CompactList}\item 
+int {\bf oggz\_\-get\_\-eos} ({\bf OGGZ} $\ast$oggz, long serialno)
+\begin{CompactList}\small\item\em Determine if a given logical bitstream is at eos (end of stream). \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-read\_\-callback} ({\bf OGGZ} $\ast$oggz, long serialno, {\bf Oggz\-Read\-Packet} read\_\-packet, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em Set a callback for Oggz to call when a new Ogg packet is found in the stream. \item\end{CompactList}\item 
+long {\bf oggz\_\-read} ({\bf OGGZ} $\ast$oggz, long n)
+\begin{CompactList}\small\item\em Read n bytes into {\em oggz\/}, calling any read callbacks on the fly. \item\end{CompactList}\item 
+long {\bf oggz\_\-read\_\-input} ({\bf OGGZ} $\ast$oggz, unsigned char $\ast$buf, long n)
+\begin{CompactList}\small\item\em Input data into {\em oggz\/}. \item\end{CompactList}\item 
+int {\bf oggz\_\-write\_\-set\_\-hungry\_\-callback} ({\bf OGGZ} $\ast$oggz, {\bf Oggz\-Write\-Hungry} hungry, int only\_\-when\_\-empty, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em Set a callback for Oggz to call when {\em oggz\/} is {\bf hungry }{\rm (p.\,\pageref{group__hungry})}. \item\end{CompactList}\item 
+int {\bf oggz\_\-write\_\-feed} ({\bf OGGZ} $\ast$oggz, ogg\_\-packet $\ast$op, long serialno, int flush, int $\ast$guard)
+\begin{CompactList}\small\item\em Add a packet to {\em oggz's\/} packet queue. \item\end{CompactList}\item 
+long {\bf oggz\_\-write\_\-output} ({\bf OGGZ} $\ast$oggz, unsigned char $\ast$buf, long n)
+\begin{CompactList}\small\item\em Output data from an OGGZ handle. \item\end{CompactList}\item 
+long {\bf oggz\_\-write} ({\bf OGGZ} $\ast$oggz, long n)
+\begin{CompactList}\small\item\em Write n bytes from an OGGZ handle. \item\end{CompactList}\item 
+long {\bf oggz\_\-write\_\-get\_\-next\_\-page\_\-size} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Query the number of bytes in the next page to be written. \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-metric\_\-linear} ({\bf OGGZ} $\ast$oggz, long serialno, ogg\_\-int64\_\-t granule\_\-rate\_\-numerator, ogg\_\-int64\_\-t granule\_\-rate\_\-denominator)
+\begin{CompactList}\small\item\em Specify that a logical bitstream has a linear metric. \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-metric} ({\bf OGGZ} $\ast$oggz, long serialno, {\bf Oggz\-Metric} metric, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em Set the Oggz\-Metric to use for an OGGZ handle. \item\end{CompactList}\item 
+ogg\_\-int64\_\-t {\bf oggz\_\-seek\_\-units} ({\bf OGGZ} $\ast$oggz, ogg\_\-int64\_\-t units, int whence)
+\begin{CompactList}\small\item\em Seek to a number of units corresponding to the Metric function. \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-data\_\-start} ({\bf OGGZ} $\ast$oggz, off\_\-t offset)
+\begin{CompactList}\small\item\em Tell OGGZ to remember the given offset as the start of data. \item\end{CompactList}\item 
+off\_\-t {\bf oggz\_\-tell} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Provide the file offset in bytes corresponding to the data read. \item\end{CompactList}\item 
+off\_\-t {\bf oggz\_\-seek} ({\bf OGGZ} $\ast$oggz, off\_\-t offset, int whence)
+\begin{CompactList}\small\item\em Seek to a specific byte offset. \item\end{CompactList}\item 
+long {\bf oggz\_\-serialno\_\-new} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Request a new serialno, as required for a new stream, ensuring the serialno is not yet used for any other streams managed by this OGGZ. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Typedef Documentation}
+\index{oggz.h@{oggz.h}!OGGZ@{OGGZ}}
+\index{OGGZ@{OGGZ}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef void {\bf OGGZ}}\label{oggz_8h_a0}
+
+
+An opaque handle to an Ogg file. 
+
+This is returned by {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})} or {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})}, and is passed to all other oggz\_\-$\ast$ functions. 
+
+\subsection{Function Documentation}
+\index{oggz.h@{oggz.h}!oggz_close@{oggz\_\-close}}
+\index{oggz_close@{oggz\_\-close}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-close ({\bf OGGZ} $\ast$ {\em oggz})}\label{oggz_8h_a8}
+
+
+Close an OGGZ handle. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 0}]Success \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \item[{\em OGGZ\_\-ERR\_\-SYSTEM}]System error; check errno for details \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_flush@{oggz\_\-flush}}
+\index{oggz_flush@{oggz\_\-flush}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-flush ({\bf OGGZ} $\ast$ {\em oggz})}\label{oggz_8h_a7}
+
+
+Ensure any associated stdio streams are flushed. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 0}]Success \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \item[{\em OGGZ\_\-ERR\_\-INVALID}]Operation not suitable for this OGGZ \item[{\em OGGZ\_\-ERR\_\-SYSTEM}]System error; check errno for details \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_get_bos@{oggz\_\-get\_\-bos}}
+\index{oggz_get_bos@{oggz\_\-get\_\-bos}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-get\_\-bos ({\bf OGGZ} $\ast$ {\em oggz}, long {\em serialno})}\label{oggz_8h_a9}
+
+
+Determine if a given logical bitstream is at bos (beginning of stream). 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em serialno}]Identify a logical bitstream within {\em oggz\/}, or -1 to query if all logical bitstreams in {\em oggz\/} are at bos \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 1}]The given stream is at bos \item[{\em 0}]The given stream is not at bos \item[{\em OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}]{\em serialno\/} does not identify an existing logical bitstream in {\em oggz\/}. \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_get_eos@{oggz\_\-get\_\-eos}}
+\index{oggz_get_eos@{oggz\_\-get\_\-eos}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-get\_\-eos ({\bf OGGZ} $\ast$ {\em oggz}, long {\em serialno})}\label{oggz_8h_a10}
+
+
+Determine if a given logical bitstream is at eos (end of stream). 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em serialno}]Identify a logical bitstream within {\em oggz\/}, or -1 to query if all logical bitstreams in {\em oggz\/} are at eos \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 1}]The given stream is at eos \item[{\em 0}]The given stream is not at eos \item[{\em OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}]{\em serialno\/} does not identify an existing logical bitstream in {\em oggz\/}. \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_new@{oggz\_\-new}}
+\index{oggz_new@{oggz\_\-new}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf OGGZ}$\ast$ oggz\_\-new (int {\em flags})}\label{oggz_8h_a4}
+
+
+Create a new OGGZ object. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em flags}]OGGZ\_\-READ or OGGZ\_\-WRITE \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]A new OGGZ object \end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em NULL}]on system error; check errno for details \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_open@{oggz\_\-open}}
+\index{oggz_open@{oggz\_\-open}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf OGGZ}$\ast$ oggz\_\-open (char $\ast$ {\em filename}, int {\em flags})}\label{oggz_8h_a5}
+
+
+Open an Ogg file, creating an OGGZ handle for it. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em filename}]The file to open \item[{\em flags}]OGGZ\_\-READ or OGGZ\_\-WRITE \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]A new OGGZ handle \end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em NULL}]System error; check errno for details \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_open_stdio@{oggz\_\-open\_\-stdio}}
+\index{oggz_open_stdio@{oggz\_\-open\_\-stdio}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}{\bf OGGZ}$\ast$ oggz\_\-open\_\-stdio (FILE $\ast$ {\em file}, int {\em flags})}\label{oggz_8h_a6}
+
+
+Create an OGGZ handle associated with a stdio stream. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em file}]An open FILE handle \item[{\em flags}]OGGZ\_\-READ or OGGZ\_\-WRITE \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]A new OGGZ handle \end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em NULL}]System error; check errno for details \end{description}
+\end{Desc}
+\index{oggz.h@{oggz.h}!oggz_serialno_new@{oggz\_\-serialno\_\-new}}
+\index{oggz_serialno_new@{oggz\_\-serialno\_\-new}!oggz.h@{oggz.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}long oggz\_\-serialno\_\-new ({\bf OGGZ} $\ast$ {\em oggz})}\label{oggz_8h_a25}
+
+
+Request a new serialno, as required for a new stream, ensuring the serialno is not yet used for any other streams managed by this OGGZ. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]A new serialno, not already occuring in any logical bitstreams in {\em oggz\/}. \end{Desc}

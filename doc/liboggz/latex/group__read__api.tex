@@ -1,0 +1,102 @@
+\section{OGGZ Read API}
+\label{group__read__api}\index{OGGZ Read API@{OGGZ Read API}}
+
+
+\subsection{Detailed Description}
+OGGZ parses Ogg bitstreams, forming ogg\_\-packet structures, and calling your Oggz\-Read\-Packet callback(s). 
+
+You provide Ogg data to OGGZ with {\bf oggz\_\-read()}{\rm (p.\,\pageref{group__read__api_a2})} or {\bf oggz\_\-read\_\-input()}{\rm (p.\,\pageref{group__read__api_a3})}, and independently process it in Oggz\-Read\-Packet callbacks. It is possible to set a different callback per {\em serialno\/} (ie. for each logical bitstream in the Ogg bitstream - see the {\bf Ogg basics}{\rm (p.\,\pageref{group__basics})} section for more detail).
+
+See {\bf OGGZ Seek API}{\rm (p.\,\pageref{group__seek__api})} for information on seeking on interleaved Ogg data. 
+
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef int($\ast$ {\bf Oggz\-Read\-Packet} )({\bf OGGZ} $\ast$oggz, ogg\_\-packet $\ast$op, long serialno, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em This is the signature of a callback which you must provide for Oggz to call whenever it finds a new packet in the Ogg stream associated with {\em oggz\/}. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+int {\bf oggz\_\-set\_\-read\_\-callback} ({\bf OGGZ} $\ast$oggz, long serialno, {\bf Oggz\-Read\-Packet} read\_\-packet, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em Set a callback for Oggz to call when a new Ogg packet is found in the stream. \item\end{CompactList}\item 
+long {\bf oggz\_\-read} ({\bf OGGZ} $\ast$oggz, long n)
+\begin{CompactList}\small\item\em Read n bytes into {\em oggz\/}, calling any read callbacks on the fly. \item\end{CompactList}\item 
+long {\bf oggz\_\-read\_\-input} ({\bf OGGZ} $\ast$oggz, unsigned char $\ast$buf, long n)
+\begin{CompactList}\small\item\em Input data into {\em oggz\/}. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Typedef Documentation}
+\index{read_api@{read\_\-api}!OggzReadPacket@{OggzReadPacket}}
+\index{OggzReadPacket@{OggzReadPacket}!read_api@{read\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef int($\ast$ {\bf Oggz\-Read\-Packet})({\bf OGGZ} $\ast$ oggz, ogg\_\-packet $\ast$ op, long serialno, void $\ast$ user\_\-data)}\label{group__read__api_a0}
+
+
+This is the signature of a callback which you must provide for Oggz to call whenever it finds a new packet in the Ogg stream associated with {\em oggz\/}. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]The OGGZ handle \item[{\em op}]The full ogg\_\-packet (see $<$ogg/ogg.h$>$) \item[{\em serialno}]Identify the logical bistream in {\em oggz\/} that contains {\em op\/} \item[{\em user\_\-data}]A generic pointer you have provided earlier \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]0 to continue, non-zero to instruct OGGZ to stop.\end{Desc}
+\begin{Desc}
+\item[Note:]It is possible to provide different callbacks per logical bitstream -- see {\bf oggz\_\-set\_\-read\_\-callback()}{\rm (p.\,\pageref{group__read__api_a1})} for more information. \end{Desc}
+
+
+\subsection{Function Documentation}
+\index{read_api@{read\_\-api}!oggz_read@{oggz\_\-read}}
+\index{oggz_read@{oggz\_\-read}!read_api@{read\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}long oggz\_\-read ({\bf OGGZ} $\ast$ {\em oggz}, long {\em n})}\label{group__read__api_a2}
+
+
+Read n bytes into {\em oggz\/}, calling any read callbacks on the fly. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle previously opened for reading \item[{\em n}]A count of bytes to ingest \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em $>$  0}]The number of bytes successfully ingested. \item[{\em 0}]End of file \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \item[{\em OGGZ\_\-ERR\_\-INVALID}]Operation not suitable for this OGGZ \item[{\em OGGZ\_\-ERR\_\-SYSTEM}]System error; check errno for details \end{description}
+\end{Desc}
+\index{read_api@{read\_\-api}!oggz_read_input@{oggz\_\-read\_\-input}}
+\index{oggz_read_input@{oggz\_\-read\_\-input}!read_api@{read\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}long oggz\_\-read\_\-input ({\bf OGGZ} $\ast$ {\em oggz}, unsigned char $\ast$ {\em buf}, long {\em n})}\label{group__read__api_a3}
+
+
+Input data into {\em oggz\/}. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle previously opened for reading \item[{\em buf}]A memory buffer \item[{\em n}]A count of bytes to input \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em $>$  0}]The number of bytes successfully ingested. \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \item[{\em OGGZ\_\-ERR\_\-INVALID}]Operation not suitable for this OGGZ \end{description}
+\end{Desc}
+\index{read_api@{read\_\-api}!oggz_set_read_callback@{oggz\_\-set\_\-read\_\-callback}}
+\index{oggz_set_read_callback@{oggz\_\-set\_\-read\_\-callback}!read_api@{read\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-set\_\-read\_\-callback ({\bf OGGZ} $\ast$ {\em oggz}, long {\em serialno}, {\bf Oggz\-Read\-Packet} {\em read\_\-packet}, void $\ast$ {\em user\_\-data})}\label{group__read__api_a1}
+
+
+Set a callback for Oggz to call when a new Ogg packet is found in the stream. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle previously opened for reading \item[{\em serialno}]Identify the logical bitstream in {\em oggz\/} to attach this callback to, or -1 to attach this callback to all unattached logical bitstreams in {\em oggz\/}. \item[{\em read\_\-packet}]Your callback function \item[{\em user\_\-data}]Arbitrary data you wish to pass to your callback \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em 0}]Success \item[{\em OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}]{\em serialno\/} does not identify an existing logical bitstream in {\em oggz\/}. \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \item[{\em OGGZ\_\-ERR\_\-INVALID}]Operation not suitable for this OGGZ\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Values of {\em serialno\/} other than -1 allows you to specify different callback functions for each logical bitstream.
+
+It is safe to call this callback from within an Oggz\-Read\-Packet function, in order to specify that subsequent packets should be handled by a different Oggz\-Read\-Packet function. \end{Desc}

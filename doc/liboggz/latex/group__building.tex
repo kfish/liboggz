@@ -1,0 +1,26 @@
+\section{Building against liboggz}
+\label{group__building}\index{Building against liboggz@{Building against liboggz}}
+\subsection{Using GNU autoconf}\label{autoconf}
+If you are using GNU autoconf, you do not need to call pkg-config directly. Use the following macro to determine if liboggz is available:
+
+\small\begin{alltt}
+ PKG\_CHECK\_MODULES(OGGZ, oggz $>$= 0.6.0,
+                   HAVE\_OGGZ="yes", HAVE\_OGGZ="no")
+ if test "x$HAVE\_OGGZ" = "xyes" ; then
+   AC\_SUBST(OGGZ\_CFLAGS)
+   AC\_SUBST(OGGZ\_LIBS)
+ fi
+ \end{alltt}\normalsize 
+
+
+If liboggz is found, HAVE\_\-OGGZ will be set to \char`\"{}yes\char`\"{}, and the autoconf variables OGGZ\_\-CFLAGS and OGGZ\_\-LIBS will be set appropriately.\subsection{Determining compiler options with pkg-config}\label{pkg-config}
+If you are not using GNU autoconf in your project, you can use the pkg-config tool directly to determine the correct compiler options.
+
+\small\begin{alltt}
+ OGGZ\_CFLAGS=`pkg-config --cflags oggz`\end{alltt}\normalsize 
+
+
+\small\begin{alltt} OGGZ\_LIBS=`pkg-config --libs oggz`
+ \end{alltt}\normalsize 
+ 
+

@@ -1,0 +1,174 @@
+\section{OGGZ Seek API}
+\label{group__seek__api}\index{OGGZ Seek API@{OGGZ Seek API}}
+
+
+\subsection{Detailed Description}
+The seeking semantics of the Ogg file format were outlined by Monty in {\tt a post to theora-dev} in September 2002. 
+
+Quoting from that post, we have the following assumptions:
+
+\begin{itemize}
+\item Ogg is not a non-linear format. ... It is a media transport format designed to do nothing more than deliver content, in a stream, and have all the pieces arrive on time and in sync.\item The Ogg layer does not know the specifics of the codec data it's multiplexing into a stream. It knows nothing beyond 'Oooo, packets!', that the packets belong to different buckets, that the packets go in order, and that packets have position markers. Ogg does not even have a concept of 'time'; it only knows about the sequentially increasing, unitless position markers. It is up to higher layers which have access to the codec APIs to assign and convert units of framing or time.\end{itemize}
+
+
+(For more details on the structure of Ogg streams, see the {\bf Ogg Basics }{\rm (p.\,\pageref{group__basics})} section).
+
+For data such as media, for which it is possible to provide a mapping such as 'time', OGGZ can efficiently navigate through an Ogg stream by use of an Oggz\-Metric callback, thus allowing automatic seeking to points in 'time'. For common codecs you can ask Oggz to set this for you automatically by instantiating the OGGZ handle with the OGGZ\_\-AUTO flag set. For others you can specify a multiplier with {\bf oggz\_\-set\_\-metric\_\-linear()}{\rm (p.\,\pageref{group__seek__api_a1})}, or a generic non-linear metric with {\bf oggz\_\-set\_\-metric()}{\rm (p.\,\pageref{group__seek__api_a2})}.
+
+\begin{itemize}
+\item See the section on {\bf Using Oggz\-Metrics }{\rm (p.\,\pageref{group__metric})} for details of setting up and seeking with metrics.\end{itemize}
+
+
+\begin{itemize}
+\item It is always possible to seek to exact byte positions using {\bf oggz\_\-seek()}{\rm (p.\,\pageref{group__seek__api_a6})}.\end{itemize}
+
+
+\begin{itemize}
+\item A mechanism to aid seeking across non-metric spaces for which a partial order exists (ie. data that is not synchronised by a measure such as time, but is nevertheless somehow seekably structured), is also planned. \end{itemize}
+
+
+\subsection*{Typedefs}
+\begin{CompactItemize}
+\item 
+typedef ogg\_\-int64\_\-t($\ast$ {\bf Oggz\-Metric} )({\bf OGGZ} $\ast$oggz, long serialno, ogg\_\-int64\_\-t granulepos, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em This is the signature of a function to correlate Ogg streams. \item\end{CompactList}\end{CompactItemize}
+\subsection*{Functions}
+\begin{CompactItemize}
+\item 
+int {\bf oggz\_\-set\_\-metric\_\-linear} ({\bf OGGZ} $\ast$oggz, long serialno, ogg\_\-int64\_\-t granule\_\-rate\_\-numerator, ogg\_\-int64\_\-t granule\_\-rate\_\-denominator)
+\begin{CompactList}\small\item\em Specify that a logical bitstream has a linear metric. \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-metric} ({\bf OGGZ} $\ast$oggz, long serialno, {\bf Oggz\-Metric} metric, void $\ast$user\_\-data)
+\begin{CompactList}\small\item\em Set the Oggz\-Metric to use for an OGGZ handle. \item\end{CompactList}\item 
+ogg\_\-int64\_\-t {\bf oggz\_\-seek\_\-units} ({\bf OGGZ} $\ast$oggz, ogg\_\-int64\_\-t units, int whence)
+\begin{CompactList}\small\item\em Seek to a number of units corresponding to the Metric function. \item\end{CompactList}\item 
+int {\bf oggz\_\-set\_\-data\_\-start} ({\bf OGGZ} $\ast$oggz, off\_\-t offset)
+\begin{CompactList}\small\item\em Tell OGGZ to remember the given offset as the start of data. \item\end{CompactList}\item 
+off\_\-t {\bf oggz\_\-tell} ({\bf OGGZ} $\ast$oggz)
+\begin{CompactList}\small\item\em Provide the file offset in bytes corresponding to the data read. \item\end{CompactList}\item 
+off\_\-t {\bf oggz\_\-seek} ({\bf OGGZ} $\ast$oggz, off\_\-t offset, int whence)
+\begin{CompactList}\small\item\em Seek to a specific byte offset. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Typedef Documentation}
+\index{seek_api@{seek\_\-api}!OggzMetric@{OggzMetric}}
+\index{OggzMetric@{OggzMetric}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}typedef ogg\_\-int64\_\-t($\ast$ {\bf Oggz\-Metric})({\bf OGGZ} $\ast$ oggz, long serialno, ogg\_\-int64\_\-t granulepos, void $\ast$ user\_\-data)}\label{group__seek__api_a0}
+
+
+This is the signature of a function to correlate Ogg streams. 
+
+If every position in an Ogg stream can be described by a metric (eg. time) then define this function that returns some arbitrary unit value. This is the normal use of OGGZ for media streams. The meaning of units is arbitrary, but must be consistent across all logical bitstreams; for example a conversion of the time offset of a given packet into nanoseconds or a similar stream-specific subdivision may be appropriate.
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em serialno}]Identifies a logical bitstream within {\em oggz\/} \item[{\em granulepos}]A granulepos within the logical bitstream identified by {\em serialno\/} \item[{\em user\_\-data}]Arbitrary data you wish to pass to your callback \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]A conversion of the (serialno, granulepos) pair into a measure in units which is consistent across all logical bitstreams within {\em oggz\/} \end{Desc}
+
+
+\subsection{Function Documentation}
+\index{seek_api@{seek\_\-api}!oggz_seek@{oggz\_\-seek}}
+\index{oggz_seek@{oggz\_\-seek}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}off\_\-t oggz\_\-seek ({\bf OGGZ} $\ast$ {\em oggz}, off\_\-t {\em offset}, int {\em whence})}\label{group__seek__api_a6}
+
+
+Seek to a specific byte offset. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em offset}]a byte offset \item[{\em whence}]As defined in $<$stdio.h$>$: SEEK\_\-SET, SEEK\_\-CUR or SEEK\_\-END \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]the new file offset, or -1 on failure. \end{Desc}
+\index{seek_api@{seek\_\-api}!oggz_seek_units@{oggz\_\-seek\_\-units}}
+\index{oggz_seek_units@{oggz\_\-seek\_\-units}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}ogg\_\-int64\_\-t oggz\_\-seek\_\-units ({\bf OGGZ} $\ast$ {\em oggz}, ogg\_\-int64\_\-t {\em units}, int {\em whence})}\label{group__seek__api_a3}
+
+
+Seek to a number of units corresponding to the Metric function. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em units}]A number of units \item[{\em whence}]As defined in $<$stdio.h$>$: SEEK\_\-SET, SEEK\_\-CUR or SEEK\_\-END \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]the new file offset, or -1 on failure. \end{Desc}
+\index{seek_api@{seek\_\-api}!oggz_set_data_start@{oggz\_\-set\_\-data\_\-start}}
+\index{oggz_set_data_start@{oggz\_\-set\_\-data\_\-start}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-set\_\-data\_\-start ({\bf OGGZ} $\ast$ {\em oggz}, off\_\-t {\em offset})}\label{group__seek__api_a4}
+
+
+Tell OGGZ to remember the given offset as the start of data. 
+
+This informs the seeking mechanism that when seeking back to unit 0, go to the given offset, not to the start of the file, which is usually codec headers. The usual usage is: \small\begin{alltt}
+    oggz\_set\_data\_start (oggz, oggz\_tell (oggz));
+\end{alltt}\normalsize 
+ \begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle previously opened for reading \item[{\em offset}]The offset of the start of data \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]0 on success, -1 on failure. \end{Desc}
+\index{seek_api@{seek\_\-api}!oggz_set_metric@{oggz\_\-set\_\-metric}}
+\index{oggz_set_metric@{oggz\_\-set\_\-metric}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-set\_\-metric ({\bf OGGZ} $\ast$ {\em oggz}, long {\em serialno}, {\bf Oggz\-Metric} {\em metric}, void $\ast$ {\em user\_\-data})}\label{group__seek__api_a2}
+
+
+Set the Oggz\-Metric to use for an OGGZ handle. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em serialno}]Identify the logical bitstream in {\em oggz\/} to attach this metric to. A value of -1 indicates that this metric should be attached to all unattached logical bitstreams in {\em oggz\/}. \item[{\em metric}]An Oggz\-Metric callback \item[{\em user\_\-data}]arbitrary data to pass to the metric callback\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]0 Success \end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}]{\em serialno\/} does not identify an existing logical bitstream in {\em oggz\/}, and is not -1 \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ\end{description}
+\end{Desc}
+\begin{Desc}
+\item[Note:]Specifying values of {\em serialno\/} other than -1 allows you to pass logical bitstream specific user\_\-data to the same metric. 
+
+Alternatively, you may use a different {\em metric\/} for each {\em serialno\/}, but all metrics used must return mutually consistent unit measurements. \end{Desc}
+\index{seek_api@{seek\_\-api}!oggz_set_metric_linear@{oggz\_\-set\_\-metric\_\-linear}}
+\index{oggz_set_metric_linear@{oggz\_\-set\_\-metric\_\-linear}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}int oggz\_\-set\_\-metric\_\-linear ({\bf OGGZ} $\ast$ {\em oggz}, long {\em serialno}, ogg\_\-int64\_\-t {\em granule\_\-rate\_\-numerator}, ogg\_\-int64\_\-t {\em granule\_\-rate\_\-denominator})}\label{group__seek__api_a1}
+
+
+Specify that a logical bitstream has a linear metric. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \item[{\em serialno}]Identify the logical bitstream in {\em oggz\/} to attach this linear metric to. A value of -1 indicates that the metric should be attached to all unattached logical bitstreams in {\em oggz\/}. \item[{\em granule\_\-rate\_\-numerator}]The numerator of the granule rate \item[{\em granule\_\-rate\_\-denominator}]The denominator of the granule rate \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]0 Success \end{Desc}
+\begin{Desc}
+\item[Return values:]
+\begin{description}
+\item[{\em OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}]{\em serialno\/} does not identify an existing logical bitstream in {\em oggz\/}. \item[{\em OGGZ\_\-ERR\_\-BAD\_\-OGGZ}]{\em oggz\/} does not refer to an existing OGGZ \end{description}
+\end{Desc}
+\index{seek_api@{seek\_\-api}!oggz_tell@{oggz\_\-tell}}
+\index{oggz_tell@{oggz\_\-tell}!seek_api@{seek\_\-api}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}off\_\-t oggz\_\-tell ({\bf OGGZ} $\ast$ {\em oggz})}\label{group__seek__api_a5}
+
+
+Provide the file offset in bytes corresponding to the data read. 
+
+\begin{Desc}
+\item[Parameters:]
+\begin{description}
+\item[{\em oggz}]An OGGZ handle \end{description}
+\end{Desc}
+\begin{Desc}
+\item[Returns:]The current offset of oggz.\end{Desc}
+\begin{Desc}
+\item[Note:]When reading, the value returned by {\bf oggz\_\-tell()}{\rm (p.\,\pageref{group__seek__api_a5})} reflects the data offset of the start of the most recent packet processed, so that when called from an Oggz\-Read\-Packet callback it reflects the byte offset of the start of the packet. As OGGZ may have internally read ahead, this may differ from the current offset of the associated file descriptor. \end{Desc}

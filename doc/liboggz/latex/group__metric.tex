@@ -1,0 +1,39 @@
+\section{Using Oggz\-Metric}
+\label{group__metric}\index{Using OggzMetric@{Using OggzMetric}}
+If every position in an Ogg stream can be described by a metric such as time, then it is possible to define a function that, given a serialno and granulepos, returns a measurement in units such as milliseconds. Oggz will use this function repeatedly while seeking in order to navigate through the Ogg stream.
+
+The meaning of the units is arbitrary, but must be consistent across all logical bitstreams. This allows Oggz to seek accurately through Ogg bitstreams containing multiple logical bitstreams such as tracks of media.\subsection{How to set metrics}\label{setting}
+Some common media codecs can be handled automatically by Oggz. For most others it is simply a matter of providing a linear multiplication factor (such as a sampling rate, if each packet's granulepos represents a sample number). For non-linear data streams, you will need to explicitly provide your own Oggz\-Metric function.\subsubsection{Automatic Metrics}\label{auto}
+Oggz can automatically provide metrics for the common media codecs Speex, Vorbis, and Theora, as well as all Annodex streams. You need do nothing more than open the file with the OGGZ\_\-AUTO flag set.
+
+\begin{itemize}
+\item Create an OGGZ handle for reading with {\em flags\/} = OGGZ\_\-READ $|$ OGGZ\_\-AUTO\item Read data, ensuring that you have received all b\_\-o\_\-s pages before attempting to seek.\end{itemize}
+
+
+Oggz will silently parse known codec headers and associate metrics appropriately; if you attempt to seek before you have received all b\_\-o\_\-s pages, Oggz will not have had a chance to parse the codec headers and associate metrics. It is safe to seek once you have received a packet with {\em b\_\-o\_\-s\/} == 0; see the {\bf Ogg basics }{\rm (p.\,\pageref{group__basics})} section for more details.
+
+\begin{Desc}
+\item[Note:]This functionality is provided for convenience. Oggz parses these codec headers internally, and so liboggz is {\bf not} linked to libspeex, libvorbis, libtheora or libannodex.\end{Desc}
+\subsubsection{Linear Metrics}\label{linear}
+\begin{itemize}
+\item Set the {\em granule\_\-rate\_\-numerator\/} and {\em granule\_\-rate\_\-denominator\/} appropriately using {\bf oggz\_\-set\_\-metric\_\-linear()}{\rm (p.\,\pageref{group__seek__api_a1})}\end{itemize}
+\subsubsection{Custom Metrics}\label{custom}
+For some streams, neither of the above methods are appropriate.
+
+\begin{itemize}
+\item Implement an Oggz\-Metric callback\item Set the Oggz\-Metric callback using {\bf oggz\_\-set\_\-metric()}{\rm (p.\,\pageref{group__seek__api_a2})}\end{itemize}
+\subsection{Seeking with Oggz\-Metrics}\label{using}
+To seek, use {\bf oggz\_\-seek\_\-units()}{\rm (p.\,\pageref{group__seek__api_a3})}. Oggz will perform a ratio search through the Ogg bitstream, using the Oggz\-Metric callback to determine its position relative to the desired unit.
+
+\begin{Desc}
+\item[Note:]\end{Desc}
+Many data streams begin with headers describing such things as codec setup parameters. One of the assumptions Monty makes is:
+
+\begin{itemize}
+\item Given pre-cached decode headers, a player may seek into a stream at any point and begin decode.\end{itemize}
+
+
+Thus, the first action taken by applications dealing with such data is to read in and cache the decode headers; thereafter the application can safely seek to arbitrary points in the data.
+
+This impacts seeking because the portion of the bitstream containing decode headers should not be considered part of the metric space. To inform Oggz not to seek earlier than the end of the decode headers, use {\bf oggz\_\-set\_\-data\_\-start()}{\rm (p.\,\pageref{group__seek__api_a4})}. 
+

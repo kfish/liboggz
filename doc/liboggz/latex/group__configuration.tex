@@ -1,0 +1,13 @@
+\section{Configuration}
+\label{group__configuration}\index{Configuration@{Configuration}}
+\subsection{./configure}\label{configure}
+It is possible to customize the functionality of liboggz by using various ./configure flags when building it from source. You can build a smaller version of liboggz to only read or write. By default, both reading and writing support is built.
+
+For general information about using ./configure, see the file {\bf INSTALL }{\rm (p.\,\pageref{group__install})}\subsubsection{Removing writing support}\label{no_encode}
+Configuring with {\em --disable-write\/} will remove all support for writing:\begin{itemize}
+\item All internal write related functions will not be built\item Any attempt to call {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})}, {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})} or {\bf oggz\_\-open\_\-stdio()}{\rm (p.\,\pageref{oggz_8h_a6})} with {\em flags\/} == OGGZ\_\-WRITE will fail, returning NULL\item Any attempt to call {\bf oggz\_\-write()}{\rm (p.\,\pageref{group__write__api_a4})}, {\bf oggz\_\-write\_\-output()}{\rm (p.\,\pageref{group__write__api_a3})}, {\bf oggz\_\-write\_\-feed()}{\rm (p.\,\pageref{group__write__api_a2})}, {\bf oggz\_\-write\_\-set\_\-hungry\_\-callback()}{\rm (p.\,\pageref{group__write__api_a1})}, or {\bf oggz\_\-write\_\-get\_\-next\_\-page\_\-size()}{\rm (p.\,\pageref{group__write__api_a5})} will return OGGZ\_\-ERR\_\-DISABLED\end{itemize}
+\subsubsection{Removing reading support}\label{no_decode}
+Configuring with {\em --disable-read\/} will remove all support for reading:\begin{itemize}
+\item All internal reading related functions will not be built\item Any attempt to call {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})}, {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})} or {\bf oggz\_\-open\_\-stdio()}{\rm (p.\,\pageref{oggz_8h_a6})} with {\em flags\/} == OGGZ\_\-READ will fail, returning NULL\item Any attempt to call {\bf oggz\_\-read()}{\rm (p.\,\pageref{group__read__api_a2})}, {\bf oggz\_\-read\_\-input()}{\rm (p.\,\pageref{group__read__api_a3})}, {\bf oggz\_\-set\_\-read\_\-callback()}{\rm (p.\,\pageref{group__read__api_a1})}, {\bf oggz\_\-seek()}{\rm (p.\,\pageref{group__seek__api_a6})}, or {\bf oggz\_\-seek\_\-units()}{\rm (p.\,\pageref{group__seek__api_a3})} will return OGGZ\_\-ERR\_\-DISABLED \end{itemize}
+
+

@@ -1,0 +1,144 @@
+\section{oggz\_\-constants.h File Reference}
+\label{oggz__constants_8h}\index{oggz_constants.h@{oggz\_\-constants.h}}
+
+
+\subsection{Detailed Description}
+General constants used by liboggz. 
+
+
+
+\subsection*{Enumerations}
+\begin{CompactItemize}
+\item 
+enum {\bf Oggz\-Flags} \{ {\bf OGGZ\_\-READ} =  0x00, 
+{\bf OGGZ\_\-WRITE} =  0x01, 
+{\bf OGGZ\_\-NONSTRICT} =  0x10, 
+{\bf OGGZ\_\-AUTO} =  0x20
+ \}
+\begin{CompactList}\small\item\em Flags to {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})}, {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})}, and oggz\_\-openfd(). \item\end{CompactList}\item 
+enum {\bf Oggz\-Flush\-Opts} \{ {\bf OGGZ\_\-FLUSH\_\-BEFORE} =  0x01, 
+{\bf OGGZ\_\-FLUSH\_\-AFTER} =  0x02
+ \}
+\begin{CompactList}\small\item\em Flush options for oggz\_\-write\_\-feed; can be or'ed together. \item\end{CompactList}\item 
+enum {\bf Oggz\-Error} \{ \par
+{\bf OGGZ\_\-ERR\_\-OK} =  0, 
+{\bf OGGZ\_\-ERR\_\-GENERIC} =  -1, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-OGGZ} =  -2, 
+{\bf OGGZ\_\-ERR\_\-INVALID} =  -3, 
+\par
+{\bf OGGZ\_\-ERR\_\-NO\_\-STREAMS} =  -4, 
+{\bf OGGZ\_\-ERR\_\-BOS} =  -5, 
+{\bf OGGZ\_\-ERR\_\-EOS} =  -6, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-METRIC} =  -7, 
+\par
+{\bf OGGZ\_\-ERR\_\-SYSTEM} =  -10, 
+{\bf OGGZ\_\-ERR\_\-DISABLED} =  -11, 
+{\bf OGGZ\_\-ERR\_\-NOSEEK} =  -13, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-SERIALNO} =  -20, 
+\par
+{\bf OGGZ\_\-ERR\_\-BAD\_\-BYTES} =  -21, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-B\_\-O\_\-S} =  -22, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-E\_\-O\_\-S} =  -23, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-GRANULEPOS} =  -24, 
+\par
+{\bf OGGZ\_\-ERR\_\-BAD\_\-PACKETNO} =  -25, 
+{\bf OGGZ\_\-ERR\_\-BAD\_\-GUARD} =  -210, 
+{\bf OGGZ\_\-ERR\_\-RECURSIVE\_\-WRITE} =  -266
+ \}
+\begin{CompactList}\small\item\em Definitions of error return values. \item\end{CompactList}\end{CompactItemize}
+
+
+\subsection{Enumeration Type Documentation}
+\index{oggz_constants.h@{oggz\_\-constants.h}!OggzError@{OggzError}}
+\index{OggzError@{OggzError}!oggz_constants.h@{oggz\_\-constants.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Oggz\-Error}}\label{oggz__constants_8h_a27}
+
+
+Definitions of error return values. 
+
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\index{OGGZ_ERR_OK@{OGGZ\_\-ERR\_\-OK}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_OK@{OGGZ\_\-ERR\_\-OK}}\item[{\em 
+OGGZ\_\-ERR\_\-OK\label{oggz__constants_8h_a27a6}
+}]No error. \index{OGGZ_ERR_GENERIC@{OGGZ\_\-ERR\_\-GENERIC}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_GENERIC@{OGGZ\_\-ERR\_\-GENERIC}}\item[{\em 
+OGGZ\_\-ERR\_\-GENERIC\label{oggz__constants_8h_a27a7}
+}]generic error \index{OGGZ_ERR_BAD_OGGZ@{OGGZ\_\-ERR\_\-BAD\_\-OGGZ}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_OGGZ@{OGGZ\_\-ERR\_\-BAD\_\-OGGZ}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-OGGZ\label{oggz__constants_8h_a27a8}
+}]oggz is not a valid OGGZ \index{OGGZ_ERR_INVALID@{OGGZ\_\-ERR\_\-INVALID}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_INVALID@{OGGZ\_\-ERR\_\-INVALID}}\item[{\em 
+OGGZ\_\-ERR\_\-INVALID\label{oggz__constants_8h_a27a9}
+}]The requested operation is not suitable for this OGGZ. \index{OGGZ_ERR_NO_STREAMS@{OGGZ\_\-ERR\_\-NO\_\-STREAMS}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_NO_STREAMS@{OGGZ\_\-ERR\_\-NO\_\-STREAMS}}\item[{\em 
+OGGZ\_\-ERR\_\-NO\_\-STREAMS\label{oggz__constants_8h_a27a10}
+}]oggz contains no logical bitstreams \index{OGGZ_ERR_BOS@{OGGZ\_\-ERR\_\-BOS}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BOS@{OGGZ\_\-ERR\_\-BOS}}\item[{\em 
+OGGZ\_\-ERR\_\-BOS\label{oggz__constants_8h_a27a11}
+}]Operation is inappropriate for oggz in current bos state. \index{OGGZ_ERR_EOS@{OGGZ\_\-ERR\_\-EOS}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_EOS@{OGGZ\_\-ERR\_\-EOS}}\item[{\em 
+OGGZ\_\-ERR\_\-EOS\label{oggz__constants_8h_a27a12}
+}]Operation is inappropriate for oggz in current eos state. \index{OGGZ_ERR_BAD_METRIC@{OGGZ\_\-ERR\_\-BAD\_\-METRIC}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_METRIC@{OGGZ\_\-ERR\_\-BAD\_\-METRIC}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-METRIC\label{oggz__constants_8h_a27a13}
+}]Operation requires a valid metric, but none has been set. \index{OGGZ_ERR_SYSTEM@{OGGZ\_\-ERR\_\-SYSTEM}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_SYSTEM@{OGGZ\_\-ERR\_\-SYSTEM}}\item[{\em 
+OGGZ\_\-ERR\_\-SYSTEM\label{oggz__constants_8h_a27a14}
+}]System specific error; check errno for details. \index{OGGZ_ERR_DISABLED@{OGGZ\_\-ERR\_\-DISABLED}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_DISABLED@{OGGZ\_\-ERR\_\-DISABLED}}\item[{\em 
+OGGZ\_\-ERR\_\-DISABLED\label{oggz__constants_8h_a27a15}
+}]Functionality disabled at build time. \index{OGGZ_ERR_NOSEEK@{OGGZ\_\-ERR\_\-NOSEEK}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_NOSEEK@{OGGZ\_\-ERR\_\-NOSEEK}}\item[{\em 
+OGGZ\_\-ERR\_\-NOSEEK\label{oggz__constants_8h_a27a16}
+}]Seeking operation is not possible for this OGGZ. \index{OGGZ_ERR_BAD_SERIALNO@{OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_SERIALNO@{OGGZ\_\-ERR\_\-BAD\_\-SERIALNO}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-SERIALNO\label{oggz__constants_8h_a27a17}
+}]The requested serialno does not exist in this OGGZ. \index{OGGZ_ERR_BAD_BYTES@{OGGZ\_\-ERR\_\-BAD\_\-BYTES}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_BYTES@{OGGZ\_\-ERR\_\-BAD\_\-BYTES}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-BYTES\label{oggz__constants_8h_a27a18}
+}]Packet disallowed due to invalid byte length. \index{OGGZ_ERR_BAD_B_O_S@{OGGZ\_\-ERR\_\-BAD\_\-B\_\-O\_\-S}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_B_O_S@{OGGZ\_\-ERR\_\-BAD\_\-B\_\-O\_\-S}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-B\_\-O\_\-S\label{oggz__constants_8h_a27a19}
+}]Packet disallowed due to invalid b\_\-o\_\-s (beginning of stream) flag. \index{OGGZ_ERR_BAD_E_O_S@{OGGZ\_\-ERR\_\-BAD\_\-E\_\-O\_\-S}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_E_O_S@{OGGZ\_\-ERR\_\-BAD\_\-E\_\-O\_\-S}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-E\_\-O\_\-S\label{oggz__constants_8h_a27a20}
+}]Packet disallowed due to invalid e\_\-o\_\-s (end of stream) flag. \index{OGGZ_ERR_BAD_GRANULEPOS@{OGGZ\_\-ERR\_\-BAD\_\-GRANULEPOS}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_GRANULEPOS@{OGGZ\_\-ERR\_\-BAD\_\-GRANULEPOS}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-GRANULEPOS\label{oggz__constants_8h_a27a21}
+}]Packet disallowed due to invalid granulepos. \index{OGGZ_ERR_BAD_PACKETNO@{OGGZ\_\-ERR\_\-BAD\_\-PACKETNO}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_PACKETNO@{OGGZ\_\-ERR\_\-BAD\_\-PACKETNO}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-PACKETNO\label{oggz__constants_8h_a27a22}
+}]Packet disallowed due to invalid packetno. \index{OGGZ_ERR_BAD_GUARD@{OGGZ\_\-ERR\_\-BAD\_\-GUARD}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_BAD_GUARD@{OGGZ\_\-ERR\_\-BAD\_\-GUARD}}\item[{\em 
+OGGZ\_\-ERR\_\-BAD\_\-GUARD\label{oggz__constants_8h_a27a23}
+}]Guard provided by user has non-zero value. \index{OGGZ_ERR_RECURSIVE_WRITE@{OGGZ\_\-ERR\_\-RECURSIVE\_\-WRITE}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_ERR_RECURSIVE_WRITE@{OGGZ\_\-ERR\_\-RECURSIVE\_\-WRITE}}\item[{\em 
+OGGZ\_\-ERR\_\-RECURSIVE\_\-WRITE\label{oggz__constants_8h_a27a24}
+}]Attempt to call {\bf oggz\_\-write()}{\rm (p.\,\pageref{group__write__api_a4})} or {\bf oggz\_\-write\_\-output()}{\rm (p.\,\pageref{group__write__api_a3})} from within a hungry() callback. \end{description}
+\end{Desc}
+
+\index{oggz_constants.h@{oggz\_\-constants.h}!OggzFlags@{OggzFlags}}
+\index{OggzFlags@{OggzFlags}!oggz_constants.h@{oggz\_\-constants.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Oggz\-Flags}}\label{oggz__constants_8h_a25}
+
+
+Flags to {\bf oggz\_\-new()}{\rm (p.\,\pageref{oggz_8h_a4})}, {\bf oggz\_\-open()}{\rm (p.\,\pageref{oggz_8h_a5})}, and oggz\_\-openfd(). 
+
+Can be or'ed together in the following combinations:\begin{itemize}
+\item OGGZ\_\-READ $|$ OGGZ\_\-AUTO\item OGGZ\_\-WRITE $|$ OGGZ\_\-NONSTRICT \end{itemize}
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\index{OGGZ_READ@{OGGZ\_\-READ}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_READ@{OGGZ\_\-READ}}\item[{\em 
+OGGZ\_\-READ\label{oggz__constants_8h_a25a0}
+}]Read only. \index{OGGZ_WRITE@{OGGZ\_\-WRITE}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_WRITE@{OGGZ\_\-WRITE}}\item[{\em 
+OGGZ\_\-WRITE\label{oggz__constants_8h_a25a1}
+}]Write only. \index{OGGZ_NONSTRICT@{OGGZ\_\-NONSTRICT}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_NONSTRICT@{OGGZ\_\-NONSTRICT}}\item[{\em 
+OGGZ\_\-NONSTRICT\label{oggz__constants_8h_a25a2}
+}]Disable strict adherence to mapping constraints, eg for handling an incomplete stream. \index{OGGZ_AUTO@{OGGZ\_\-AUTO}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_AUTO@{OGGZ\_\-AUTO}}\item[{\em 
+OGGZ\_\-AUTO\label{oggz__constants_8h_a25a3}
+}]Scan for known headers while reading, and automatically set metrics appropriately. 
+
+Opening a file for reading with {\em flags\/} = OGGZ\_\-READ $|$ OGGZ\_\-AUTO will allow seeking on Speex, Vorbis, Theora and all Annodex streams in units of milliseconds, once all bos pages have been delivered. \end{description}
+\end{Desc}
+
+\index{oggz_constants.h@{oggz\_\-constants.h}!OggzFlushOpts@{OggzFlushOpts}}
+\index{OggzFlushOpts@{OggzFlushOpts}!oggz_constants.h@{oggz\_\-constants.h}}
+\subsubsection{\setlength{\rightskip}{0pt plus 5cm}enum {\bf Oggz\-Flush\-Opts}}\label{oggz__constants_8h_a26}
+
+
+Flush options for oggz\_\-write\_\-feed; can be or'ed together. 
+
+\begin{Desc}
+\item[Enumeration values: ]\par
+\begin{description}
+\index{OGGZ_FLUSH_BEFORE@{OGGZ\_\-FLUSH\_\-BEFORE}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_FLUSH_BEFORE@{OGGZ\_\-FLUSH\_\-BEFORE}}\item[{\em 
+OGGZ\_\-FLUSH\_\-BEFORE\label{oggz__constants_8h_a26a4}
+}]Flush all streams before beginning this packet. \index{OGGZ_FLUSH_AFTER@{OGGZ\_\-FLUSH\_\-AFTER}!oggz_constants.h@{oggz\_\-constants.h}}\index{oggz_constants.h@{oggz\_\-constants.h}!OGGZ_FLUSH_AFTER@{OGGZ\_\-FLUSH\_\-AFTER}}\item[{\em 
+OGGZ\_\-FLUSH\_\-AFTER\label{oggz__constants_8h_a26a5}
+}]Flush after this packet. \end{description}
+\end{Desc}
+
