@@ -12,6 +12,7 @@ http://www.annodex.net/software/liboggz/download/liboggz-0.8.3.tar.gz
 
 New in this release:
 
+	* Theora header parsing updated for Theora alpha3
 	* fixes for win32 build procedure
 	* improved API documentation for seeking, OGGZ_AUTO and OggzIO
 
