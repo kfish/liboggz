@@ -18,7 +18,8 @@ New in this release:
 	* expanded --help output for oggzdump tool
 	* added option to run test suite under valgrind
 
-Additionally, a thorough audit of memory leaks has been completed.
+Additionally, a thorough audit of memory leaks has been completed and
+various minor bugs have been fixed.
 
 About Oggz
 ----------
