@@ -101,8 +101,6 @@ manpage.1: manpage.sgml
 	<arg choice="opt">-P</arg><arg choice="opt">--hide-packetno</arg>
       </group>
 
-      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
-
       <arg choice="plain">filename</arg>
     </cmdsynopsis>
     <cmdsynopsis>
@@ -118,6 +116,12 @@ manpage.1: manpage.sgml
       </group>
       
       <arg choice="plain">filename</arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
+      <group><arg choice="opt">-v</arg><arg choice="opt">--version</arg></group>
     </cmdsynopsis>
     
   </refsynopsisdiv>
@@ -269,6 +273,11 @@ manpage.1: manpage.sgml
 	<varlistentry>
 	  <term>-h, --help</term>
 	  <listitem><para>Display usage information and exit.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-v, --version</term>
+	  <listitem><para>Output version information and exit.</para></listitem>
 	</varlistentry>
 	
       </variablelist>

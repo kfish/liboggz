@@ -111,6 +111,11 @@ manpage.1: manpage.sgml
 	  <listitem><para>Display usage information and exit.</para></listitem>
 	</varlistentry>
 	
+	<varlistentry>
+	  <term>-v, --version</term>
+	  <listitem><para>Output version information and exit.</para></listitem>
+	</varlistentry>
+
       </variablelist>
     </refsect2>
   </refsect1>

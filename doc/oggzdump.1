@@ -58,9 +58,11 @@ such a hexdump
  
 .SH "SYNOPSIS" 
 .PP 
-\fBoggzdump\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-n  | --new ]  [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-c \fBcontent-type\fR  | --content-type \fBcontent-type\fR ]  [-s \fBserialno\fR  | --serialno \fBserialno\fR ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ]  [-h  | --help ] filename  
+\fBoggzdump\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-n  | --new ]  [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-c \fBcontent-type\fR  | --content-type \fBcontent-type\fR ]  [-s \fBserialno\fR  | --serialno \fBserialno\fR ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ] filename  
 .PP 
 \fBoggzdump\fR [-r  | --revert ]  [-o \fBfilename\fR  | --output \fBfilename\fR ] filename  
+.PP 
+\fBoggzdump\fR [-h  | --help ]  [-v  | --version ]  
 .SH "Description" 
 .PP 
 \fBoggzdump\fR generates a hexadecimal or binary dump 
@@ -140,6 +142,8 @@ standard output.
  
 .IP "-h, --help" 10 
 Display usage information and exit. 
+.IP "-v, --version" 10 
+Output version information and exit. 
 .SH "AUTHOR" 
 .PP 
 Conrad Parker        November 17, 2003;      
@@ -152,4 +156,4 @@ Copyright \(co 2003 CSIRO Australia
 \fBoggzdiff\fP\fB(1)\fP, 
 \fBxxd\fP\fB(1)\fP, 
 \fBhexdump\fP\fB(1)\fP      
-.\" created by instant / docbook-to-man, Wed 30 Mar 2005, 23:06 
+.\" created by instant / docbook-to-man, Mon 04 Apr 2005, 08:40 
