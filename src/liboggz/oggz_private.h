@@ -74,8 +74,16 @@ typedef int (*OggzIOFlush) (void * user_handle);
 struct _oggz_stream_t {
   ogg_stream_state ogg_stream;
 
+  /** STATIC INFO */
   int content;
+  int nr_headers;
+  int preroll;
+  ogg_int64_t granulerate_n;
+  ogg_int64_t granulerate_d;
+  ogg_int64_t basegranule;
+  int granuleshift;
 
+  /** CURRENT STATE **/
   /* non b_o_s packet has been written (not just queued) */
   int delivered_non_b_o_s;
 
@@ -84,6 +92,7 @@ struct _oggz_stream_t {
   ogg_int64_t granulepos;
   ogg_int64_t packetno;
 
+  /** CALLBACKS **/
   OggzMetric metric;
   void * metric_user_data;
   int metric_internal;

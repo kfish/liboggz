@@ -261,6 +261,12 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   ogg_stream_init (&stream->ogg_stream, (int)serialno);
 
   stream->content = OGGZ_CONTENT_UNKNOWN;
+  stream->nr_headers = 0;
+  stream->preroll = 0;
+  stream->granulerate_n = 1;
+  stream->granulerate_d = 1;
+  stream->basegranule = 0;
+  stream->granuleshift = 0;
 
   stream->delivered_non_b_o_s = 0;
   stream->b_o_s = 1;
@@ -389,7 +395,7 @@ oggz_set_metric_internal (OGGZ * oggz, long serialno,
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (serialno == -1) {
-    if (oggz->metric_internal)
+    if (oggz->metric_internal && oggz->metric_user_data)
       oggz_free (oggz->metric_user_data);
     oggz->metric = metric;
     oggz->metric_user_data = user_data;
@@ -398,7 +404,7 @@ oggz_set_metric_internal (OGGZ * oggz, long serialno,
     stream = oggz_get_stream (oggz, serialno);
     if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
-    if (stream->metric_internal)
+    if (stream->metric_internal && stream->metric_user_data)
       oggz_free (stream->metric_user_data);
     stream->metric = metric;
     stream->metric_user_data = user_data;

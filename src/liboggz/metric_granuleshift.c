@@ -34,25 +34,22 @@
 
 #include "oggz_private.h"
 
-typedef struct {
-  ogg_int64_t gr_n;
-  ogg_int64_t gr_d;
-  int granuleshift;
-} oggz_metric_granuleshift_t;
-
 static ogg_int64_t
 oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
 				  ogg_int64_t granulepos, void * user_data)
 {
-  oggz_metric_granuleshift_t * gdata = (oggz_metric_granuleshift_t *)user_data;
+  oggz_stream_t * stream;
   ogg_int64_t iframe, pframe;
   ogg_int64_t units;
 
-  iframe = granulepos >> gdata->granuleshift;
-  pframe = granulepos - (iframe << gdata->granuleshift);
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return -1;
+
+  iframe = granulepos >> stream->granuleshift;
+  pframe = granulepos - (iframe << stream->granuleshift);
   granulepos = (iframe + pframe);
 
-  units = granulepos * gdata->gr_d / gdata->gr_n;
+  units = granulepos * stream->granulerate_d / stream->granulerate_n;
 
 #ifdef DEBUG
   printf ("oggz_..._granuleshift: serialno %010ld Got frame %lld (%lld + %lld): %lld units\n",
@@ -68,7 +65,10 @@ oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
 			      ogg_int64_t granule_rate_denominator,
 			      int granuleshift)
 {
-  oggz_metric_granuleshift_t * granuleshift_data;
+  oggz_stream_t * stream;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return -1;
 
   /* we divide by the granulerate, ie. mult by gr_d/gr_n, so ensure
    * numerator is non-zero */
@@ -77,12 +77,11 @@ oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
     granule_rate_denominator = 0;
   }
 
-  granuleshift_data = oggz_malloc (sizeof (oggz_metric_granuleshift_t));
-  granuleshift_data->gr_n = granule_rate_numerator;
-  granuleshift_data->gr_d = granule_rate_denominator;
-  granuleshift_data->granuleshift = granuleshift;
+  stream->granulerate_n = granule_rate_numerator;
+  stream->granulerate_d = granule_rate_denominator;
+  stream->granuleshift = granuleshift;
 
   return oggz_set_metric_internal (oggz, serialno,
 				   oggz_metric_default_granuleshift,
-				   granuleshift_data, 1);
+				   NULL, 1);
 }
