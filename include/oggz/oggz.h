@@ -39,6 +39,10 @@
 #include <oggz/oggz_constants.h>
 #include <oggz/oggz_table.h>
 
+#include <ogg_compat.h>
+
+
+
 /** \mainpage
  *
  * \section intro Oggz makes programming with Ogg easy!
