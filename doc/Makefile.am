@@ -3,14 +3,14 @@ docdir=$(prefix)/share/doc/@PACKAGE@
 EXTRA_DIST = Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
-	oggzdump.1.sgml oggzdiff.1.sgml \
-	oggzdump.1 oggzdiff.1
+	oggzdump.1.sgml oggzdiff.1.sgml oggzmerge.1.sgml \
+	oggzdump.1 oggzdiff.1 oggzmerge.1
 
-man_MANS = oggzdump.1 oggzdiff.1
+man_MANS = oggzdump.1 oggzdiff.1 oggzmerge.1
 
 doc_DATA = doxygen-build.stamp
 
-html: oggzdump.1.html
+html: oggzdump.1.html oggzdiff.1.html oggzmerge.1.html
 
 if HAVE_DOCBOOKTOMAN
 %.1: %.1.sgml
