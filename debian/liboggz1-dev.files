@@ -1,0 +1,13 @@
+usr/include/oggz/oggz.h
+usr/include/oggz/oggz_constants.h
+usr/include/oggz/oggz_table.h
+usr/lib/liboggz.a
+usr/lib/liboggz.so
+usr/lib/pkgconfig/oggz.pc
+usr/bin/oggzdiff
+usr/bin/oggzdump
+usr/bin/oggzed
+usr/bin/oggzinfo
+usr/share/man/man1/oggzdiff.1
+usr/share/man/man1/oggzdump.1
+usr/share/doc/liboggz/html

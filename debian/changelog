@@ -1,0 +1,18 @@
+liboggz (0.8.0-2) unstable; urgency=low
+
+  * Add dependency on libogg-dev to liboggz1-dev. 
+
+ -- Jamie Wilkinson <jaq@debian.org>  Mon, 16 Feb 2004 12:52:20 +1100
+
+liboggz (0.8.0-1) unstable; urgency=low
+
+  * New upstream release.
+
+ -- Jamie Wilkinson <jaq@debian.org>  Fri, 16 Jan 2004 16:56:11 +1030
+
+liboggz (0.5.43-1) unstable; urgency=low
+
+  * Initial Release.
+
+ -- Jamie Wilkinson <jaq@debian.org>  Mon, 12 Jan 2004 14:36:32 +1030
+
