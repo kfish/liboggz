@@ -953,6 +953,15 @@ int oggz_set_metric (OGGZ * oggz, long serialno, OggzMetric metric,
 		     void * user_data);
 
 /**
+ * Query the current offset in units corresponding to the Metric function
+ * \param oggz An OGGZ handle
+ * \returns the offset in units
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ */
+ogg_int64_t oggz_tell_units (OGGZ * oggz);
+
+/**
  * Seek to a number of units corresponding to the Metric function
  * \param oggz An OGGZ handle
  * \param units A number of units

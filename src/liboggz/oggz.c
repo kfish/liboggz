@@ -192,6 +192,26 @@ oggz_tell (OGGZ * oggz)
   return oggz->offset;
 }
 
+ogg_int64_t
+oggz_tell_units (OGGZ * oggz)
+{
+  OggzReader * reader;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (oggz->flags & OGGZ_WRITE) {
+    return OGGZ_ERR_INVALID;
+  }
+
+  reader = &oggz->x.reader;
+
+  if (OGGZ_CONFIG_READ) {
+    return reader->current_unit;
+  } else {
+    return OGGZ_ERR_DISABLED;
+  }
+}
+
 /******** oggz_stream management ********/
 
 static int

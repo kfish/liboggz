@@ -28,6 +28,7 @@
 		oggz_set_metric_linear;
 		oggz_seek_units;
 		oggz_tell;
+		oggz_tell_units;
 		oggz_seek;
 		oggz_set_data_start;
 		oggz_serialno_new;
