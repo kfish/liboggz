@@ -954,7 +954,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   oggz_off_t offset_orig, offset_at, offset_guess;
   oggz_off_t offset_begin, offset_end = -1, offset_next;
   ogg_int64_t granule_at;
-  ogg_int64_t unit_at, unit_begin = 0, unit_end = -1;
+  ogg_int64_t unit_at, unit_begin = 0, unit_end = -1, unit_last_iter = -1;
   long serialno;
   ogg_page * og;
   int looping = 0;
@@ -1036,6 +1036,8 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
   for ( ; ; ) {
 
+    unit_last_iter = unit_at;
+
 #ifdef DEBUG
     printf ("oggz_seek_set: [A] want u%lld: (u%lld - u%lld) [@%ld - @%ld]\n",
 	    unit_target, unit_begin, unit_end, offset_begin, offset_end);
@@ -1067,7 +1069,6 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
       looping = 1;
     }
 
-
     offset_at = oggz_seek_raw (oggz, offset_guess, SEEK_SET);
     if (offset_at == -1) {
       goto notfound;
@@ -1094,7 +1095,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     }
 
     if (offset_next < 0) {
-      looping = 1;
+      goto notfound;
     }
 
     if (offset_next > offset_end) {
@@ -1114,6 +1115,8 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     offset_at = offset_next;
 
     unit_at = oggz_get_unit (oggz, serialno, granule_at);
+
+    if (unit_at == unit_last_iter) looping = 1;
 
 #ifdef DEBUG
     printf ("oggz_seek_set: [D] want u%lld, got page u%lld @%ld g%lld\n",
