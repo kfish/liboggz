@@ -559,11 +559,6 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
 	  return -1;
       }
 
-      if (bytes == 0 || feof (oggz->file)) {
-	clearerr (oggz->file);
-	return -2;
-      }
-
       if (bytes == 0) {
 	return -2;
       } else if (oggz->file && feof (oggz->file)) {
