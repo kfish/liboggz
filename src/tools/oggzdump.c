@@ -290,7 +290,7 @@ revert_file (char * infilename)
 	}
 
 	while ((n = oggz_write_output (oggz, buf, 1024)) > 0) {
-	  fwrite (buf, 1, 1024, outfile);
+	  fwrite (buf, 1, n, outfile);
 	}
       }
 
