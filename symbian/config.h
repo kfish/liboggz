@@ -34,9 +34,11 @@
 #define CONFIG_H
 
 /* Build reading support */
+
 #define OGGZ_CONFIG_READ 1
 
 /* Do not build writing support */
+
 #define OGGZ_CONFIG_WRITE 0
 
 #endif /* ! CONFIG_H */
