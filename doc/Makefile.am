@@ -53,21 +53,21 @@ dist-hook:
 
 
 install-data-local: doxygen-build.stamp
-	$(mkinstalldirs) $(docdir)
+	$(mkinstalldirs) $(DESTDIR)$(docdir)
 	if test -d liboggz; then \
 	  for dir in liboggz/*; do \
 	    if test -d $$dir; then \
 	      b=`basename $$dir`; \
-	      $(mkinstalldirs) $(docdir)/$$b; \
+	      $(mkinstalldirs) $(DESTDIR)$(docdir)/$$b; \
 	      for f in $$dir/*; do \
-		$(INSTALL_DATA) $$f $(docdir)/$$b; \
+		$(INSTALL_DATA) $$f $(DESTDIR)$(docdir)/$$b; \
               done \
 	    fi \
 	  done \
 	fi
 
 uninstall-local:
-	rm -rf $(docdir)
+	rm -rf $(DESTDIR)$(docdir)
 
 clean-local:
 	if test -d liboggz; then rm -rf liboggz; fi

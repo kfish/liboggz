@@ -19,3 +19,4 @@ liboggz_la_SOURCES = \
 	oggz_vector.c oggz_vector.h
 
 liboggz_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
+liboggz_la_LIBADD = @OGG_LIBS@
