@@ -154,7 +154,7 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   /* old header format, used by Theora alpha2 and earlier */
   keyframe_granule_shift = (header[36] & 0xf8) >> 3;
 #else
-  keyframe_granule_shift = (header[40] & 0x03) << 3;
+  keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
   keyframe_granule_shift |= (header[41] & 0xe0) >> 5;
 #endif
   tdata->keyframe_shift = intlog (keyframe_granule_shift - 1);
