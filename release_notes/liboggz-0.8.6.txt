@@ -15,8 +15,8 @@ New in this release:
 	* new oggzrip tool, for ripping individual tracks from Ogg files;
 	by David Kuehling
 	* added inbuilt parsing of FLAC headers for seeking hints, by
-	Tobias Gehrig. This allows FLAC to be used with oggzmerge and
-	similar tools.
+	Tobias Gehrig. This allows Ogg FLAC files to be used with oggzmerge
+	and similar tools.
 	* fixed oggzmerge binary open bug on Win32 (Colin Ward)
 	* updated Win32 project by Orum
 	* added inbuilt parsing of Ogg Skeleton and CMML binary headers
