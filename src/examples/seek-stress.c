@@ -32,13 +32,16 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <oggz/oggz.h>
 
-static int got_an_eos = 0;
+static int has_skeleton = 0;
 
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
+ unsigned char * header = op->packet;
+ 
 #if 0
   if (got_an_eos) {
     printf ("[%010ld]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,
@@ -55,7 +58,17 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   }
 #endif
 
-  return OGGZ_STOP_OK;
+  if (op->b_o_s) {
+    if (op->bytes >= 8 && !strncmp ((char *)header, "fishead", 8))
+      has_skeleton = 1;
+    return OGGZ_CONTINUE;
+  } else if (op->e_o_s) {
+    return OGGZ_STOP_OK;
+  } else {
+    if (has_skeleton) return OGGZ_CONTINUE;
+    else return OGGZ_STOP_OK;
+  }
+  return OGGZ_CONTINUE;
 }
 
 static ogg_int64_t
@@ -63,7 +76,7 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
 {
   printf ("Attempt seek to %lld ms:\n", units);
   units = oggz_seek_units (oggz, units, SEEK_SET);
-  printf ("%08llx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+  printf ("%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
   return units;
 }
 
@@ -86,12 +99,10 @@ main (int argc, char ** argv)
   oggz_set_read_callback (oggz, -1, read_packet, NULL);
 
   while ((n = oggz_read (oggz, 1024)) > 0);
-  while ((n = oggz_read (oggz, 1024)) > 0);
-  while ((n = oggz_read (oggz, 1024)) > 0);
   oggz_set_data_start (oggz, oggz_tell (oggz));
   
   max_units = oggz_seek_units (oggz, 0, SEEK_END);
-  printf ("%08llx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+  printf ("%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
 
   try_seek_units (oggz, max_units / 2);
   try_seek_units (oggz, 0);
