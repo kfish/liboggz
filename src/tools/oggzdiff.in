@@ -133,19 +133,19 @@ while test "X$1" != "X--"; do
       ;;
     -s|--serialno)
       shift
-      DUMPOPTS=$DUMPOTS" -s $1"
+      DUMPOPTS=$DUMPOPTS" -s $1"
       ;;
     -O|--hide-offset)
-      DUMPOPTS=$DUMPOTS" -O"
+      DUMPOPTS=$DUMPOPTS" -O"
       ;;
     -S|--hide-serialno)
-      DUMPOPTS=$DUMPOTS" -S"
+      DUMPOPTS=$DUMPOPTS" -S"
       ;;
     -G|--hide-granulepos)
-      DUMPOPTS=$DUMPOTS" -G"
+      DUMPOPTS=$DUMPOPTS" -G"
       ;;
     -P|--hide-packetno)
-      DUMPOPTS=$DUMPOTS" -P"
+      DUMPOPTS=$DUMPOPTS" -P"
       ;;
     --verbose)
       VERBOSE="y"
