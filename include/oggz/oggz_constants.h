@@ -63,16 +63,6 @@ enum OggzFlags {
   OGGZ_AUTO         = 0x20
 };
 
-enum OggzStatus {
-  OGGZ_STATUS_INITIALIZED = 0,
-  OGGZ_STATUS_INTERNAL_ERROR = 1,
-
-  OGGZ_STATUS_READ_ACTIVE = 10,
-  OGGZ_STATUS_READ_STOP_OK = 11,
-  OGGZ_STATUS_READ_STOP_ERR = 12,
-  OGGZ_STATUS_READ_EOF = 13
-};
-
 enum OggzStopCtl {
   /** Continue calling read callbacks */
   OGGZ_CONTINUE     = 0,
