@@ -127,4 +127,16 @@ long oggz_read_input (OGGZ * oggz, unsigned char * buf, long n);
 /** \}
  */
 
+/**
+ * Erase any input buffered in OGGZ. This discards any input read from the
+ * underlying IO system but not yet delivered as ogg_packets.
+ *
+ * \param oggz An OGGZ handle
+ * \retval 0 Success
+ * \retval OGGZ_ERR_SYSTEM Error seeking on underlying IO.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ */
+int oggz_purge (OGGZ * oggz);
+
 #endif /* __OGGZ_READ_H__ */

@@ -510,63 +510,6 @@ int oggz_get_bos (OGGZ * oggz, long serialno);
 int oggz_get_eos (OGGZ * oggz, long serialno);
 
 /**
- * Erase any input buffered in OGGZ. This discards any input read from the
- * underlying IO system but not yet delivered as ogg_packets.
- *
- * \param oggz An OGGZ handle
- * \retval 0 Success
- * \retval OGGZ_ERR_SYSTEM Error seeking on underlying IO.
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
- */
-int oggz_purge (OGGZ * oggz);
-
-/**
- * Tell OGGZ to remember the given offset as the start of data.
- * This informs the seeking mechanism that when seeking back to unit 0,
- * go to the given offset, not to the start of the file, which is usually
- * codec headers.
- * The usual usage is:
-<pre>
-    oggz_set_data_start (oggz, oggz_tell (oggz));
-</pre>
- * \param oggz An OGGZ handle previously opened for reading
- * \param offset The offset of the start of data
- * \returns 0 on success, -1 on failure.
- */
-int oggz_set_data_start (OGGZ * oggz, off_t offset);
-
-/**
- * Provide the file offset in bytes corresponding to the data read.
- * \param oggz An OGGZ handle
- * \returns The current offset of oggz.
- *
- * \note When reading, the value returned by oggz_tell() reflects the
- * data offset of the start of the most recent packet processed, so that
- * when called from an OggzReadPacket callback it reflects the byte
- * offset of the start of the packet. As OGGZ may have internally read
- * ahead, this may differ from the current offset of the associated file
- * descriptor.
- */
-off_t oggz_tell (OGGZ * oggz);
-
-/**
- * Seek to a specific byte offset
- * \param oggz An OGGZ handle
- * \param offset a byte offset
- * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
- * \returns the new file offset, or -1 on failure.
- */
-off_t oggz_seek (OGGZ * oggz, off_t offset, int whence);
-
-#ifdef _UNIMPLEMENTED
-long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
-#endif
-
-/** \}
- */
-
-/**
  * Request a new serialno, as required for a new stream, ensuring the serialno
  * is not yet used for any other streams managed by this OGGZ.
  * \param oggz An OGGZ handle
