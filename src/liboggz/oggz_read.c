@@ -82,6 +82,9 @@ oggz_read_init (OGGZ * oggz)
   reader->read_packet = NULL;
   reader->read_user_data = NULL;
 
+  reader->read_page = NULL;
+  reader->read_page_user_data = NULL;
+
   reader->current_unit = 0;
 
   return oggz;
