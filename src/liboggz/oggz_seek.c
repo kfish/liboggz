@@ -63,7 +63,7 @@
 /*#define DEBUG*/
 /*#define DEBUG_VERBOSE*/
 
-#define CHUNKSIZE 65536
+#define CHUNKSIZE 4096
 
 #define oggz_off_t long
 
