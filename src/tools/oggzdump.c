@@ -49,7 +49,7 @@
 #include <oggz/oggz.h>
 #include "oggz_tools.h"
 
-#define DEBUG
+/*#define DEBUG*/
 
 #undef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
