@@ -88,8 +88,12 @@ oggz_vector_new (void)
 static void
 oggz_vector_clear (OggzVector * vector)
 {
-  oggz_free (vector->data);
-  vector->data = NULL;
+  if (vector->data)
+  {
+    oggz_free (vector->data);
+    vector->data = NULL;
+  }
+
   vector->nr_elements = 0;
   vector->max_elements = 0;
 }
