@@ -81,7 +81,7 @@ auto_speex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   printf ("Got speex rate %d\n", (int)granule_rate);
 #endif
 
-  oggz_set_metric_linear (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
   return 1;
 }
@@ -103,7 +103,7 @@ auto_vorbis (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   printf ("Got vorbis rate %d\n", (int)granule_rate);
 #endif
 
-  oggz_set_metric_linear (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
   return 1;
 }
@@ -206,7 +206,7 @@ auto_annodex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (!op->b_o_s) return 0;
 
   /* Apply a zero metric */
-  oggz_set_metric_zero (oggz, serialno);
+  oggz_set_granulerate (oggz, serialno, 0, 1);
 
   return 1;
 }
@@ -229,9 +229,9 @@ auto_anxdata (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 	  granule_rate_denominator);
 #endif
 
-  oggz_set_metric_linear (oggz, serialno,
-			  granule_rate_numerator,
-			  OGGZ_AUTO_MULT * granule_rate_denominator);
+  oggz_set_granulerate (oggz, serialno,
+			granule_rate_numerator,
+			OGGZ_AUTO_MULT * granule_rate_denominator);
 
   return 1;
 }
@@ -256,7 +256,7 @@ auto_flac0 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     printf ("Got flac rate %d\n", (int)granule_rate);
 #endif
     
-    oggz_set_metric_linear (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+    oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
   }
 
   return 1;
@@ -279,7 +279,7 @@ auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   printf ("Got flac rate %d\n", (int)granule_rate);
 #endif
 
-  oggz_set_metric_linear (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
   return 1;
 }
@@ -302,9 +302,9 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 	  granule_rate_denominator);
 #endif
 
-  oggz_set_metric_linear (oggz, serialno,
-			  granule_rate_numerator,
-			  OGGZ_AUTO_MULT * granule_rate_denominator);
+  oggz_set_granulerate (oggz, serialno,
+			granule_rate_numerator,
+			OGGZ_AUTO_MULT * granule_rate_denominator);
 
   return 1;
 }
@@ -324,7 +324,7 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     if (content != OGGZ_CONTENT_SKELETON) return 0;
 
     /* Finished processing the skeleton; apply a zero metric */
-    oggz_set_metric_zero (oggz, serialno);
+    oggz_set_granulerate (oggz, serialno, 0, 1);
   }
 
   return 1;
@@ -360,16 +360,10 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 	  fisbone_serialno);
 #endif
 
-  if (granuleshift == 0) {
-    oggz_set_metric_linear (oggz, fisbone_serialno,
-			    granule_rate_numerator,
-			    OGGZ_AUTO_MULT * granule_rate_denominator);
-  } else {
-    oggz_set_metric_granuleshift (oggz, fisbone_serialno,
-				  granule_rate_numerator,
-				  OGGZ_AUTO_MULT * granule_rate_denominator,
-				  granuleshift);
-  }
+  oggz_set_granulerate (oggz, fisbone_serialno,
+			granule_rate_numerator,
+			OGGZ_AUTO_MULT * granule_rate_denominator);
+  oggz_set_granuleshift (oggz, fisbone_serialno, granuleshift);
 				
   return 1;
 }
