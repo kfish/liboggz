@@ -206,6 +206,27 @@ ot_print_bytes (long nr_bytes)
   }
 }
 
+/*
+ * Print a bitrate to 3 significant figures
+ * using quasi-standard abbreviations (Gbps, Mbps, kbps, bps)
+ */
+int
+ot_print_bitrate (long bps)
+{
+  if (bps > (1000000000L)) {
+    return printf ("%0.3f Gbps",
+		   (double)bps / (1000.0 * 1000.0 * 1000.0));
+  } else if (bps > (1000000L)) {
+    return printf ("%0.3f Mbps",
+		   (double)bps / (1000.0 * 1000.0));
+  } else if (bps > (1000L)) {
+    return printf ("%0.3f kbps",
+		   (double)bps / (1000.0));
+  } else {
+    return printf ("%ld bps", bps);
+  }
+}
+
 int
 ot_print_time (double seconds)
 {

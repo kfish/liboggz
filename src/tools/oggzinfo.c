@@ -62,6 +62,18 @@ usage (char * progname)
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
   printf ("\n");
+  printf ("Byte lengths are displayed using the following units:\n");
+  printf ("  bytes (8 bits)\n");
+  printf ("  kB    kilobytes (1024 bytes)\n");
+  printf ("  MB    megabytes (1024*1024 bytes)\n");
+  printf ("  GB    gigabytes (1024*1024*1024 bytes)\n");
+  printf ("\n");
+  printf ("Bitrates are displayed using the following units:\n");
+  printf ("  bps   bits per second     (bit/s)\n");
+  printf ("  kbps  kilobits per second (1000 bit/s)\n");
+  printf ("  Mbps  megabits per second (1000000 bit/s)\n");
+  printf ("  Gbps  gigabits per second (1000000000 bit/s)\n");
+  printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
@@ -184,12 +196,15 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 	  (double)oit->packets.count / (double)oit->pages.count);
 
   if (show_length) {
-    printf ("\tContent-Length: %ld bytes\n", oit->pages.length_total);
+    fputs("\tContent-Length: ", stdout);
+    ot_print_bytes (oit->pages.length_total);
+    putchar ('\n');
   }
 
   if (show_bitrate) {
-    printf ("\tContent-Bitrate-Average: %ld bps\n",
-	    oi_bitrate (oit->pages.length_total, info->duration));
+    fputs ("\tContent-Bitrate-Average: ", stdout);
+    ot_print_bitrate (oi_bitrate (oit->pages.length_total, info->duration));
+    putchar ('\n');
   }
 
   if (oit->codec_info != NULL) {
@@ -496,8 +511,9 @@ main (int argc, char ** argv)
     }
     
     if (show_bitrate) {
-      printf ("Content-Bitrate-Average: %ld bps\n",
-	      oi_bitrate (info.length_total, info.duration));
+      fputs ("Content-Bitrate-Average: ", stdout);
+      ot_print_bitrate (oi_bitrate (info.length_total, info.duration));
+      putchar ('\n');
     }
 
     oggzinfo_apply (oit_print, &info);

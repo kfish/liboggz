@@ -44,6 +44,12 @@ ot_page_identify (const ogg_page * og, char ** info);
  */
 int ot_print_bytes (long nr_bytes);
 
+/*
+ * Print a bitrate to 3 significant figures
+ * using quasi-standard abbreviations (Gbps, Mbps, kbps, bps)
+ */
+int ot_print_bitrate (long bps);
+
 int ot_print_time (double seconds);
 
 #endif /* __OGGZ_TOOLS_H__ */
