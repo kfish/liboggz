@@ -118,8 +118,10 @@ oggz_open (char * filename, int flags)
   }
   if (file == NULL) return NULL;
 
-  if ((oggz = oggz_new (flags)) == NULL)
+  if ((oggz = oggz_new (flags)) == NULL) {
+    fclose (file);
     return NULL;
+  }
 
   oggz->file = file;
 
