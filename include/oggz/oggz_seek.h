@@ -37,19 +37,23 @@
  * Seeking within files
  */
 
-/** \defgroup auto OGGZ_AUTO
+/** \defgroup seek_api OGGZ Seek API
  *
- * \section auto Automatic Metrics
+ * Oggz can seek on multitrack, multicodec bitstreams.
  *
- * Oggz can automatically provide \link metric metrics \endlink for the
- * common media codecs
+ * \section seek_time Time seeking
+ *
+ * Support is built-in for seeking to time positions in
  * <a href="http://www.speex.org/">Speex</a>,
  * <a href="http://www.vorbis.com/">Vorbis</a>,
  * <a href="http://flac.sourceforge.net/">FLAC</a>,
  * <a href="http://www.theora.org/">Theora</a>,
- * and <a href="http://www.annodex.net/">CMML</a>,
- * as well as all <a href="http://www.annodex.net/">Annodex</a> streams.
- * You need do nothing more than open the file with the OGGZ_AUTO flag set.
+ * and <a href="http://www.annodex.net/">CMML</a>.
+ * Oggz is also compatible with 
+ * <a href="http://www.annodex.net/">Annodex</a> streams, and supports seeking
+ * on all tracks described in an Ogg Skeleton track.
+ *
+ * You need to open the file with the OGGZ_AUTO flag set:
  *
  * - Create an OGGZ handle for reading with \a flags = OGGZ_READ | OGGZ_AUTO
  * - Read data, ensuring that you have received all b_o_s pages before
@@ -62,77 +66,82 @@
  * It is safe to seek once you have received a packet with \a b_o_s == 0;
  * see the \link basics Ogg basics \endlink section for more details.
  *
- * \note This functionality is provided for convenience. Oggz parses
- * these codec headers internally, and so liboggz is \b not linked to
- * libspeex, libvorbis, libtheora or libannodex.
+ * \note Oggz parses these codec headers internally, and so liboggz is \b not
+ * linked to libspeex, libvorbis, libflac, libtheora, libcmml or libannodex.
+ *
+ * For other data streams, you will need to provide a metric function;
+ * see the section on \link metric Using OggzMetrics \endlink for details
+ * of setting up and seeking with metrics.
+ *
+ * \section seek_bytes Byte seeking
+ *
+ * oggz_seek() provides low-level seeking to byte positions.
+ *
+ * \section seek_info More detail
+ *
+ * For a full description of the seeking methods possible in Ogg, see
+ * \link seek_semantics Semantics of seeking in Ogg bitstreams \endlink.
+ *
+ * \{
  */
 
-/** \defgroup metric Using OggzMetric
+/**
+ * Query the current offset in milliseconds, or custom units as
+ * specified by a Metric function you have provided.
+ * \param oggz An OGGZ handle
+ * \returns the offset in milliseconds, or custom units
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ */
+ogg_int64_t oggz_tell_units (OGGZ * oggz);
+
+/**
+ * Seek to an offset in milliseconds, or custom units as specified
+ * by a Metric function you have provided.
+ * \param oggz An OGGZ handle
+ * \param units A number of milliseconds, or custom units
+ * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
+ * \returns the new file offset, or -1 on failure.
+ */
+ogg_int64_t oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence);
+
+/**
+ * Query the file offset in bytes corresponding to the data read.
+ * \param oggz An OGGZ handle
+ * \returns The current offset of oggz.
  *
- * \section metric_intro Introduction
- *
- * An OggzMetric is a helper function for Oggz's seeking mechanism.
- *
- * If every position in an Ogg stream can be described by a metric such as
- * time, then it is possible to define a function that, given a serialno and
- * granulepos, returns a measurement in units such as milliseconds. Oggz
- * will use this function repeatedly while seeking in order to navigate
- * through the Ogg stream.
- *
- * The meaning of the units is arbitrary, but must be consistent across all
- * logical bitstreams. This allows Oggz to seek accurately through Ogg
- * bitstreams containing multiple logical bitstreams such as tracks of media.
- *
- * \section setting How to set metrics
- *
- * You don't need to set metrics for Vorbis, Speex, Theora or Annodex.
- * These can be handled \link auto automatically \endlink by Oggz.
- *
- * For most others it is simply a matter of providing a linear multiplication
- * factor (such as a sampling rate, if each packet's granulepos represents a
- * sample number). For non-linear data streams, you will need to explicitly
- * provide your own OggzMetric function.
- *
- * \subsection linear Linear Metrics
- *
- * - Set the \a granule_rate_numerator and \a granule_rate_denominator
- *   appropriately using oggz_set_metric_linear()
- *
- * \subsection custom Custom Metrics
- *
- * For streams with non-linear granulepos, you need to set a custom metric:
- *
- * - Implement an OggzMetric callback
- * - Set the OggzMetric callback using oggz_set_metric()
- *
- * \section using Seeking with OggzMetrics
- *
- * To seek, use oggz_seek_units(). Oggz will perform a ratio search
- * through the Ogg bitstream, using the OggzMetric callback to determine
- * its position relative to the desired unit.
- *
- * \note
- *
- * Many data streams begin with headers describing such things as codec
- * setup parameters. One of the assumptions Monty makes is:
- *
- * - Given pre-cached decode headers, a player may seek into a stream at
- *   any point and begin decode.
- *
- * Thus, the first action taken by applications dealing with such data is
- * to read in and cache the decode headers; thereafter the application can
- * safely seek to arbitrary points in the data.
- *
- * This impacts seeking because the portion of the bitstream containing
- * decode headers should not be considered part of the metric space. To
- * inform Oggz not to seek earlier than the end of the decode headers,
- * use oggz_set_data_start().
- *
+ * \note When reading, the value returned by oggz_tell() reflects the
+ * data offset of the start of the most recent packet processed, so that
+ * when called from an OggzReadPacket callback it reflects the byte
+ * offset of the start of the packet. As OGGZ may have internally read
+ * ahead, this may differ from the current offset of the associated file
+ * descriptor.
+ */
+off_t oggz_tell (OGGZ * oggz);
+
+/**
+ * Seek to a specific byte offset
+ * \param oggz An OGGZ handle
+ * \param offset a byte offset
+ * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
+ * \returns the new file offset, or -1 on failure.
+ */
+off_t oggz_seek (OGGZ * oggz, off_t offset, int whence);
+
+#ifdef _UNIMPLEMENTED
+long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
+#endif
+
+/** \}
  */
 
 /** \defgroup seek_semantics Semantics of seeking in Ogg bitstreams
  *
  * \section seek_semantics_intro Introduction
+ *
+ *         [*** This line works around a bug in doxygen ***]
+ *
+ *         [*** This line works around a bug in doxygen ***]
  *
  * The seeking semantics of the Ogg file format were outlined by Monty in
  * <a href="http://www.xiph.org/archives/theora-dev/200209/0040.html">a
@@ -166,32 +175,109 @@
  *
  */
 
-/** \defgroup seek_api OGGZ Seek API
+/** \defgroup metric Using OggzMetric
  *
- * Oggz can seek on multitrack, multicodec bitstreams.
+ * \section metric_intro Introduction
  *
- * - If you are expecting to only handle
- *   <a href="http://www.annodex.net/">Annodex</a> bitstreams,
- *   or any combination of <a href="http://www.vorbis.com/">Vorbis</a>,
- *   <a href="http://www.speex.org/">Speex</a> and
- *   <a href="http://www.theora.org/">Theora</a> logical bitstreams, seeking
- *   is built-in to Oggz. See \link auto OGGZ_AUTO \endlink for details.
+ * An OggzMetric is a helper function for Oggz's seeking mechanism.
  *
- * - For other data streams, you will need to provide a metric function;
- *   see the section on \link metric Using OggzMetrics \endlink for details
- *   of setting up and seeking with metrics.
+ * If every position in an Ogg stream can be described by a metric such as
+ * time, then it is possible to define a function that, given a serialno and
+ * granulepos, returns a measurement in units such as milliseconds. Oggz
+ * will use this function repeatedly while seeking in order to navigate
+ * through the Ogg stream.
  *
- * - It is always possible to seek to exact byte positions using oggz_seek().
+ * The meaning of the units is arbitrary, but must be consistent across all
+ * logical bitstreams. This allows Oggz to seek accurately through Ogg
+ * bitstreams containing multiple logical bitstreams such as tracks of media.
  *
- * - A mechanism to aid seeking across non-metric spaces for which a partial
- *   order exists (ie. data that is not synchronised by a measure such as time,
- *   but is nevertheless somehow seekably structured), is also planned.
+ * \section setting How to set metrics
  *
- * For a full description of the seeking methods possible in Ogg, see
- * \link seek_semantics Semantics of seeking in Ogg bitstreams \endlink.
+ * You don't need to set metrics for Speex, Vorbis, FLAC, Theora, CMML or
+ * Annodex.
+ * These can be handled \link seek_api automatically \endlink by Oggz.
+ *
+ * For most others it is simply a matter of providing a linear multiplication
+ * factor (such as a sampling rate, if each packet's granulepos represents a
+ * sample number). For non-linear data streams, you will need to explicitly
+ * provide your own OggzMetric function.
+ *
+ * \subsection linear Linear Metrics
+ *
+ * - Set the \a granule_rate_numerator and \a granule_rate_denominator
+ *   appropriately using oggz_set_granulerate()
+ *
+ * \subsection granuleshift Granuleshift Metrics
+ *
+ * Granuleshift metrics are used to divide a granulepos into two halves;
+ * the first describing a dependency on a previous packet, the second
+ * giving the offset since that packet. This is used to mark keyframes and
+ * intermediate frames.
+ * - Set the \a granuleshift appropriately using oggz_set_granuleshift()
+ *
+ * \subsection custom Custom Metrics
+ *
+ * For streams with non-linear granulepos, you need to set a custom metric:
+ *
+ * - Implement an OggzMetric callback
+ * - Set the OggzMetric callback using oggz_set_metric()
+ *
+ * \section using Seeking with OggzMetrics
+ *
+ * To seek, use oggz_seek_units(). Oggz will perform a ratio search
+ * through the Ogg bitstream, using the OggzMetric callback to determine
+ * its position relative to the desired unit.
+ *
+ * \note
+ *
+ * Many data streams begin with headers describing such things as codec
+ * setup parameters. One of the assumptions Monty makes is:
+ *
+ * - Given pre-cached decode headers, a player may seek into a stream at
+ *   any point and begin decode.
+ *
+ * Thus, the first action taken by applications dealing with such data is
+ * to read in and cache the decode headers; thereafter the application can
+ * safely seek to arbitrary points in the data.
+ *
+ * This impacts seeking because the portion of the bitstream containing
+ * decode headers should not be considered part of the metric space. To
+ * inform Oggz not to seek earlier than the end of the decode headers,
+ * use oggz_set_data_start().
  *
  * \{
  */
+
+/**
+ * Specify the granuleshift of a logical bitstream.
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz to attach
+ * this granuleshift metric to. A value of -1 indicates that the metric should
+ * be attached to all unattached logical bitstreams in \a oggz.
+ * \param granuleshift The granuleshift
+ * \returns 0 Success
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ */
+int oggz_set_granuleshift (OGGZ * oggz, long serialno, int granuleshift);
+
+/**
+ * Specify the granulerate of a logical bitstream.
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz to attach
+ * this linear metric to. A value of -1 indicates that the metric should
+ * be attached to all unattached logical bitstreams in \a oggz.
+ * \param granule_rate_numerator The numerator of the granule rate
+ * \param granule_rate_denominator The denominator of the granule rate
+ * \returns 0 Success
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ */
+int oggz_set_granulerate (OGGZ * oggz, long serialno,
+			  ogg_int64_t granule_rate_numerator,
+			  ogg_int64_t granule_rate_denominator);
 
 /**
  * Specify that a logical bitstream has a constant zero metric. This is used
@@ -223,26 +309,6 @@ int oggz_set_metric_zero (OGGZ * oggz, long serialno);
 int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 			    ogg_int64_t granule_rate_numerator,
 			    ogg_int64_t granule_rate_denominator);
-
-/**
- * Specify that a logical bitstream has a granuleshift metric
- * \param oggz An OGGZ handle
- * \param serialno Identify the logical bitstream in \a oggz to attach
- * this granuleshift metric to. A value of -1 indicates that the metric should
- * be attached to all unattached logical bitstreams in \a oggz.
- * \param granule_rate_numerator The numerator of the granule rate
- * \param granule_rate_denominator The denominator of the granule rate
- * \param granuleshift The granuleshift
- * \returns 0 Success
- * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
- * logical bitstream in \a oggz.
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- */
-int
-oggz_set_metric_granuleshift (OGGZ * oggz, long serialno,
-			      ogg_int64_t granule_rate_numerator,
-			      ogg_int64_t granule_rate_denominator,
-			      int granuleshift);
 
 /**
  * This is the signature of a function to correlate Ogg streams.
@@ -289,26 +355,12 @@ typedef ogg_int64_t (*OggzMetric) (OGGZ * oggz, long serialno,
 int oggz_set_metric (OGGZ * oggz, long serialno, OggzMetric metric,
 		     void * user_data);
 
-/**
- * Query the current offset in units corresponding to the Metric function
- * \param oggz An OGGZ handle
- * \returns the offset in units
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
- */
-ogg_int64_t oggz_tell_units (OGGZ * oggz);
-
-/**
- * Seek to a number of units corresponding to the Metric function
- * \param oggz An OGGZ handle
- * \param units A number of units
- * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
- * \returns the new file offset, or -1 on failure.
- */
-ogg_int64_t oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence);
-
 #ifdef _UNIMPLEMENTED
 /** \defgroup order OggzOrder
+ *
+ * - A mechanism to aid seeking across non-metric spaces for which a partial
+ *   order exists (ie. data that is not synchronised by a measure such as time,
+ *   but is nevertheless somehow seekably structured), is also planned.
  *
  * \subsection OggzOrder
  *
@@ -388,34 +440,6 @@ long oggz_seek_byorder (OGGZ * oggz, void * target);
  * \returns 0 on success, -1 on failure.
  */
 int oggz_set_data_start (OGGZ * oggz, off_t offset);
-
-/**
- * Provide the file offset in bytes corresponding to the data read.
- * \param oggz An OGGZ handle
- * \returns The current offset of oggz.
- *
- * \note When reading, the value returned by oggz_tell() reflects the
- * data offset of the start of the most recent packet processed, so that
- * when called from an OggzReadPacket callback it reflects the byte
- * offset of the start of the packet. As OGGZ may have internally read
- * ahead, this may differ from the current offset of the associated file
- * descriptor.
- */
-off_t oggz_tell (OGGZ * oggz);
-
-/**
- * Seek to a specific byte offset
- * \param oggz An OGGZ handle
- * \param offset a byte offset
- * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
- * \returns the new file offset, or -1 on failure.
- */
-off_t oggz_seek (OGGZ * oggz, off_t offset, int whence);
-
-#ifdef _UNIMPLEMENTED
-long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
-#endif
-
 /** \}
  */
 
