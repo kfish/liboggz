@@ -88,6 +88,7 @@ usage (char * progname)
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
   printf ("  -h, --help             Display this help and exit\n");
+  printf ("  -v, --version          Output version information and exit\n");
 }
 
 static void
@@ -362,6 +363,9 @@ revert_file (char * infilename)
 int
 main (int argc, char ** argv)
 {
+  int show_version = 0;
+  int show_help = 0;
+
   OGGZ * oggz;
   char * infilename = NULL, * outfilename = NULL;
   int revert = 0;
@@ -381,11 +385,12 @@ main (int argc, char ** argv)
   table = oggz_table_new();
 
   while (1) {
-    char * optstring = "hbxnro:s:OSGP";
+    char * optstring = "hvbxnro:s:OSGP";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
+      {"version", no_argument, 0, 'v'},
       {"binary", no_argument, 0, 'b'},
       {"hexadecimal", no_argument, 0, 'x'},
       {"new", no_argument, 0, 'n'},
@@ -406,15 +411,16 @@ main (int argc, char ** argv)
     if (i == -1) break;
     if (i == ':') {
       usage (progname);
-	  oggz_table_delete(table);
-      return (1);
+      oggz_table_delete(table);
+      exit (1);
     }
 
     switch (i) {
     case 'h': /* help */
-      usage (progname);
-	  oggz_table_delete(table);
-      return (0);
+      show_help = 1;
+      break;
+    case 'v': /* version */
+      show_version = 1;
       break;
     case 'b': /* binary */
       dump_bits = 1;
@@ -450,10 +456,21 @@ main (int argc, char ** argv)
     }
   }
 
+  if (show_version) {
+    printf ("%s version " VERSION "\n", progname);
+  }
+
+  if (show_help) {
+    usage (progname);
+  }
+
+  if (show_version || show_help) {
+    goto exit_ok;
+  }
+
   if (optind >= argc) {
     usage (progname);
-	oggz_table_delete(table);
-    return (1);
+    goto exit_err;
   }
 
   infilename = argv[optind++];
@@ -465,16 +482,14 @@ main (int argc, char ** argv)
     if (outfile == NULL) {
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
-	  oggz_table_delete(table);
-      return (1);
+      goto exit_err;
     }
   }
 
   if (revert) {
     if (dump_bits) {
       fprintf (stderr, "%s: Revert of binary dump not supported\n", progname);
-	  oggz_table_delete(table);
-      return (1);
+      goto exit_err;
     }
 
     revert_file (infilename);
@@ -495,8 +510,7 @@ main (int argc, char ** argv)
 	fprintf (stderr, "%s: %s: %s\n",
 		 progname, infilename, strerror (errno));
       }
-	oggz_table_delete(table);
-      return (1);
+      goto exit_err;
     }
 
     if (dump_all_serialnos) {
@@ -513,7 +527,12 @@ main (int argc, char ** argv)
 
     oggz_close (oggz);
   }
-  oggz_table_delete(table);
 
-  return (0);
+ exit_ok:
+  oggz_table_delete (table);
+  exit (0);
+
+ exit_err:
+  oggz_table_delete (table);
+  exit (1);
 }
