@@ -79,6 +79,11 @@ manpage.1: manpage.sgml
       </group>
 
       <group>
+	<arg choice="opt">-c <parameter>content-type</parameter></arg>
+	<arg choice="opt">--content-type <parameter>content-type</parameter></arg>
+      </group>
+
+      <group>
 	<arg choice="opt">-s <parameter>serialno</parameter></arg>
 	<arg choice="opt">--serialno <parameter>serialno</parameter></arg>
       </group>
@@ -160,6 +165,14 @@ manpage.1: manpage.sgml
 	  <listitem><para>Only dump the first packet of each new logical
 	      bitstream found; for correctly formed Ogg files, this dumps
 	      only the beginning-of-stream packets.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
+	  <listitem><para>Dump only the logical bitstreams for a specific
+	      <parameter>content-type</parameter>. The following codec names
+	      are currently detected: "theora", "vorbis", "speex", "cmml"
 	    </para></listitem>
 	</varlistentry>
 

@@ -54,11 +54,15 @@
 #undef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
+typedef struct {
+  OggzTable * content_types_table;
+  OggzReadPacket read_packet;
+} ODData;
+
 static char * progname;
 static FILE * outfile = NULL;
 static int dump_bits = 0;
 static int dump_char = 1;
-static int dump_all_serialnos = 1;
 static int truth = 1;
 
 static int hide_offset = 0;
@@ -76,6 +80,10 @@ usage (char * progname)
   printf ("  -x, --hexadecimal      Generate a hexadecimal dump of each packet\n");
   printf ("\nFiltering options\n");
   printf ("  -n, --new              Only dump the first packet of each logical bitstream\n");
+  printf ("  -c content-type, --content-type content-type\n");
+  printf ("                         Dump only the logical bitstreams for a specified\n");
+  printf ("                         content-type. The following codecs are currently\n");
+  printf ("                         detected: theora, vorbis, speex, cmml\n");
   printf ("  -s serialno, --serialno serialno\n");
   printf ("                         Dump only the logical bitstream with specified serialno\n");
   printf ("  -O, --hide-offset      Hide the byte offset of each packet\n");
@@ -92,6 +100,25 @@ usage (char * progname)
   printf ("  -v, --version          Output version information and exit\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+}
+
+static ODData *
+oddata_new ()
+{
+  ODData * oddata = malloc (sizeof (ODData));
+  memset (oddata, 0, sizeof (ODData));
+
+  oddata->content_types_table = oggz_table_new ();
+
+  return oddata;
+}
+
+static void
+oddata_delete (ODData * oddata)
+{
+  oggz_table_delete (oddata->content_types_table);
+
+  free (oddata);
 }
 
 static void
@@ -238,6 +265,27 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   }
 
   fprintf (outfile, "\n");
+
+  return 0;
+}
+
+static int
+filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  ODData * oddata = (ODData *) user_data;
+  const char * ident;
+  int i, n;
+
+  if (ogg_page_bos ((ogg_page *)og)) {
+    ident = ot_page_identify (og, NULL);
+    n = oggz_table_size (oddata->content_types_table);
+    for (i = 0; i < n; i++) {
+      char * c = oggz_table_nth (oddata->content_types_table, i, NULL);
+      if (strcasecmp (c, ident) == 0) {
+	oggz_set_read_callback (oggz, serialno, oddata->read_packet, NULL);
+      }
+    }
+  }
 
   return 0;
 }
@@ -390,14 +438,17 @@ main (int argc, char ** argv)
   int show_version = 0;
   int show_help = 0;
 
+  ODData * oddata;
   OGGZ * oggz;
   char * infilename = NULL, * outfilename = NULL;
   int revert = 0;
   OggzTable * table = NULL;
   long serialno;
-  OggzReadPacket my_read_packet = read_packet;
   int i, size;
   long n;
+
+  int filter_serialnos = 0;
+  int filter_content_types = 0;
 
   ot_init ();
 
@@ -408,10 +459,14 @@ main (int argc, char ** argv)
     return (1);
   }
 
+  oddata = oddata_new ();
+
+  oddata->read_packet = read_packet;
+
   table = oggz_table_new();
 
   while (1) {
-    char * optstring = "hvbxnro:s:OSGP";
+    char * optstring = "hvbxnro:s:c:OSGP";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
@@ -423,6 +478,7 @@ main (int argc, char ** argv)
       {"revert", no_argument, 0, 'r'},
       {"output", required_argument, 0, 'o'},
       {"serialno", required_argument, 0, 's'},
+      {"content-type", required_argument, 0, 'c'},
       {"hide-offset", no_argument, 0, 'O'},
       {"hide-serialno", no_argument, 0, 'S'},
       {"hide-granulepos", no_argument, 0, 'G'},
@@ -451,7 +507,7 @@ main (int argc, char ** argv)
       dump_bits = 1;
       break;
     case 'n': /* new */
-      my_read_packet = read_new_packet;
+      oddata->read_packet = read_new_packet;
       break;
     case 'o': /* output */
       outfilename = optarg;
@@ -460,9 +516,14 @@ main (int argc, char ** argv)
       revert = 1;
       break;
     case 's': /* serialno */
-      dump_all_serialnos = 0;
+      filter_serialnos = 1;
       serialno = atol (optarg);
       oggz_table_insert (table, serialno, &truth);
+      break;
+    case 'c': /* content-type */
+      filter_content_types = 1;
+      n = (long)oggz_table_size (oddata->content_types_table);
+      oggz_table_insert (oddata->content_types_table, (long)n, optarg);
       break;
     case 'O': /* hide offset */
       hide_offset = 1;
@@ -538,13 +599,19 @@ main (int argc, char ** argv)
       goto exit_err;
     }
 
-    if (dump_all_serialnos) {
-      oggz_set_read_callback (oggz, -1, my_read_packet, NULL);
+    if (!filter_serialnos && !filter_content_types) {
+      oggz_set_read_callback (oggz, -1, oddata->read_packet, NULL);
     } else {
-      size = oggz_table_size (table);
-      for (i = 0; i < size; i++) {
-	oggz_table_nth (table, i, &serialno);
-	oggz_set_read_callback (oggz, serialno, my_read_packet, NULL);
+      if (filter_serialnos) {
+	size = oggz_table_size (table);
+	for (i = 0; i < size; i++) {
+	  oggz_table_nth (table, i, &serialno);
+	  oggz_set_read_callback (oggz, serialno, oddata->read_packet, NULL);
+	}
+      }
+      
+      if (filter_content_types) {
+	oggz_set_read_page (oggz, -1, filter_page, oddata);
       }
     }
 
@@ -554,10 +621,12 @@ main (int argc, char ** argv)
   }
 
  exit_ok:
+  oddata_delete (oddata);
   oggz_table_delete (table);
   exit (0);
 
  exit_err:
+  oddata_delete (oddata);
   oggz_table_delete (table);
   exit (1);
 }

@@ -1,9 +1,9 @@
-...\" $Header: /var/lib/cvsd/annodex/liboggz/doc/oggzdump.1,v 1.1 2004/01/04 05:28:25 zen Exp $
-...\"
-...\"	transcript compatibility for postscript use.
-...\"
-...\"	synopsis:  .P! <file.ps>
-...\"
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
 .de P!
 .fl
 \!!1 setgray
@@ -15,7 +15,7 @@
 \!!save /psv exch def currentpoint translate 0 0 moveto
 \!!/showpage{}def
 .fl			\" prolog
-.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
 \!!psv restore
 .
 .de pF
@@ -58,7 +58,7 @@ such a hexdump
  
 .SH "SYNOPSIS" 
 .PP 
-\fBoggzdump\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-n  | --new ]  [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-s \fBserialno\fR  | --serialno \fBserialno\fR ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ]  [-h  | --help ] filename  
+\fBoggzdump\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-n  | --new ]  [-o \fBfilename\fR  | --output \fBfilename\fR ]  [-c \fBcontent-type\fR  | --content-type \fBcontent-type\fR ]  [-s \fBserialno\fR  | --serialno \fBserialno\fR ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ]  [-h  | --help ] filename  
 .PP 
 \fBoggzdump\fR [-r  | --revert ]  [-o \fBfilename\fR  | --output \fBfilename\fR ] filename  
 .SH "Description" 
@@ -75,7 +75,7 @@ oggzdump file.
 .IP "-b, --binary" 10 
 Generate a binary dump of each packet 
  
-.IP "-x, --hexadeciaml" 10 
+.IP "-x, --hexadecimal" 10 
 Generate a hexadecimal dump of each packet 
  
 .SS "Filtering options" 
@@ -83,6 +83,11 @@ Generate a hexadecimal dump of each packet
 Only dump the first packet of each new logical 
 bitstream found; for correctly formed Ogg files, this dumps 
 only the beginning-of-stream packets. 
+ 
+.IP "-c \fBcontent-type\fR, --content-type \fBcontent-type\fR" 10 
+Dump only the logical bitstreams for a specific 
+\fBcontent-type\fR. The following codec names 
+are currently detected: "theora", "vorbis", "speex", "cmml" 
  
 .IP "-s \fBserialno\fR, --serialno \fBserialno\fR" 10 
 Dump only the logical bitstream with specified 
@@ -147,4 +152,4 @@ Copyright \(co 2003 CSIRO Australia
 \fBoggzdiff\fP\fB(1)\fP, 
 \fBxxd\fP\fB(1)\fP, 
 \fBhexdump\fP\fB(1)\fP      
-...\" created by instant / docbook-to-man, Wed 19 Nov 2003, 11:46 
+.\" created by instant / docbook-to-man, Wed 30 Mar 2005, 23:06 
