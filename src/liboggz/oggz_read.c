@@ -283,7 +283,7 @@ oggz_read_sync (OGGZ * oggz)
     if (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR) return cb_ret;
 
     if(oggz_get_next_page_7 (oggz, &og) < 0)
-      return OGGZ_READ_EOF; /* eof. leave unitialized */
+      return OGGZ_READ_EOF; /* eof. leave uninitialized */
 
     serialno = ogg_page_serialno (&og);
     reader->current_serialno = serialno; /* XXX: maybe not necessary */
