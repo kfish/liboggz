@@ -56,7 +56,7 @@ int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
-/*#define DEBUG*/
+#define DEBUG
 
 #define OGGZ_AUTO_MULT 1000
 
@@ -272,6 +272,52 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
+#if 0
+static int
+auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+
+  if (op->bytes < 8) return 0;
+
+  if (strncmp ((char *)header, "fishead", 8)) return 0;
+  if (!op->b_o_s) return 0;
+
+  /* Yeah ... set it up with a "linear" metric with numerator 0 :) */
+  oggz_set_metric_linear (oggz, serialno, 0, 1);
+
+  return 1;
+}
+#endif
+
+static int
+auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+  long fisbone_serialno;
+  ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
+
+  if (op->bytes < 48) return 0;
+
+  if (strncmp ((char *)header, "fisbone", 7)) return 0;
+
+  fisbone_serialno = (long) INT32_LE_AT(&header[12]);
+
+  granule_rate_numerator = INT64_LE_AT(&header[20]);
+  granule_rate_denominator = INT64_LE_AT(&header[28]);
+#ifdef DEBUG
+  printf ("Got fisbone granulerate %lld/%lld for serialno %010ld\n",
+	  granule_rate_numerator, granule_rate_denominator,
+	  fisbone_serialno);
+#endif
+
+  oggz_set_metric_linear (oggz, fisbone_serialno,
+			  granule_rate_numerator,
+			  OGGZ_AUTO_MULT * granule_rate_denominator);
+
+  return 1;
+}
+
 static const OggzReadPacket auto_readers[] = {
   auto_speex,
   auto_vorbis,
@@ -280,6 +326,9 @@ static const OggzReadPacket auto_readers[] = {
   auto_anxdata,
   auto_flac,
   auto_cmml,
+  /* XXX: don't set a metric on the fishead, so the fisbones are inspected */
+  /*auto_fishead,*/
+  auto_fisbone,
   NULL
 };
 
