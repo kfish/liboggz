@@ -53,6 +53,7 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
+  printf ("Merge Ogg files together, interleaving pages in order of presentation time.\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
