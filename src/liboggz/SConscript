@@ -1,0 +1,6 @@
+Import('env')
+env.SharedLibrary ('liboggz', Split("""
+				oggz.c oggz_io.c oggz_read.c oggz_write.c 
+				oggz_auto.c oggz_stream.c
+				oggz_table.c oggz_vector.c
+			  """))
