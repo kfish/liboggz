@@ -191,6 +191,20 @@
  */
 
 /**
+ * Specify that a logical bitstream has a constant zero metric. This is used
+ * for header bitstreams and signifies that all packets are always at unit 0.
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz to attach
+ * this linear metric to. A value of -1 indicates that the metric should
+ * be attached to all unattached logical bitstreams in \a oggz.
+ * \returns 0 Success
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ */
+int oggz_set_metric_zero (OGGZ * oggz, long serialno);
+
+/**
  * Specify that a logical bitstream has a linear metric
  * \param oggz An OGGZ handle
  * \param serialno Identify the logical bitstream in \a oggz to attach

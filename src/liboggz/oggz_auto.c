@@ -199,8 +199,8 @@ auto_annodex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (strncmp ((char *)header, "Annodex", 8)) return 0;
   if (!op->b_o_s) return 0;
 
-  /* Yeah ... set it up with a "linear" metric with numerator 0 :) */
-  oggz_set_metric_linear (oggz, serialno, 0, 1);
+  /* Apply a zero metric */
+  oggz_set_metric_zero (oggz, serialno);
 
   return 1;
 }
@@ -292,7 +292,7 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     if (content != OGGZ_CONTENT_SKELETON) return 0;
 
     /* Finished processing the skeleton; apply a zero metric */
-    oggz_set_metric_linear (oggz, serialno, 0, 1);
+    oggz_set_metric_zero (oggz, serialno);
   }
 
   return 1;

@@ -451,6 +451,12 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
 				   linear_data, 1);
 }
 
+int
+oggz_set_metric_zero (OGGZ * oggz, long serialno)
+{
+  return oggz_set_metric_linear (oggz, serialno, 0, 1);
+}
+
 /*
  * Check if a stream in an oggz has a metric
  */
