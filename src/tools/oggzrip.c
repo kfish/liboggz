@@ -206,6 +206,23 @@ checked_fwrite (const void *data, size_t size, size_t count, FILE *stream)
 }
 
 static int
+rip_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  ORData *ordata = (ORData *) user_data;
+  ORStream *stream = oggz_table_lookup (ordata->streams, serialno);
+
+  checked_fwrite (og->header, 1, og->header_len, ordata->outfile);
+  checked_fwrite (og->body, 1, og->body_len, ordata->outfile);
+
+  if (ogg_page_eos ((ogg_page *)og) && stream != NULL) {
+    oggz_table_remove (ordata->streams, serialno);
+    orstream_delete (ordata, stream);
+  }
+
+  return 0;
+}
+
+static int
 read_page (OGGZ *oggz, const ogg_page *og, long serialno, void *user_data)
 {
   ORData *ordata = (ORData *) user_data;
@@ -215,19 +232,11 @@ read_page (OGGZ *oggz, const ogg_page *og, long serialno, void *user_data)
     stream = orstream_new (ordata, og, serialno);
     stream = oggz_table_insert (ordata->streams, serialno, stream);
     assert (stream != NULL);
-  } else if (stream == NULL) {
-    fprintf (stderr, "WARNING: found page for nonexistent stream %li\n",
-	     serialno);
-  }
 
-  if (filter_stream_p (ordata, stream, og, serialno)) {
-    checked_fwrite (og->header, 1, og->header_len, ordata->outfile);
-    checked_fwrite (og->body, 1, og->body_len, ordata->outfile);
-  }
-
-  if (ogg_page_eos ((ogg_page *)og) && stream != NULL) {
-    oggz_table_remove (ordata->streams, serialno);
-    orstream_delete (ordata, stream);
+    if (filter_stream_p (ordata, stream, og, serialno)) {
+      oggz_set_read_page (oggz, serialno, rip_page, user_data);
+      rip_page (oggz, og, serialno, user_data);
+    }
   }
 
   return 0;
