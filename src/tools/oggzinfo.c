@@ -128,7 +128,7 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 {
   printf ("\t%s-Length-Maximum: %ld bytes\n", label, stats->length_max);
   /*printf ("\t%s-Length-Average: %ld bytes\n", label, stats->length_avg);*/
-  printf ("\t%s-Length-StdDev: %.3f bytes\n", label, stats->length_stddev);
+  printf ("\t%s-Length-StdDev: %.0f bytes\n", label, stats->length_stddev);
   /*
   printf ("\tRange: [%ld - %ld] bytes, Std.Dev. %.3f bytes\n",
 	  stats->length_min, stats->length_max, stats->length_stddev);
@@ -142,7 +142,7 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   printf ("%s: serialno %010ld\n", oit->codec_name, serialno);
 
-  printf ("\t%ld packets in %ld pages, %.3f packets/page\n",
+  printf ("\t%ld packets in %ld pages, %.1f packets/page\n",
 	  oit->packets.count, oit->pages.count,
 	  (double)oit->packets.count / (double)oit->pages.count);
   printf ("\tContent-Length: %ld bytes\n", oit->pages.length_total);
