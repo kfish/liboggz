@@ -15,22 +15,25 @@
 SUBDIRS = doc include src
 
 EXTRA_DIST = oggz.pc.in README.win32 \
+	symbian/bld.inf \
+	symbian/config.h \
+	symbian/liboggz.mmp \
 	win32/Makefile \
-	win32/liboggz.def \
-	win32/config.h \
 	win32/attgetopt.c \
+	win32/config.h \
 	win32/getopt.h \
-	win32/liboggz.dsw \
+	win32/liboggz.def \
 	win32/liboggz.dsp \
-	win32/oggzdump.dsp \
-	win32/oggzed.dsp \
-	win32/oggzinfo.dsp \
+	win32/liboggz.dsw \
 	win32/liboggz.sln \
 	win32/liboggz.vcproj \
+	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj \
+	win32/oggzdump.dsp \
+	win32/oggzdump.vcproj \
+	win32/oggzed.dsp \
 	win32/oggzed.vcproj \
-	win32/oggzinfo.vcproj \
-	win32/OGGZDump.vcproj \
-	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj
+	win32/oggzinfo.dsp \
+	win32/oggzinfo.vcproj
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = oggz.pc
