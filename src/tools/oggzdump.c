@@ -215,7 +215,9 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     fprintf (outfile, " *** eos");
   }
 
-  fprintf (outfile, ":\n");
+  fprintf (outfile, ": ");
+  ot_fprint_bytes (outfile, op->bytes);
+  fputc ('\n', outfile);
 
   if (dump_bits) {
     bin_dump (op->packet, op->bytes);
