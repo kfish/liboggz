@@ -996,7 +996,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 	  (unit_at - unit_begin);
 
 #ifdef DEBUG
-	printf ("\nguess_ratio %ld = (%ld - %ld) / (%ld - %ld)\n",
+	printf ("\nseek_set: guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
 		guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
 #endif
 
@@ -1043,6 +1043,11 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 #ifdef DEBUG
     printf ("\n");
 #endif
+
+    if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
+      offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
+					      &serialno);
+    }
 
     if (offset_next < 0) {
       goto notfound;
