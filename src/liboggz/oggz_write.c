@@ -268,8 +268,8 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   new_op = &packet->op;
   new_op->packet = new_buf;
   new_op->bytes = op->bytes;
-  new_op->b_o_s = op->b_o_s;
-  new_op->e_o_s = op->e_o_s;
+  new_op->b_o_s = b_o_s;
+  new_op->e_o_s = e_o_s;
   new_op->granulepos = op->granulepos;
   new_op->packetno = stream->packetno;
 
