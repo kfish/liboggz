@@ -623,10 +623,16 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   }
 
   if ((offset_end = oggz_offset_end (oggz)) == -1) {
+#ifdef DEBUG
+    printf ("oggz_seek_set: oggz_offset_end == -1, FAIL\n");
+#endif
     return -1;
   }
 
   if (unit_target == reader->current_unit) {
+#ifdef DEBUG
+    printf ("oggz_seek_set: unit_target == reader->current_unit, SKIP\n");
+#endif
     return (long)reader->current_unit;
   }
 
@@ -804,6 +810,7 @@ oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
 off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
+  OggzReader * reader = &oggz->x.reader;
   ogg_int64_t units = -1;
 
   if (oggz == NULL) return -1;
@@ -812,7 +819,12 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
     return -1;
   }
 
-  if (offset == 0) units = 0;
+  if (offset == 0 && whence == SEEK_SET) units = 0;
+  
+  if (!(offset == 0 && whence == SEEK_CUR)) {
+    /* Invalidate current_unit */
+    reader->current_unit = -1;
+  }
 
   return (off_t)oggz_reset (oggz, offset, units, whence);
 }
@@ -828,7 +840,6 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 #endif
     return -1;
   }
-
 
   if (oggz->flags & OGGZ_WRITE) {
 #ifdef DEBUG
