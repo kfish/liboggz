@@ -34,8 +34,11 @@
 #include <stdlib.h>
 #include <limits.h> /* LONG_MAX */
 #include <math.h>
-#include <oggz/oggz.h>
 
+#include <getopt.h>
+#include <errno.h>
+
+#include <oggz/oggz.h>
 #include "oggz_tools.h"
 
 #ifndef WIN32
@@ -43,6 +46,24 @@
 #else
 #define PRId64 "ld"
 #endif
+
+static void
+usage (char * progname)
+{
+  printf ("Usage: %s [options] filename ...\n", progname);
+  printf ("Display information about an Ogg file and the bitstreams it contains\n");
+  printf ("\nDisplay options\n");
+  printf ("  -l, --length           Display content lengths\n");
+  printf ("  -b, --bitrate          Display bitrate information\n");
+  printf ("  -g, --page-stats       Display Ogg page statistics\n");
+  printf ("  -p, --packet-stats     Display Ogg packet statistics\n");
+  printf ("  -a, --all              Display all information\n");
+  printf ("\nMiscellaneous options\n");
+  printf ("  -h, --help             Display this help and exit\n");
+  printf ("  -v, --version          Output version information and exit\n");
+  printf ("\n");
+  printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+}
 
 typedef struct _OI_Info OI_Info;
 typedef struct _OI_Stats OI_Stats;
@@ -76,6 +97,11 @@ struct _OI_TrackInfo {
   const char * codec_name;
   char * codec_info;
 };
+
+static int show_length = 0;
+static int show_bitrate = 0;
+static int show_page_stats = 0;
+static int show_packet_stats = 0;
 
 static void
 oggzinfo_apply (OI_TrackFunc func, OI_Info * info)
@@ -134,32 +160,37 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
   printf ("\tRange: [%ld - %ld] bytes, Std.Dev. %.3f bytes\n",
 	  stats->length_min, stats->length_max, stats->length_stddev);
   */
-  printf ("\n");
 }
 
 /* oggzinfo_trackinfo_print() */
 static void
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
-  printf ("%s: serialno %010ld\n", oit->codec_name, serialno);
-
+  printf ("\n%s: serialno %010ld\n", oit->codec_name, serialno);
   printf ("\t%ld packets in %ld pages, %.1f packets/page\n",
 	  oit->packets.count, oit->pages.count,
 	  (double)oit->packets.count / (double)oit->pages.count);
-  printf ("\tContent-Length: %ld bytes\n", oit->pages.length_total);
-  printf ("\tContent-Bitrate-Average: %ld bps\n",
-	  oi_bitrate (oit->pages.length_total, info->duration));
-  printf ("\n");
 
-  if (oit->codec_info != NULL) {
-    puts (oit->codec_info);
+  if (show_length) {
+    printf ("\tContent-Length: %ld bytes\n", oit->pages.length_total);
   }
 
-  /* Page stats */
-  oi_stats_print (info, &oit->pages, "Page");
+  if (show_bitrate) {
+    printf ("\tContent-Bitrate-Average: %ld bps\n",
+	    oi_bitrate (oit->pages.length_total, info->duration));
+  }
 
-  /* Packet stats */
-  oi_stats_print (info, &oit->packets, "Packet");
+  if (oit->codec_info != NULL) {
+    fputs (oit->codec_info, stdout);
+  }
+
+  if (show_page_stats) {
+    oi_stats_print (info, &oit->pages, "Page");
+  }
+
+  if (show_packet_stats) {
+    oi_stats_print (info, &oit->packets, "Packet");
+  }
 }
 
 static void
@@ -320,15 +351,103 @@ oit_delete (OI_Info * info, OI_TrackInfo * oit, long serialno)
 int
 main (int argc, char ** argv)
 {
+  int show_version = 0;
+  int show_help = 0;
+
+  char * progname;
+  int i;
+  int show_all = 0;
+
+  char * infilename;
   OGGZ * oggz;
   OI_Info info;
 
+  progname = argv[0];
+
   if (argc < 2) {
-    printf ("Usage: %s filename\n", argv[0]);
+    usage (progname);
     return (1);
   }
 
-  if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ|OGGZ_AUTO)) == NULL) {
+  while (1) {
+    char * optstring = "hvlbgpa";
+
+#ifdef HAVE_GETOPT_LONG
+    static struct option long_options[] = {
+      {"help", no_argument, 0, 'h'},
+      {"version", no_argument, 0, 'v'},
+      {"length", no_argument, 0, 'l'},
+      {"bitrate", no_argument, 0, 'b'},
+      {"page-stats", no_argument, 0, 'g'},
+      {"packet-stats", no_argument, 0, 'p'},
+      {"all", no_argument, 0, 'a'},
+      {0,0,0,0}
+    };
+
+    i = getopt_long (argc, argv, optstring, long_options, NULL);
+#else
+    i = getopt (argc, argv, optstring);
+#endif
+    if (i == -1) break;
+    if (i == ':') {
+      usage (progname);
+      goto exit_err;
+    }
+
+    switch (i) {
+    case 'h': /* help */
+      show_help = 1;
+      break;
+    case 'v': /* version */
+      show_version = 1;
+      break;
+    case 'l': /* length */
+      show_length = 1;
+      break;
+    case 'b': /* bitrate */
+      show_bitrate = 1;
+      break;
+    case 'g': /* page stats */
+      show_page_stats = 1;
+      break;
+    case 'p': /* packet stats */
+      show_packet_stats = 1;
+      break;
+    case 'a':
+      show_all = 1;
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (show_version) {
+    printf ("%s version " VERSION "\n", progname);
+  }
+
+  if (show_help) {
+    usage (progname);
+  }
+
+  if (show_version || show_help) {
+    goto exit_ok;
+  }
+
+  if (optind >= argc) {
+    usage (progname);
+    goto exit_err;
+  }
+
+  if (show_all) {
+    show_length = 1;
+    show_bitrate = 1;
+    show_page_stats = 1;
+    show_packet_stats = 1;
+  }
+
+  infilename = argv[optind++];
+
+  if ((oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
     printf ("unable to open file %s\n", argv[1]);
     return (1);
   }
@@ -349,15 +468,24 @@ main (int argc, char ** argv)
   fputs ("Content-Duration: ", stdout);
   ot_print_time ((double)info.duration / 1000.0);
   putchar ('\n');
-  printf ("Content-Length: %ld bytes\n", info.length_total);
-  printf ("Content-Bitrate-Average: %ld bps\n",
-	  oi_bitrate (info.length_total, info.duration));
-  printf ("\n");
+
+  if (show_length) {
+    printf ("Content-Length: %ld bytes\n", info.length_total);
+  }
+
+  if (show_bitrate) {
+    printf ("Content-Bitrate-Average: %ld bps\n",
+	    oi_bitrate (info.length_total, info.duration));
+  }
 
   oggzinfo_apply (oit_print, &info);
 
   oggzinfo_apply (oit_delete, &info);
   oggz_table_delete (info.tracks);
 
-  return (0);
+ exit_ok:
+  exit (0);
+
+ exit_err:
+  exit (1);
 }
