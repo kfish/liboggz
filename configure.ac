@@ -3,23 +3,38 @@ AC_INIT
 AC_CONFIG_SRCDIR([src/liboggz/oggz.c])
 
 AC_PREREQ(2.53)
-AC_CONFIG_AUX_DIR(autotools)
+
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(liboggz, 0.5.43)
+AM_INIT_AUTOMAKE(liboggz, 0.8.0)
 AM_CONFIG_HEADER(config.h)
 
-SHARED_VERSION_INFO="0:5:0"
+SHARED_VERSION_INFO="1:0:0"
 SHLIB_VERSION_ARG=""
 
 # Checks for programs.
 AC_PROG_CC
+AC_PROG_CPP
 AC_PROG_INSTALL
+AC_PROG_LN_S
 AC_PROG_MAKE_SET
 AC_PROG_LIBTOOL
+AC_PROG_RANLIB
 
 AC_C_CONST
 AC_C_BIGENDIAN
+
+# Checks for header files.
+AC_HEADER_STDC
+AC_CHECK_HEADERS([fcntl.h inttypes.h stdlib.h string.h unistd.h])
+
+# Checks for typedefs, structures, and compiler characteristics.
+AC_TYPE_OFF_T
+AC_TYPE_SIZE_T
+
+# Checks for library functions.
+AC_FUNC_REALLOC
+AC_CHECK_FUNCS([memmove])
 
 
 # Check for doxygen
@@ -30,20 +45,27 @@ if test $HAVE_DOXYGEN = "false"; then
 fi
 
 # Check for docbook
-AC_CHECK_PROG(HAVE_DOCBOOK, docbook2man, true, false)
-AM_CONDITIONAL(HAVE_DOCBOOK,$HAVE_DOCBOOK)
-
-dnl Check for types
+AC_CHECK_PROG(HAVE_DOCBOOKTOMAN, docbook-to-man, true, false)
+AM_CONDITIONAL(HAVE_DOCBOOKTOMAN,$HAVE_DOCBOOKTOMAN)
+AC_CHECK_PROG(HAVE_DOCBOOK2HTML, docbook2html, true, false)
+AM_CONDITIONAL(HAVE_DOCBOOK2HTML,$HAVE_DOCBOOK2HTML)
 
 dnl Checks for libraries.
 LIBS=""
 
-# check for getopt in standard library
+# check for getopt in a separate library
 HAVE_GETOPT=no
 AC_CHECK_LIB(getopt, getopt, HAVE_GETOPT="yes")
 if test "x$HAVE_GETOPT" = xyes ; then
   GETOPT_LIBS="-lgetopt"
   AC_SUBST(GETOPT_LIBS)
+fi
+
+# check for getopt_long in standard library
+HAVE_GETOPT_LONG=no
+AC_CHECK_FUNC(getopt_long, HAVE_GETOPT_LONG="yes")
+if test "x$HAVE_GETOPT_LONG" = xyes ; then
+  AC_DEFINE(HAVE_GETOPT_LONG, [], [Define to 1 if you have the 'getopt_long' function])
 fi
 
 dnl Overall configuration success flag
@@ -211,6 +233,7 @@ src/Makefile
 src/liboggz/Version_script
 src/liboggz/Makefile
 src/tools/Makefile
+src/tools/oggzdiff
 src/tests/Makefile
 src/examples/Makefile
 oggz.pc

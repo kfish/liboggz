@@ -33,23 +33,13 @@
 #ifndef __OGGZ_PRIVATE_H__
 #define __OGGZ_PRIVATE_H__
 
+#include <stdio.h>
+
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
 
+#include "oggz_macros.h"
 #include "oggz_vector.h"
-
-/* Use the malloc and free used by ogg; defaults are those from stdlib */
-#define oggz_malloc _ogg_malloc
-#define oggz_free _ogg_free
-
-#undef MIN
-#define MIN(a,b) ((a)<(b)?(a):(b))
-
-#undef MAX
-#define MAX(a,b) ((a)>(b)?(a):(b))
-
-#define OGGZ_READ 00
-#define OGGZ_WRITE 01
 
 typedef struct _OGGZ OGGZ;
 typedef struct _OggzReader OggzReader;
@@ -124,7 +114,7 @@ enum oggz_writer_state {
 
 struct _OggzWriter {
   oggz_writer_packet_t * next_zpacket; /* stashed in case of FLUSH_BEFORE */
-  OggzVector packet_queue;
+  OggzVector * packet_queue;
 
   OggzWriteHungry hungry;
   void * hungry_user_data;
@@ -151,7 +141,7 @@ struct _OggzWriter {
 
 struct _OGGZ {
   int flags;
-  int fd;
+  FILE * file;
 
   ogg_packet current_packet;
   ogg_page current_page;
@@ -159,7 +149,7 @@ struct _OGGZ {
   off_t offset; /* offset of current page start */
   off_t offset_data_begin; /* offset of unit 0 page start */
 
-  OggzVector streams;
+  OggzVector * streams;
   int all_at_eos; /* all streams are at eos */
 
   OggzMetric metric;
@@ -186,5 +176,10 @@ oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
 
 int oggz_get_bos (OGGZ * oggz, long serialno);
 ogg_int64_t oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos);
+
+int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
+			      void * user_data, int internal);
+
+int oggz_auto (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data);
 
 #endif /* __OGGZ_PRIVATE_H__ */

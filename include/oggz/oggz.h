@@ -33,8 +33,11 @@
 #ifndef __OGGZ_H__
 #define __OGGZ_H__
 
+#include <stdio.h>
+
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
+#include <oggz/oggz_table.h>
 
 /** \mainpage
  *
@@ -46,11 +49,20 @@
  * at <a href="http://www.xiph.org/">Xiph.Org</a>, originally to
  * support the Ogg Vorbis audio format.
  *
- * liboggz supports the flexibility afforded by the Ogg file format
+ * liboggz supports the flexibility afforded by the Ogg file format while
+ * presenting the following API niceties:
  *
- * - A simple, callback based open/read/close or open/write/close interface
- *   to all Ogg files
- * - A customisable seeking abstraction for seeking on multitrack Ogg data
+ * - Strict adherence to the formatting requirements of Ogg
+ *   \link basics bitstreams \endlink, to ensure that only valid bitstreams
+ *   are generated
+ * - A simple, callback based open/read/close or open/write/close
+ *   \link oggz.h interface \endlink to raw Ogg files
+ * - A customisable \link seek_api seeking \endlink abstraction for
+ *   seeking on multitrack Ogg data
+ * - A packet queue for feeding incoming packets for writing, with callback
+ *   based notification when this queue is empty
+ * - A handy \link oggz_table.h table \endlink structure for storing
+ *   information on each logical bitstream
  * 
  * \subsection contents Contents
  *
@@ -58,7 +70,7 @@
  * Information about Ogg required to understand liboggz
  *
  * - \link oggz.h oggz.h \endlink:
- * Documentation of the Oggz API
+ * Documentation of the Oggz C API
  *
  * - \link configuration Configuration \endlink:
  * Customizing liboggz to only read or write.
@@ -88,17 +100,201 @@
  *
  * \section Terminology
  *
- * \subsection Bitstreams
+ * The monospace text below is quoted directly from RFC 3533.
+ * For each concept introduced, tips related to liboggz are provided
+ * in bullet points.
  *
- * Physical bitstreams contain interleaved logical bitstreams.
+ * \subsection bitstreams Physical and Logical Bitstreams
+ *
+ * The raw data of an Ogg stream, as read directly from a file or network
+ * socket, is called a <i>physical bitstream</i>.
+ * 
+<pre>
+   The result of an Ogg encapsulation is called the "Physical (Ogg)
+   Bitstream".  It encapsulates one or several encoder-created
+   bitstreams, which are called "Logical Bitstreams".  A logical
+   bitstream, provided to the Ogg encapsulation process, has a
+   structure, i.e., it is split up into a sequence of so-called
+   "Packets".  The packets are created by the encoder of that logical
+   bitstream and represent meaningful entities for that encoder only
+   (e.g., an uncompressed stream may use video frames as packets).
+</pre>
+ *
+ * \subsection pages Packets and Pages
+ *
+ * Within the Ogg format, packets are written into \a pages. You can think
+ * of pages like pages in a book, and packets as items of the actual text.
+ * Consider, for example, individual poems or short stories as the packets.
+ * Pages are of course all the same size, and a few very short packets could
+ * be written into a single page. On the other hand, a very long packet will
+ * use many pages.
+ *
+ * - liboggz handles the details of writing packets into pages, and of
+ *   reading packets from pages; your application deals only with
+ *   <tt>ogg_packet</tt> structures.
+ * - Each <tt>ogg_packet</tt> structure contains a block of data and its
+ *   length in bytes, plus other information related to the stream structure
+ *   as explained below.
+ *
+ * \subsection serialno
+ *
  * Each logical bitstream is uniquely identified by a serial number or
  * \a serialno.
  *
- * - \a serialno: an integer identifying a logical bitstream.
+ * - Packets are always associated with a \a serialno. This is not actually
+ *   part of the <tt>ogg_packet</tt> structure, so wherever you see an
+ *   <tt>ogg_packet</tt> in the liboggz API, you will see an accompanying
+ *   \a serialno.
  *
- * \subsection Packets
+<pre>
+   This unique serial number is created randomly and does not have any
+   connection to the content or encoder of the logical bitstream it
+   represents.
+</pre>
  *
- * 
+ * - Use oggz_serialno_new() to generate a new serial number for each
+ *   logical bitstream you write.
+ * - Use an \link oggz_table.h OggzTable \endlink, keyed by \a serialno,
+ *   to store and retrieve data related to each logical bitstream.
+ *
+ * \subsection boseos b_o_s and e_o_s
+<pre>
+   bos page: The initial page (beginning of stream) of a logical
+      bitstream which contains information to identify the codec type
+      and other decoding-relevant information.
+
+   eos page: The final page (end of stream) of a logical bitstream.
+</pre>
+ *
+ * - Every <tt>ogg_packet</tt> contains \a b_o_s and \a e_o_s flags.
+ *   Of course each of these will be set only once per logical bitstream.
+ *   See the Structuring section below for rules on setting \a b_o_s and
+ *   \a e_o_s when interleaving logical bitstreams.
+ * - This documentation will refer to \a bos and \a eos <i>packets</i>
+ *   (not <i>pages</i>) as that is more closely represented by the API.
+ *   The \a bos packet is the only packet on the \a bos page, and the
+ *   \a eos packet is the last packet on the \a eos page.
+ *
+ * \subsection granulepos
+<pre>
+   granule position: An increasing position number for a specific
+      logical bitstream stored in the page header.  Its meaning is
+      dependent on the codec for that logical bitstream
+</pre>
+ *
+ * - Every <tt>ogg_packet</tt> contains a \a granulepos. The \a granulepos
+ *   of each packet is used mostly for \link seek_api seeking. \endlink
+ *
+ * \section Structuring
+ *
+ * The general structure of an Ogg stream is governed by various rules.
+ *
+ * \subsection secondaries Secondary header packets
+ *
+ * Some data sources require initial setup information such as comments
+ * and codebooks to be present near the beginning of the stream (directly
+ * following the b_o_s packets.
+ *
+<pre>
+   Ogg also allows but does not require secondary header packets after
+   the bos page for logical bitstreams and these must also precede any
+   data packets in any logical bitstream.  These subsequent header
+   packets are framed into an integral number of pages, which will not
+   contain any data packets.  So, a physical bitstream begins with the
+   bos pages of all logical bitstreams containing one initial header
+   packet per page, followed by the subsidiary header packets of all
+   streams, followed by pages containing data packets.
+</pre>
+ *
+ * - liboggz handles the framing of \a packets into low-level \a pages. To
+ *   ensure that the pages used by secondary headers contain no data packets,
+ *   set the \a flush parameter of oggz_write_feed() to \a OGGZ_FLUSH_AFTER
+ *   when queueing the last of the secondary headers.
+ * - or, equivalently, set \a flush to \a OGGZ_FLUSH_BEFORE when queueing
+ *   the first of the data packets.
+ *
+ * \subsection boseosseq Sequencing b_o_s and e_o_s packets
+ *
+ * The following rules apply for sequencing \a bos and \a eos packets in
+ * a physical bitstream:
+<pre>
+   ... All bos pages of all logical bitstreams MUST appear together at
+   the beginning of the Ogg bitstream.
+
+   ... eos pages for the logical bitstreams need not all occur
+   contiguously.  Eos pages may be 'nil' pages, that is, pages
+   containing no content but simply a page header with position
+   information and the eos flag set in the page header.
+</pre>
+ *
+ * - oggz_write_feed() will fail with a return value of
+ *   \a OGGZ_ERR_BOS if an attempt is made to queue a late \a bos packet
+ *
+ * \subsection interleaving Interleaving logical bitstreams
+<pre>
+   It is possible to consecutively chain groups of concurrently
+   multiplexed bitstreams.  The groups, when unchained, MUST stand on
+   their own as a valid concurrently multiplexed bitstream.  The
+   following diagram shows a schematic example of such a physical
+   bitstream that obeys all the rules of both grouped and chained
+   multiplexed bitstreams.
+   
+               physical bitstream with pages of 
+          different logical bitstreams grouped and chained
+      -------------------------------------------------------------
+      |*A*|*B*|*C*|A|A|C|B|A|B|#A#|C|...|B|C|#B#|#C#|*D*|D|...|#D#|
+      -------------------------------------------------------------
+       bos bos bos             eos           eos eos bos       eos
+   
+   In this example, there are two chained physical bitstreams, the first
+   of which is a grouped stream of three logical bitstreams A, B, and C.
+   The second physical bitstream is chained after the end of the grouped
+   bitstream, which ends after the last eos page of all its grouped
+   logical bitstreams.  As can be seen, grouped bitstreams begin
+   together - all of the bos pages MUST appear before any data pages.
+   It can also be seen that pages of concurrently multiplexed bitstreams
+   need not conform to a regular order.  And it can be seen that a
+   grouped bitstream can end long before the other bitstreams in the
+   group end.
+</pre>
+ *
+ * - oggz_write_feed() will fail, returning an explicit error value, if
+ *   an attempt is made to queue a packet in violation of these rules.
+ *
+ * \section References
+ *
+ * This introduction to the Ogg format is derived from
+ * IETF <a href="http://www.ietf.org/rfc/rfc3533.txt">RFC 3533</a>
+ * <i>The Ogg File Format version 0</i> in accordance with the
+ * following copyright statement pertaining to the text of RFC 3533:
+ *
+<pre>
+   Copyright (C) The Internet Society (2003).  All Rights Reserved.
+
+   This document and translations of it may be copied and furnished to
+   others, and derivative works that comment on or otherwise explain it
+   or assist in its implementation may be prepared, copied, published
+   and distributed, in whole or in part, without restriction of any
+   kind, provided that the above copyright notice and this paragraph are
+   included on all such copies and derivative works.  However, this
+   document itself may not be modified in any way, such as by removing
+   the copyright notice or references to the Internet Society or other
+   Internet organizations, except as needed for the purpose of
+   developing Internet standards in which case the procedures for
+   copyrights defined in the Internet Standards process must be
+   followed, or as required to translate it into languages other than
+   English.
+
+   The limited permissions granted above are perpetual and will not be
+   revoked by the Internet Society or its successors or assigns.
+
+   This document and the information contained herein is provided on an
+   "AS IS" basis and THE INTERNET SOCIETY AND THE INTERNET ENGINEERING
+   TASK FORCE DISCLAIMS ALL WARRANTIES, EXPRESS OR IMPLIED, INCLUDING
+   BUT NOT LIMITED TO ANY WARRANTY THAT THE USE OF THE INFORMATION
+   HEREIN WILL NOT INFRINGE ANY RIGHTS OR ANY IMPLIED WARRANTIES OF
+   MERCHANTABILITY OR FITNESS FOR A PARTICULAR PURPOSE.
+</pre>
  *
  */
 
@@ -118,7 +314,7 @@
  *
  * Configuring with \a --disable-write will remove all support for writing:
  * - All internal write related functions will not be built
- * - Any attempt to call oggz_new(), oggz_open() or oggz_openfd()
+ * - Any attempt to call oggz_new(), oggz_open() or oggz_open_stdio()
  *   with \a flags == OGGZ_WRITE will fail, returning NULL
  * - Any attempt to call oggz_write(), oggz_write_output(), oggz_write_feed(),
  *   oggz_write_set_hungry_callback(), or oggz_write_get_next_page_size()
@@ -128,7 +324,7 @@
  *
  * Configuring with \a --disable-read will remove all support for reading:
  * - All internal reading related functions will not be built
- * - Any attempt to call oggz_new(), oggz_open() or oggz_openfd()
+ * - Any attempt to call oggz_new(), oggz_open() or oggz_open_stdio()
  *    with \a flags == OGGZ_READ will fail, returning NULL
  * - Any attempt to call oggz_read(), oggz_read_input(),
  *   oggz_set_read_callback(), oggz_seek(), or oggz_seek_units() will return 
@@ -186,7 +382,7 @@
  * in one of three ways:
  *
  * - oggz_open() - Open a full pathname
- * - oggz_openfd() - Use an already opened file descriptor
+ * - oggz_open_stdio() - Use an already opened FILE
  * - oggz_new() - Create an anonymous OGGZ object, which you can later
  *   handle via memory buffers
  *
@@ -206,47 +402,24 @@
  * callback with oggz_set_write_callback().
  * See the \ref write_api section for details.
  *
+ * \section seeking Seeking on Ogg data
+ *
+ * To seek while reading Ogg files or streams you must instantiate an OGGZ
+ * handle for reading, and ensure that an \link metric OggzMetric \endlink
+ * function is defined to translate packet positions into units such as time.
+ * See the \ref seek_api section for details.
+ *
  * \section headers Headers
  *
  * oggz.h provides direct access to libogg types such as ogg_packet, defined
  * in <ogg/ogg.h>.
  */
 
-/** \defgroup seeking_group Seeking
- * \section seeking Seeking
- *
- * The seeking semantics of the Ogg file format were outlined by Monty in
- * <a href="http://www.xiph.org/archives/theora-dev/200209/0040.html">a
- * post to theora-dev</a> in September 2002. Quoting from that post, we
- * have the following assumptions:
- *
- * - Ogg is not a non-linear format. ... It is a media transport format
- *   designed to do nothing more than deliver content, in a stream, and
- *   have all the pieces arrive on time and in sync.
- * - The Ogg layer does not know the specifics of the codec data it's
- *   multiplexing into a stream. It knows nothing beyond 'Oooo, packets!',
- *   that the packets belong to different buckets, that the packets go in
- *   order, and that packets have position markers. Ogg does not even have
- *   a concept of 'time'; it only knows about the sequentially increasing,
- *   unitless position markers. It is up to higher layers which have
- *   access to the codec APIs to assign and convert units of framing or
- *   time.
- *
- * liboggz provides two abstractions for seeking at an arbitrary level of
- * precision, as well as allowing seeking to a direct byte offset.
- *
- * To seek across non-metric spaces for which a partial order
- * exists (ie. data that is not synchronised by a measure such as time, but
- * is nevertheless somehow seekably structured), use an OggzOrder.
- *
- * For most purposes, such as media data, use an OggzMetric instead.
- */
-
 /**
  * An opaque handle to an Ogg file. This is returned by oggz_open() or
  * oggz_new(), and is passed to all other oggz_* functions.
  */
-typedef void * OGGZ;
+typedef void OGGZ;
 
 /**
  * Create a new OGGZ object
@@ -266,16 +439,16 @@ OGGZ * oggz_new (int flags);
 OGGZ * oggz_open (char * filename, int flags);
 
 /**
- * Create an OGGZ handle associated with a file descriptor.
- * \param fd An open file descriptor
+ * Create an OGGZ handle associated with a stdio stream
+ * \param file An open FILE handle
  * \param flags OGGZ_READ or OGGZ_WRITE
  * \returns A new OGGZ handle
  * \retval NULL System error; check errno for details
  */
-OGGZ * oggz_openfd (int fd, int flags);
+OGGZ * oggz_open_stdio (FILE * file, int flags);
 
 /**
- * Ensure any associated file descriptors are flushed.
+ * Ensure any associated stdio streams are flushed.
  * \param oggz An OGGZ handle
  * \retval 0 Success
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
@@ -319,10 +492,21 @@ int oggz_get_eos (OGGZ * oggz, long serialno);
 
 /** \defgroup read_api OGGZ Read API
  *
+ * OGGZ parses Ogg bitstreams, forming ogg_packet structures, and calling
+ * your OggzReadPacket callback(s).
+ *
+ * You provide Ogg data to OGGZ with oggz_read() or oggz_read_input(), and
+ * independently process it in OggzReadPacket callbacks.
+ * It is possible to set a different callback per \a serialno (ie. for each
+ * logical bitstream in the Ogg bitstream - see the \ref basics section for
+ * more detail).
+ *
+ * See \ref seek_api for information on seeking on interleaved Ogg data.
+ * 
  * \{
  */
 
-/** 
+/**
  * This is the signature of a callback which you must provide for Oggz
  * to call whenever it finds a new packet in the Ogg stream associated
  * with \a oggz.
@@ -392,7 +576,74 @@ long oggz_read_input (OGGZ * oggz, unsigned char * buf, long n);
 /** \}
  */
 
+/** \defgroup force_feed Writing by force feeding OGGZ
+ *
+ * Force feeding involves synchronously:
+ * - Creating an \a ogg_packet structure
+ * - Adding it to the packet queue with oggz_write_feed()
+ * - Calling oggz_write() or oggz_write_output(), repeatedly as necessary,
+ *   to generate the Ogg bitstream.
+ *
+ * This process is illustrated in the following diagram:
+ *
+ * \image html forcefeed.png
+ * \image latex forcefeed.eps "Force Feeding OGGZ" width=10cm
+ *
+ * The following example code generates a stream of ten packets, each
+ * containing a single byte ('A', 'B', ... , 'J'):
+ *
+ * \include write-feed.c
+ */
+
+/** \defgroup hungry Writing with OggzHungry callbacks
+ *
+ * You can add packets to the OGGZ packet queue only when it is "hungry"
+ * by providing an OggzHungry callback.
+ *
+ * An OggzHungry callback will:
+ * - Create an \a ogg_packet structure
+ * - Add it to the packet queue with oggz_write_feed()
+ *
+ * Once you have set such a callback with oggz_write_set_hungry_callback(),
+ * simply call oggz_write() or oggz_write_output() repeatedly, and OGGZ
+ * will call your callback to provide packets when it is hungry.
+ *
+ * This process is illustrated in the following diagram:
+ *
+ * \image html hungry.png
+ * \image latex hungry.eps "Using OggzHungry" width=10cm
+ *
+ * The following example code generates a stream of ten packets, each
+ * containing a single byte ('A', 'B', ... , 'J'):
+ *
+ * \include write-hungry.c
+ */
+
 /** \defgroup write_api OGGZ Write API
+ *
+ * OGGZ maintains a packet queue, such that you can independently add
+ * packets to the queue and write an Ogg bitstream.
+ * There are two complementary methods for adding packets to the
+ * packet queue.
+ *
+ * - by \link force_feed force feeding OGGZ \endlink
+ * - by using \link hungry OggzHungry \endlink callbacks
+ *
+ * As each packet is enqueued, its validity is checked against the framing
+ * constraints outlined in the \link basics Ogg basics \endlink section.
+ * If it does not pass these constraints, oggz_write_feed() will fail with
+ * an appropriate error code.
+ *
+ * \note
+ * - When writing, you can ensure that a packet starts on a new page
+ *   by setting the \a flush parameter of oggz_write_feed() to
+ *   \a OGGZ_FLUSH_BEFORE when enqueuing it.
+ *   Similarly you can ensure that the last page a packet is written into
+ *   won't contain any following packets by setting the \a flush parameter
+ *   of oggz_write_feed() to \a OGGZ_FLUSH_AFTER.
+ * - The \a OGGZ_FLUSH_BEFORE and \a OGGZ_FLUSH_AFTER flags can be bitwise
+ *   OR'd together to ensure that the packet will not share any pages with
+ *   any other packets, either before or after.
  *
  * \{
  */
@@ -437,7 +688,7 @@ int oggz_write_set_hungry_callback (OGGZ * oggz,
  * \param op An ogg_packet with all fields filled in
  * \param serialno Identify the logical bitstream in \a oggz to add the
  * packet to
- * \param flush Whether to flush this packet to the stream
+ * \param flush Bitmask of OGGZ_FLUSH_BEFORE, OGGZ_FLUSH_AFTER
  * \param guard A guard for nocopy, NULL otherwise
  * \retval 0 Success
  * \retval OGGZ_ERR_BAD_GUARD \a guard specified has non-zero initialization
@@ -515,22 +766,66 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
 /** \}
  */
 
-/** \defgroup metric OggzMetric
+/** \defgroup metric Using OggzMetric
  *
- * If every position in an Ogg stream can be described by a metric (eg. time)
- * then define this function that returns some arbitrary unit value.
- * This is the normal use of OGGZ for media streams. The meaning of units is
- * arbitrary, but must be consistent across all logical bitstreams; for
- * example a conversion of the time offset of a given packet into nanoseconds
- * or a similar stream-specific subdivision may be appropriate.
+ * An OggzMetric is a helper function for Oggz's seeking mechanism.
  *
- * To use OggzMetric:
+ * If every position in an Ogg stream can be described by a metric such as
+ * time, then it is possible to define a function that, given a serialno and
+ * granulepos, returns a measurement in units such as milliseconds. Oggz
+ * will use this function repeatedly while seeking in order to navigate
+ * through the Ogg stream.
+ *
+ * The meaning of the units is arbitrary, but must be consistent across all
+ * logical bitstreams. This allows Oggz to seek accurately through Ogg
+ * bitstreams containing multiple logical bitstreams such as tracks of media.
+ *
+ * \section setting How to set metrics
+ *
+ * Some common media codecs can be handled automatically by Oggz. For most
+ * others it is simply a matter of providing a linear multiplication factor
+ * (such as a sampling rate, if each packet's granulepos represents a
+ * sample number). For non-linear data streams, you will need to explicitly
+ * provide your own OggzMetric function.
+ *
+ * \subsection auto Automatic Metrics
+ *
+ * Oggz can automatically provide metrics for the common media codecs
+ * Speex, Vorbis, and Theora, as well as all Annodex streams. You need do
+ * nothing more than open the file with the OGGZ_AUTO flag set.
+ *
+ * - Create an OGGZ handle for reading with \a flags = OGGZ_READ | OGGZ_AUTO
+ * - Read data, ensuring that you have received all b_o_s pages before
+ *   attempting to seek.
+ *
+ * Oggz will silently parse known codec headers and associate metrics
+ * appropriately; if you attempt to seek before you have received all
+ * b_o_s pages, Oggz will not have had a chance to parse the codec headers
+ * and associate metrics.
+ * It is safe to seek once you have received a packet with \a b_o_s == 0;
+ * see the \link basics Ogg basics \endlink section for more details.
+ *
+ * \note This functionality is provided for convenience. Oggz parses
+ * these codec headers internally, and so liboggz is \b not linked to
+ *  libspeex, libvorbis, libtheora or libannodex.
+ *
+ * \subsection linear Linear Metrics
+ *
+ * - Set the \a granule_rate_numerator and \a granule_rate_denominator
+ *   appropriately using oggz_set_metric_linear()
+ *
+ * \subsection custom Custom Metrics
+ *
+ * For some streams, neither of the above methods are appropriate. 
  *
  * - Implement an OggzMetric callback
  * - Set the OggzMetric callback using oggz_set_metric()
- * - To seek, use oggz_seek_units(). Oggz will perform a ratio search
- *   through the Ogg bitstream, using the OggzMetric callback to determine
- *   its position relative to the desired unit.
+ *
+ * \section using Seeking with OggzMetrics
+ *
+ * To seek, use oggz_seek_units(). Oggz will perform a ratio search
+ * through the Ogg bitstream, using the OggzMetric callback to determine
+ * its position relative to the desired unit.
  *
  * \note
  *
@@ -547,7 +842,49 @@ long oggz_write_get_next_page_size (OGGZ * oggz);
  * This impacts seeking because the portion of the bitstream containing
  * decode headers should not be considered part of the metric space. To
  * inform Oggz not to seek earlier than the end of the decode headers,
- * use oggz_data_begins_here().
+ * use oggz_set_data_start().
+ *
+ */
+
+/** \defgroup seek_api OGGZ Seek API
+ *
+ * The seeking semantics of the Ogg file format were outlined by Monty in
+ * <a href="http://www.xiph.org/archives/theora-dev/200209/0040.html">a
+ * post to theora-dev</a> in September 2002. Quoting from that post, we
+ * have the following assumptions:
+ *
+ * - Ogg is not a non-linear format. ... It is a media transport format
+ *   designed to do nothing more than deliver content, in a stream, and
+ *   have all the pieces arrive on time and in sync.
+ * - The Ogg layer does not know the specifics of the codec data it's
+ *   multiplexing into a stream. It knows nothing beyond 'Oooo, packets!',
+ *   that the packets belong to different buckets, that the packets go in
+ *   order, and that packets have position markers. Ogg does not even have
+ *   a concept of 'time'; it only knows about the sequentially increasing,
+ *   unitless position markers. It is up to higher layers which have
+ *   access to the codec APIs to assign and convert units of framing or
+ *   time.
+ *
+ * (For more details on the structure of Ogg streams, see the
+ * \link basics Ogg Basics \endlink section).
+ *
+ * For data such as media, for which it is possible to provide a mapping
+ * such as 'time', OGGZ can efficiently navigate through an Ogg stream
+ * by use of an OggzMetric callback, thus allowing automatic seeking to
+ * points in 'time'.
+ * For common codecs you can ask Oggz to set this for you automatically by
+ * instantiating the OGGZ handle with the OGGZ_AUTO flag set. For others
+ * you can specify a multiplier with oggz_set_metric_linear(), or a generic
+ * non-linear metric with oggz_set_metric().
+ *
+ * - See the section on \link metric Using OggzMetrics \endlink for details
+ *   of setting up and seeking with metrics.
+ *
+ * - It is always possible to seek to exact byte positions using oggz_seek().
+ *
+ * - A mechanism to aid seeking across non-metric spaces for which a partial
+ *   order exists (ie. data that is not synchronised by a measure such as time,
+ *   but is nevertheless somehow seekably structured), is also planned.
  *
  * \{
  */
@@ -623,9 +960,6 @@ int oggz_set_metric (OGGZ * oggz, long serialno, OggzMetric metric,
  */
 ogg_int64_t oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence);
 
-/** \}
- */
-
 #ifdef _UNIMPLEMENTED
 /** \defgroup order OggzOrder
  *
@@ -677,7 +1011,7 @@ ogg_int64_t oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence);
  * Hacker's hint: if there are no circumstances in which you would return
  * a value of 2, there is a linear order; it may be possible to define a
  * Metric rather than an Order.
- * \{
+ *
  */
 typedef int (*OggzOrder) (OGGZ * oggz, ogg_packet * op, void * target,
 			 void * user_data);
@@ -691,20 +1025,22 @@ int oggz_set_order (OGGZ * oggz, long serialno, OggzOrder order,
 
 long oggz_seek_byorder (OGGZ * oggz, void * target);
 
-/** \}
- */
 #endif /* _UNIMPLEMENTED */
 
 /**
- * Tell OGGZ that we're past the headers, to remember the current packet
- * as the start of data.
+ * Tell OGGZ to remember the given offset as the start of data.
  * This informs the seeking mechanism that when seeking back to unit 0,
- * go to the packet we're on now, not to the start of the file, which
- * is usually codec headers.
+ * go to the given offset, not to the start of the file, which is usually
+ * codec headers.
+ * The usual usage is:
+<pre>
+    oggz_set_data_start (oggz, oggz_tell (oggz));
+</pre>
  * \param oggz An OGGZ handle previously opened for reading
+ * \param offset The offset of the start of data
  * \returns 0 on success, -1 on failure.
  */
-int oggz_data_begins_here (OGGZ * oggz);
+int oggz_set_data_start (OGGZ * oggz, off_t offset);
 
 /**
  * Provide the file offset in bytes corresponding to the data read.
@@ -721,7 +1057,7 @@ int oggz_data_begins_here (OGGZ * oggz);
 off_t oggz_tell (OGGZ * oggz);
 
 /**
- * Seek to a specific bytes offset
+ * Seek to a specific byte offset
  * \param oggz An OGGZ handle
  * \param offset a byte offset
  * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
@@ -733,6 +1069,8 @@ off_t oggz_seek (OGGZ * oggz, off_t offset, int whence);
 long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
 #endif
 
+/** \}
+ */
 
 /**
  * Request a new serialno, as required for a new stream, ensuring the serialno

@@ -48,10 +48,11 @@
 #include <ogg/ogg.h>
 
 #include "oggz_private.h"
+#include "oggz_vector.h"
 
 /* #define DEBUG */
 
-/*#define ALWAYS_FLUSH*/
+/* #define ALWAYS_FLUSH */
 
 static int
 oggz_zpacket_cmp (oggz_writer_packet_t * a, oggz_writer_packet_t * b,
@@ -78,11 +79,11 @@ oggz_write_init (OGGZ * oggz)
 
   writer->next_zpacket = NULL;
 
-  oggz_vector_init (&writer->packet_queue, sizeof (oggz_writer_packet_t));
+  writer->packet_queue = oggz_vector_new ();
 
 #if 0
   /* XXX: comparison function should only kick in when a metric is set */
-  oggz_vector_set_cmp (&writer->packet_queue, 
+  oggz_vector_set_cmp (writer->packet_queue, 
 		       (OggzCmpFunc)oggz_zpacket_cmp, oggz);
 #endif
 
@@ -130,9 +131,9 @@ oggz_write_close (OGGZ * oggz)
 {
   OggzWriter * writer = &oggz->x.writer;
 
-  oggz_vector_foreach (&writer->packet_queue,
+  oggz_vector_foreach (writer->packet_queue,
 		       (OggzFunc)oggz_writer_packet_free);
-  oggz_vector_clear (&writer->packet_queue);
+  oggz_vector_delete (writer->packet_queue);
 
   return oggz;
 }
@@ -271,7 +272,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 	  new_op->b_o_s, new_op->e_o_s, new_op->bytes, packet->flush);
 #endif
 
-  if (oggz_vector_add_element (&writer->packet_queue, packet) == NULL) {
+  if (oggz_vector_insert_p (writer->packet_queue, packet) == NULL) {
     oggz_free (packet);
     if (!guard) oggz_free (new_buf);
     return -1;
@@ -433,13 +434,28 @@ oggz_page_writeout (OGGZ * oggz, long n)
   long h, b, nwritten;
   ogg_page * og;
 
+#ifdef OGGZ_WRITE_DIRECT
+  int fd;
+#endif
+
   if (oggz == NULL) return -1L;
 
   og = &oggz->current_page;
 
+#ifdef OGGZ_WRITE_DIRECT
+  fd = fileno (oggz->file);
+#endif
+
   h = MIN (n, og->header_len - writer->page_offset);
   if (h > 0) {
-    nwritten = write (oggz->fd, og->header + writer->page_offset, h);
+#ifdef OGGZ_WRITE_DIRECT
+    nwritten = write (fd, og->header + writer->page_offset, h);
+#else
+    nwritten = fwrite (og->header + writer->page_offset, 1, h, oggz->file);
+#endif
+    if (nwritten < h) {
+      printf ("oggz_page_writeout: %ld < %ld\n", nwritten, h);
+    }
     writer->page_offset += h;
     n -= h;
   } else {
@@ -448,8 +464,16 @@ oggz_page_writeout (OGGZ * oggz, long n)
   
   b = MIN (n, og->header_len + og->body_len - writer->page_offset);
   if (b > 0) {
-    nwritten = write (oggz->fd,
+#ifdef OGGZ_WRITE_DIRECT
+    nwritten = write (fd,
 		      og->body + (writer->page_offset - og->header_len), b);
+#else
+    nwritten = fwrite (og->body + (writer->page_offset - og->header_len),
+		       1, b, oggz->file);
+#endif
+    if (nwritten < b) {
+      printf ("oggz_page_writeout: %ld < %ld\n", nwritten, b);
+    }
     writer->page_offset += b;
     n -= b;
   } else {
@@ -469,12 +493,12 @@ oggz_dequeue_packet (OGGZ * oggz)
     next_zpacket = writer->next_zpacket;
     writer->next_zpacket = NULL;
   } else {
-    next_zpacket = oggz_vector_pop (&writer->packet_queue);
+    next_zpacket = oggz_vector_pop (writer->packet_queue);
 
     if (next_zpacket == NULL) {
       if (writer->hungry) {
 	writer->hungry (oggz, 1, writer->hungry_user_data);
-	next_zpacket = oggz_vector_pop (&writer->packet_queue);
+	next_zpacket = oggz_vector_pop (writer->packet_queue);
       }
     }
   }
@@ -502,7 +526,7 @@ oggz_writer_make_packet (OGGZ * oggz)
    * it to them, marking emptiness appropriately
    */
   if (writer->hungry && !writer->hungry_only_when_empty) {
-    int empty = (writer->packet_queue.nr_elements == 0);
+    int empty = (oggz_vector_size (writer->packet_queue) == 0);
     cb_ret = writer->hungry (oggz, empty, writer->hungry_user_data);
   }
 

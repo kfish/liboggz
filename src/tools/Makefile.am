@@ -2,6 +2,10 @@
 
 AM_CFLAGS = -Wall -pedantic -g
 
+EXTRA_DIST = oggzdiff
+
+bin_SCRIPTS = oggzdiff
+
 INCLUDES = -I$(top_srcdir)/include
 
 OGGZDIR = ../liboggz

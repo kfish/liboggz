@@ -34,15 +34,54 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <ctype.h>
 #include <inttypes.h>
+#include <getopt.h>
+#include <errno.h>
 
 #include <oggz/oggz.h>
+
+#define DEBUG
 
 #undef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
-static void hex_dump (unsigned char * buf, long n) {
+static char * progname;
+static FILE * outfile = NULL;
+static int dump_bits = 0;
+static int dump_char = 1;
+static int dump_all_serialnos = 1;
+static int truth = 1;
+
+static int hide_offset = 0;
+static int hide_serialno = 0;
+static int hide_granulepos = 0;
+static int hide_packetno = 0;
+
+static void
+usage (char * progname)
+{
+  printf ("Usage: %s [options] filename\n", progname);
+}
+
+static void
+dump_char_line (unsigned char * buf, long n)
+{
+  int i;
+
+  fprintf (outfile, "  ");
+  
+  for (i = 0; i < n; i++) {
+    if (isgraph(buf[i])) fprintf (outfile, "%c", buf[i]);
+    else if (isspace(buf[i])) fprintf (outfile, " ");
+    else fprintf (outfile, ".");
+  }
+}
+
+static void
+hex_dump (unsigned char * buf, long n)
+{
   int i;
   long remaining = n, count = 0;
   long rowlen;
@@ -51,31 +90,26 @@ static void hex_dump (unsigned char * buf, long n) {
     rowlen = MIN (remaining, 16);
 
     if (n > 0xffffff)
-      printf ("%08lx:", count);
+      fprintf (outfile, "%08lx:", count);
     else if (n > 0xffff)
-      printf ("  %06lx:", count);
+      fprintf (outfile, "  %06lx:", count);
     else
-      printf ("    %04lx:", count);
+      fprintf (outfile, "    %04lx:", count);
 
     for (i = 0; i < rowlen; i++) {
-      if (!(i%2)) printf (" ");
-      printf ("%02x", buf[i]);
+      if (!(i%2)) fprintf (outfile, " ");
+      fprintf (outfile, "%02x", buf[i]);
     }
 
     for (; i < 16; i++) {
-      if (!(i%2)) printf (" ");
-      printf ("  ");
+      if (!(i%2)) fprintf (outfile, " ");
+      fprintf (outfile, "  ");
     }
 
-    printf ("  ");
+    if (dump_char)
+      dump_char_line (buf, rowlen);
 
-    for (i = 0; i < rowlen; i++) {
-      if (isgraph(buf[i])) printf ("%c", buf[i]);
-      else if (isspace(buf[i])) printf (" ");
-      else printf (".");
-    }
-
-    printf("\n");
+    fprintf(outfile, "\n");
 
     remaining -= rowlen;
     buf += rowlen;
@@ -83,7 +117,9 @@ static void hex_dump (unsigned char * buf, long n) {
   }
 }
 
-static void bin_dump (unsigned char * buf, long n) {
+static void
+bin_dump (unsigned char * buf, long n)
+{
   int i, j;
   long remaining = n, count = 0;
   long rowlen;
@@ -92,34 +128,29 @@ static void bin_dump (unsigned char * buf, long n) {
     rowlen = MIN (remaining, 6);
 
     if (n > 0xffffff)
-      printf ("%08lx:", count);
+      fprintf (outfile, "%08lx:", count);
     else if (n > 0xffff)
-      printf ("  %06lx:", count);
+      fprintf (outfile, "  %06lx:", count);
     else
-      printf ("    %04lx:", count);
+      fprintf (outfile, "    %04lx:", count);
 
     for (i = 0; i < rowlen; i++) {
-      printf (" ");
+      fprintf (outfile, " ");
 #ifdef WORDS_BIGENDIAN
       for (j = 0; j < 8; j++)
 #else
       for (j = 7; j >= 0; j--)
 #endif
-	printf ("%c", (buf[i]&(1<<j)) ? '1' : '0');
+	fprintf (outfile, "%c", (buf[i]&(1<<j)) ? '1' : '0');
     }
 
     for (; i < 6; i++) {
-      if (!(i%2)) printf (" ");
-      printf ("         ");
+      if (!(i%2)) fprintf (outfile, " ");
+      fprintf (outfile, "         ");
     }
 
-    printf ("  ");
-
-    for (i = 0; i < rowlen; i++) {
-      if (isgraph(buf[i])) printf ("%c", buf[i]);
-      else if (isspace(buf[i])) printf (" ");
-      else printf (".");
-    }
+    if (dump_char)
+      dump_char_line (buf, rowlen);
 
     printf("\n");
 
@@ -132,59 +163,316 @@ static void bin_dump (unsigned char * buf, long n) {
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  long position = oggz_tell(oggz);
-
-  printf ("%08lx: serialno %010ld, "
-	  "granulepos %" PRId64 ", packetno %" PRId64,
-	  position, serialno, op->granulepos, op->packetno);
+  fprintf (outfile, "%08lx: serialno %010ld, "
+	   "granulepos %" PRId64 ", packetno %" PRId64,
+	   hide_offset ? -1 : oggz_tell (oggz),
+	   hide_serialno ? -1 : serialno,
+	   hide_granulepos ? -1 : op->granulepos,
+	   hide_packetno ? -1 : op->packetno);
 
   if (op->b_o_s) {
-    printf (" *** bos");
+    fprintf (outfile, " *** bos");
   }
 
   if (op->e_o_s) {
-    printf (" *** eos");
+    fprintf (outfile, " *** eos");
   }
 
-  printf (":\n");
+  fprintf (outfile, ":\n");
 
-  hex_dump (op->packet, op->bytes);
+  if (dump_bits) {
+    bin_dump (op->packet, op->bytes);
+  } else {
+    hex_dump (op->packet, op->bytes);
+  }
 
-  printf ("\n");
+  fprintf (outfile, "\n");
 
   return 0;
 }
 
 static int
-read_bos_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+ignore_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  if (!op->b_o_s) {
-    oggz_set_read_callback (oggz, -1, NULL, NULL);
-    return 1;
+  return -1;
+}
+
+static int
+read_new_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  oggz_set_read_callback (oggz, serialno, ignore_packet, NULL);
+  read_packet (oggz, op, serialno, user_data);
+
+  return -1;
+}
+
+static void
+revert_file (char * infilename)
+{
+  OGGZ * oggz;
+  FILE * infile;
+  char line[80];
+  unsigned int offset;
+  long current_serialno = -1, serialno;
+  ogg_int64_t granulepos, packetno;
+  int bos = 0, eos = 0;
+
+  int line_offset = 0, consumed = 0;
+
+  unsigned char * packet = NULL;
+  long max_bytes = 0;
+
+  unsigned char buf[1024];
+  ogg_packet op;
+  int flush = 1;
+  long n;
+  char c;
+
+  if (strcmp (infilename, "-") == 0) {
+    infile = stdin;
+  } else {
+    infile = fopen (infilename, "r");
   }
 
-  return read_packet (oggz, op, serialno, user_data);
+  oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT);
+
+  while (fgets (line, 80, infile)) {
+    if (sscanf (line, "%x: serialno %ld, granulepos %lld, packetno %lld%n",
+		&offset, &serialno, &granulepos, &packetno,
+		&line_offset) >= 4) {
+
+      /* flush any existing packets */
+      if (current_serialno != -1) {
+	int ret;
+
+#ifdef DEBUG	
+	printf ("feeding packet (%010ld) %ld bytes\n",
+		current_serialno, op.bytes);
+#endif
+	if ((ret = oggz_write_feed (oggz, &op, current_serialno, flush, NULL)) != 0) {
+	  fprintf (stderr, "%s: oggz_write_feed error %d\n", progname, ret);
+	}
+
+	while ((n = oggz_write_output (oggz, buf, 1024)) > 0) {
+	  fwrite (buf, 1, 1024, outfile);
+	}
+      }
+      
+      /* Start new packet */
+      bos = 0; eos = 0;
+      if (sscanf (&line[line_offset], " *** %[b]%[o]%[s]%n", &c, &c, &c,
+		  &consumed) >= 3) {
+	bos = 1;
+	line_offset += consumed;
+      }
+      if (sscanf (&line[line_offset], " *** %[e]%[o]%[s]%n", &c, &c, &c,
+		  &consumed) >= 3) {
+	eos = 1;
+	line_offset += consumed;
+      }
+
+      current_serialno = serialno;
+
+      op.packet = packet;
+      op.bytes = 0;
+      op.b_o_s = bos;
+      op.e_o_s = eos;
+      op.granulepos = granulepos;
+      op.packetno = packetno;
+
+    } else {
+      int nread = 0;
+      unsigned int val = 0;
+      unsigned int offset;
+
+      if (current_serialno != -1 &&
+	  sscanf (line, "%x:%n", &offset, &line_offset) >= 1) {
+	while (nread < 16 &&
+	       (sscanf (&line[line_offset], "%2x%n", &val, &consumed) > 0)) {
+	  op.bytes++;
+	  if (op.bytes > max_bytes) {
+	    unsigned char * new_packet;
+	    size_t new_size;
+
+	    if (max_bytes == 0) {
+	      new_size = 128;
+	    } else {
+	      new_size = max_bytes * 2;
+	    }
+
+	    new_packet =
+	      (unsigned char *) realloc ((void *)packet, new_size);
+	    if (new_packet == NULL) {
+	      fprintf (stderr,
+		       "%s: error allocating memory for packet data\n",
+		       progname);
+	      exit (1);
+	    } else {
+	      max_bytes = new_size;
+	      packet = new_packet;
+	      op.packet = packet;
+	    }
+	  }
+	  
+	  packet[op.bytes-1] = (unsigned char) val;
+
+	  line_offset += consumed;
+	  nread++;
+	}
+      }
+    }
+  }
+
+  fclose (infile);
 }
 
 int
 main (int argc, char ** argv)
 {
   OGGZ * oggz;
+  char * infilename = NULL, * outfilename = NULL;
+  int revert = 0;
+  OggzTable * table = NULL;
+  long serialno;
+  OggzReadPacket my_read_packet = read_packet;
+  int i, size;
   long n;
 
+  progname = argv[0];
+
   if (argc < 2) {
-    printf ("usage: %s filename\n", argv[0]);
+    printf ("usage: %s filename\n", progname);
   }
 
-  if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ)) == NULL) {
-    printf ("unable to open file %s\n", argv[1]);
+  table = oggz_table_new();
+
+  while (1) {
+    char * optstring = "hbxnro:s:OSGP";
+
+#ifdef HAVE_GETOPT_LONG
+    static struct option long_options[] = {
+      {"help", no_argument, 0, 'h'},
+      {"binary", no_argument, 0, 'b'},
+      {"hexadecimal", no_argument, 0, 'x'},
+      {"new", no_argument, 0, 'n'},
+      {"revert", no_argument, 0, 'r'},
+      {"output", required_argument, 0, 'o'},
+      {"serialno", required_argument, 0, 's'},
+      {"hide-offset", no_argument, 0, 'O'},
+      {"hide-serialno", no_argument, 0, 'S'},
+      {"hide-granulepos", no_argument, 0, 'G'},
+      {"hide-packetno", no_argument, 0, 'P'},
+      {0,0,0,0}
+    };
+
+    i = getopt_long(argc, argv, optstring, long_options, NULL);
+#else
+    i = getopt (argc, argv, optstring);
+#endif
+    if (i == -1) break;
+    if (i == ':') {
+      usage (progname);
+      exit (1);
+    }
+
+    switch (i) {
+    case 'h': /* help */
+      usage (progname);
+      exit (0);
+      break;
+    case 'b': /* binary */
+      dump_bits = 1;
+      break;
+    case 'n': /* new */
+      my_read_packet = read_new_packet;
+      break;
+    case 'o': /* output */
+      outfilename = optarg;
+      break;
+    case 'r': /* revert */
+      revert = 1;
+      break;
+    case 's': /* serialno */
+      dump_all_serialnos = 0;
+      serialno = atol (optarg);
+      oggz_table_insert (table, serialno, &truth);
+      break;
+    case 'O': /* hide offset */
+      hide_offset = 1;
+      break;
+    case 'S': /* hide serialno */
+      hide_serialno = 1;
+      break;
+    case 'G': /* hide granulepos */
+      hide_granulepos = 1;
+      break;
+    case 'P': /* hide packetno */
+      hide_packetno = 1;
+      break;
+    default:
+      break;
+    }
+  }
+
+  if (optind >= argc) {
+    usage (progname);
     exit (1);
   }
 
-  oggz_set_read_callback (oggz, -1, read_packet, NULL);
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  infilename = argv[optind++];
 
-  oggz_close (oggz);
+  if (outfilename == NULL) {
+    outfile = stdout;
+  } else {
+    outfile = fopen (outfilename, "w");
+    if (outfile == NULL) {
+      fprintf (stderr, "%s: unable to open output file %s\n",
+	       progname, outfilename);
+      exit (1);
+    }
+  }
+
+  if (revert) {
+    if (dump_bits) {
+      fprintf (stderr, "%s: Revert of binary dump not supported\n", progname);
+      exit (1);
+    }
+
+    revert_file (infilename);
+  } else {
+    errno = 0;
+
+    if (strcmp (infilename, "-") == 0) {
+      oggz = oggz_open_stdio (stdin, OGGZ_READ);
+    } else {
+      oggz = oggz_open (infilename, OGGZ_READ);
+    }
+
+    if (oggz == NULL) {
+      if (errno == 0) {
+	fprintf (stderr, "%s: %s: OGGZ error opening input file\n",
+		 progname, infilename);
+      } else {
+	fprintf (stderr, "%s: %s: %s\n",
+		 progname, infilename, strerror (errno));
+      }
+      exit (1);
+    }
+
+    if (dump_all_serialnos) {
+      oggz_set_read_callback (oggz, -1, my_read_packet, NULL);
+    } else {
+      size = oggz_table_size (table);
+      for (i = 0; i < size; i++) {
+	oggz_table_nth (table, i, &serialno);
+	oggz_set_read_callback (oggz, serialno, my_read_packet, NULL);
+      }
+    }
+    
+    while ((n = oggz_read (oggz, 1024)) > 0);
+    
+    oggz_close (oggz);
+  }
 
   exit (0);
 }

@@ -68,7 +68,7 @@ main (int argc, char ** argv)
     printf ("usage: %s filename\n", argv[0]);
   }
 
-  if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ)) == NULL) {
+  if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
     printf ("unable to open file %s\n", argv[1]);
     exit (1);
   }

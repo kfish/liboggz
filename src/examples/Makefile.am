@@ -17,11 +17,22 @@ if OGGZ_CONFIG_READ
 oggz_read_programs = read-file
 endif
 
+if OGGZ_CONFIG_WRITE
+oggz_write_programs = write-feed write-hungry
+endif
+
 # Programs to build
-noinst_PROGRAMS = $(oggz_rw_programs) $(oggz_read_programs)
+noinst_PROGRAMS = $(oggz_rw_programs) $(oggz_read_programs) \
+	$(oggz_write_programs)
 
 identity_SOURCES = identity.c
 identity_LDADD = $(OGGZ_LIBS)
 
 read_file_SOURCES = read-file.c
 read_file_LDADD = $(OGGZ_LIBS)
+
+write_feed_SOURCES = write-feed.c
+write_feed_LDADD = $(OGGZ_LIBS)
+
+write_hungry_SOURCES = write-hungry.c
+write_hungry_LDADD = $(OGGZ_LIBS)

@@ -10,7 +10,7 @@
         global:
 		oggz_new;
 		oggz_open;
-		oggz_openfd;
+		oggz_open_stdio;
 		oggz_flush;
 		oggz_close;
 		oggz_get_bos;
@@ -24,11 +24,19 @@
 		oggz_write_output;
 		oggz_write_get_next_page_size;
 		oggz_set_metric;
+		oggz_set_metric_linear;
 		oggz_seek_units;
 		oggz_tell;
 		oggz_seek;
-		oggz_data_begins_here;
+		oggz_set_data_start;
 		oggz_serialno_new;
+
+		oggz_table_new;
+		oggz_table_delete;
+		oggz_table_insert;
+		oggz_table_lookup;
+		oggz_table_size;
+		oggz_table_nth;
         local:
                 *;
 };

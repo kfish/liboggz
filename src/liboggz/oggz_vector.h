@@ -33,32 +33,32 @@
 #ifndef __OGGZ_VECTOR_H__
 #define __OGGZ_VECTOR_H__
 
-typedef struct _OggzVector OggzVector;
+typedef void OggzVector;
 
 typedef int (*OggzFunc) (void * data);
 typedef int (*OggzFindFunc) (void * data, long serialno);
 typedef int (*OggzCmpFunc) (void * a, void * b, void * user_data);
 
-struct _OggzVector {
-  int max_elements;
-  int nr_elements;
-  void ** data;
-  size_t sizeof_element;
-  OggzCmpFunc compare;
-  void * compare_user_data;
-};
-
 OggzVector *
-oggz_vector_init (OggzVector * vector, size_t sizeof_element);
+oggz_vector_new (void);
 
 void
-oggz_vector_clear (OggzVector * vector);
+oggz_vector_delete (OggzVector * vector);
 
 void *
 oggz_vector_find (OggzVector * vector, OggzFindFunc func, long serialno);
 
+void *
+oggz_vector_nth_p (OggzVector * vector, int n);
+
+long
+oggz_vector_nth_l (OggzVector * vector, int n);
+
 int
 oggz_vector_foreach (OggzVector * vector, OggzFunc func);
+
+int
+oggz_vector_size (OggzVector * vector);
 
 /**
  * Add an element to a vector. If the vector has a comparison function,
@@ -70,7 +70,26 @@ oggz_vector_foreach (OggzVector * vector, OggzFunc func);
  * \retval NULL If adding the element failed due to a realloc() error
  */
 void *
-oggz_vector_add_element (OggzVector * vector, void * data);
+oggz_vector_insert_p (OggzVector * vector, void * data);
+
+long
+oggz_vector_insert_l (OggzVector * vector, long ldata);
+
+/**
+ * Remove a (void *) element of a vector
+ * \retval \a vector on success
+ * \retval NULL on failure (realloc error)
+ */
+OggzVector *
+oggz_vector_remove_p (OggzVector * vector, void * data);
+
+/**
+ * Remove a (long) element of a vector
+ * \retval \a vector on success
+ * \retval NULL on failure (realloc error)
+ */
+OggzVector *
+oggz_vector_remove_l (OggzVector * vector, long ldata);
 
 int
 oggz_vector_set_cmp (OggzVector * vector, OggzCmpFunc compare,

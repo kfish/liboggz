@@ -34,10 +34,31 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "oggz_private.h"
+#include "oggz_macros.h"
+
+typedef int (*OggzFunc) (void * data);
+typedef int (*OggzFindFunc) (void * data, long serialno);
+typedef int (*OggzCmpFunc) (void * a, void * b, void * user_data);
+
+typedef struct _OggzVector OggzVector;
+
+typedef union {
+  void * p;
+  long l;
+} oggz_data_t;
+
+struct _OggzVector {
+  int max_elements;
+  int nr_elements;
+  oggz_data_t * data;
+  OggzCmpFunc compare;
+  void * compare_user_data;
+};
 
 /*
- * An optionally sorted vector
+ * A vector of void * or long; iff it's a vector of void * objects, it
+ * can be optionally sorted. (The sorting is used to implement the
+ * packet queue; the vector of longs is used to implement OggzTable)
  *
  * if you set a comparison function (oggz_vector_set_cmp()), the vector
  * will be sorted and new elements will be inserted in sorted order.
@@ -45,28 +66,67 @@
  * if you don't set a comparison function, new elements will be appended
  * at the tail
  *
- * to unset the comparison function, call oggz_vector_set_cmp(NULL,NULL)
+ * to unset the comparison function, call oggz_vector_set_cmp (NULL,NULL)
  */
 
 OggzVector *
-oggz_vector_init (OggzVector * vector, size_t sizeof_element)
+oggz_vector_new (void)
 {
+  OggzVector * vector;
+
+  vector = oggz_malloc (sizeof (OggzVector));
+
   vector->max_elements = 0;
   vector->nr_elements = 0;
-  vector->sizeof_element = sizeof_element;
   vector->data = NULL;
   vector->compare = NULL;
+  vector->compare_user_data = NULL;
 
   return vector;
 }
 
-void
+static void
 oggz_vector_clear (OggzVector * vector)
 {
   oggz_free (vector->data);
   vector->data = NULL;
   vector->nr_elements = 0;
   vector->max_elements = 0;
+}
+
+void
+oggz_vector_delete (OggzVector * vector)
+{
+  oggz_vector_clear (vector);
+  oggz_free (vector);
+}
+
+int
+oggz_vector_size (OggzVector * vector)
+{
+  if (vector == NULL) return 0;
+
+  return vector->nr_elements;
+}
+
+void *
+oggz_vector_nth_p (OggzVector * vector, int n)
+{
+  if (vector == NULL) return NULL;
+
+  if (n >= vector->nr_elements) return NULL;
+
+  return vector->data[n].p;
+}
+
+long
+oggz_vector_nth_l (OggzVector * vector, int n)
+{
+  if (vector == NULL) return -1L;
+
+  if (n >= vector->nr_elements) return -1L;
+
+  return vector->data[n].l;
 }
 
 void *
@@ -76,7 +136,7 @@ oggz_vector_find (OggzVector * vector, OggzFindFunc func, long serialno)
   int i;
 
   for (i = 0; i < vector->nr_elements; i++) {
-    data = vector->data[i];
+    data = vector->data[i].p;
     if (func (data, serialno))
       return data;
   }
@@ -90,24 +150,24 @@ oggz_vector_foreach (OggzVector * vector, OggzFunc func)
   int i;
 
   for (i = 0; i < vector->nr_elements; i++) {
-    func (vector->data[i]);
+    func (vector->data[i].p);
   }
 
   return 0;
 }
 
 static void
-_array_swap (void *v[], int i, int j)
+_array_swap (oggz_data_t v[], int i, int j)
 {
   void * t;
 
-  t = v[i];
-  v[i] = v[j];
-  v[j] = t;
+  t = v[i].p;
+  v[i].p = v[j].p;
+  v[j].p = t;
 }
 
 /**
- * Helper function for oggz_vector_element_add(). Sorts the vector by
+ * Helper function for oggz_vector_insert (). Sorts the vector by
  * insertion sort, assuming the tail element has just been added and the
  * rest of the vector is sorted.
  * \param vector An OggzVector
@@ -122,7 +182,7 @@ oggz_vector_tail_insertion_sort (OggzVector * vector)
   if (vector->compare == NULL) return;
 
   for (i = vector->nr_elements-1; i > 0; i--) {
-    if (vector->compare (vector->data[i-1], vector->data[i],
+    if (vector->compare (vector->data[i-1].p, vector->data[i].p,
 			 vector->compare_user_data) > 0) {
       _array_swap (vector->data, i, i-1);
     } else {
@@ -133,8 +193,8 @@ oggz_vector_tail_insertion_sort (OggzVector * vector)
   return;
 }
 
-void *
-oggz_vector_add_element (OggzVector * vector, void * data)
+static OggzVector *
+oggz_vector_grow (OggzVector * vector)
 {
   void * new_elements;
   int new_max_elements;
@@ -149,7 +209,7 @@ oggz_vector_add_element (OggzVector * vector, void * data)
     }
 
     new_elements =
-      realloc (vector->data, (size_t)new_max_elements * sizeof (void *));
+      realloc (vector->data, (size_t)new_max_elements * sizeof (oggz_data_t));
 
     if (new_elements == NULL) {
       vector->nr_elements--;
@@ -160,25 +220,46 @@ oggz_vector_add_element (OggzVector * vector, void * data)
     vector->data = new_elements;
   }
 
-  vector->data[vector->nr_elements-1] = data;
+  return vector;
+}
+
+void *
+oggz_vector_insert_p (OggzVector * vector, void * data)
+{
+  if (oggz_vector_grow (vector) == NULL)
+    return NULL;
+
+  vector->data[vector->nr_elements-1].p = data;
 
   oggz_vector_tail_insertion_sort (vector);
 
   return data;
+
+}
+
+long
+oggz_vector_insert_l (OggzVector * vector, long ldata)
+{
+  if (oggz_vector_grow (vector) == NULL)
+    return -1;
+
+  vector->data[vector->nr_elements-1].l = ldata;
+
+  return ldata;
 }
 
 static void
 oggz_vector_qsort (OggzVector * vector, int left, int right)
 {
   int i, last;
-  void ** v = vector->data;
+  oggz_data_t * v = vector->data;
 
   if (left >= right) return;
 
   _array_swap (v, left, (left + right)/2);
   last = left;
   for (i = left+1; i <= right; i++) {
-    if (vector->compare (v[i], v[left], vector->compare_user_data) < 0)
+    if (vector->compare (v[i].p, v[left].p, vector->compare_user_data) < 0)
       _array_swap (v, ++last, i);
   }
   _array_swap (v, left, last);
@@ -200,17 +281,83 @@ oggz_vector_set_cmp (OggzVector * vector, OggzCmpFunc compare,
   return 0;
 }
 
+
+static void *
+oggz_vector_remove_nth (OggzVector * vector, int n)
+{
+  int i;
+  oggz_data_t * new_elements;
+  int new_max_elements;
+
+  vector->nr_elements--;
+
+  if (vector->nr_elements == 0) {
+    oggz_vector_clear (vector);
+  } else {
+    for (i = n; i < vector->nr_elements; i++) {
+      vector->data[i] = vector->data[i+1];
+    }
+
+    if (vector->nr_elements < vector->max_elements/2) {
+      new_max_elements = vector->max_elements/2;
+
+      new_elements =
+	realloc (vector->data,
+		 (size_t)new_max_elements * sizeof (oggz_data_t));
+
+      if (new_elements == NULL)
+	return NULL;
+
+      vector->max_elements = new_max_elements;
+      vector->data = new_elements;
+    }
+  }
+
+  return vector;
+}
+
+OggzVector *
+oggz_vector_remove_p (OggzVector * vector, void * data)
+{
+  int i;
+
+  for (i = 0; i < vector->nr_elements; i++) {
+    if (vector->data[i].p == data) {
+      return oggz_vector_remove_nth (vector, i);
+    }
+  }
+
+  return vector;
+}
+
+OggzVector *
+oggz_vector_remove_l (OggzVector * vector, long ldata)
+{
+  int i;
+
+  for (i = 0; i < vector->nr_elements; i++) {
+    if (vector->data[i].l == ldata) {
+      return oggz_vector_remove_nth (vector, i);
+    }
+  }
+
+  return vector;
+}
+
 void *
 oggz_vector_pop (OggzVector * vector)
 {
   void * data;
+#if 0
   void * new_elements;
   int new_max_elements;
+#endif
 
   if (!vector || vector->data == NULL) return NULL;
 
-  data = vector->data[0];
+  data = vector->data[0].p;
 
+#if 0
   vector->nr_elements--;
 
   if (vector->nr_elements == 0) {
@@ -223,7 +370,7 @@ oggz_vector_pop (OggzVector * vector)
     {
       int i;
       for (i = 0; i < vector->nr_elements; i++) {
-	vector->data[i] = vector->data[i+1];
+	vector->data[i].p = vector->data[i+1].p;
       }
     }
 #endif
@@ -231,7 +378,8 @@ oggz_vector_pop (OggzVector * vector)
       new_max_elements = vector->max_elements/2;
 
       new_elements =
-	realloc (vector->data, (size_t)new_max_elements * sizeof (void *));
+	realloc (vector->data,
+		 (size_t)new_max_elements * sizeof (oggz_data_t));
 
       if (new_elements != NULL) {
 	vector->max_elements = new_max_elements;
@@ -240,6 +388,11 @@ oggz_vector_pop (OggzVector * vector)
     }
 
   }
+#else
+
+  oggz_vector_remove_nth (vector, 0);
+
+#endif
 
   return data;
 

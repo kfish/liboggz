@@ -34,7 +34,8 @@
 #include <stdlib.h>
 #include <oggz/oggz.h>
 
-static int packetno = 0;
+#define ID_WRITE_DIRECT
+
 static int flush_next = 0;
 
 static int
@@ -44,12 +45,20 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   int flush;
   int ret;
 
+#if 0
   flush = flush_next;
   if (op->granulepos == -1) {
     flush_next = 0;
   } else {
     flush_next = OGGZ_FLUSH_BEFORE;
   }
+#else
+  if (op->granulepos == -1) {
+    flush = 0;
+  } else {
+    flush = OGGZ_FLUSH_AFTER;
+  }
+#endif
 
   if ((ret = oggz_write_feed (writer, op, serialno, flush, NULL)) != 0) {
     printf ("oggz_write_feed: %d\n", ret);
@@ -63,6 +72,8 @@ main (int argc, char ** argv)
 {
   char * infilename, * outfilename;
   OGGZ * reader, * writer;
+  FILE * outfile;
+  unsigned char buf[1024];
   long n;
 
   if (argc < 3) {
@@ -77,16 +88,33 @@ main (int argc, char ** argv)
     exit (1);
   }
 
+#ifdef ID_WRITE_DIRECT
   if ((writer = oggz_open (outfilename, OGGZ_WRITE)) == NULL) {
     printf ("unable to open file %s\n", outfilename);
     exit (1);
   }
+#else
+  if ((writer = oggz_new (OGGZ_WRITE)) == NULL) {
+    printf ("Unable to create new writer\n");
+  }
+  outfile = fopen (outfilename, "w");
+#endif
 
   oggz_set_read_callback (reader, -1, read_packet, writer);
 
   while ((n = oggz_read (reader, 1024)) > 0) {
+#ifdef ID_WRITE_DIRECT
     while (oggz_write (writer, n) > 0);
+#else
+    while (oggz_write_output (writer, buf, n) > 0) {
+      fwrite (buf, 1, n, outfile);
+    }
+#endif
   }
+
+#ifndef ID_WRITE_DIRECT
+  fclose (outfile);
+#endif
 
   oggz_close (writer);
   oggz_close (reader);

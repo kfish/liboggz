@@ -11,9 +11,10 @@ lib_LTLIBRARIES = liboggz.la
 
 liboggz_la_SOURCES = \
 	oggz.c \
-	oggz_private.h \
+	oggz_private.h oggz_byteorder.h oggz_macros.h \
 	oggz_read.c oggz_write.c \
+	oggz_auto.c oggz_auto.h \
+	oggz_table.c \
 	oggz_vector.c oggz_vector.h
 
 liboggz_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
-

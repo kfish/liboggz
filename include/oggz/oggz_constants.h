@@ -39,6 +39,9 @@
 
 /**
  * Flags to oggz_new(), oggz_open(), and oggz_openfd().
+ * Can be or'ed together in the following combinations:
+ * - OGGZ_READ | OGGZ_AUTO
+ * - OGGZ_WRITE | OGGZ_NONSTRICT
  */
 enum OggzFlags {
   /** Read only */
@@ -49,7 +52,15 @@ enum OggzFlags {
 
   /** Disable strict adherence to mapping constraints, eg for
    * handling an incomplete stream */
-  OGGZ_NONSTRICT    = 0x10
+  OGGZ_NONSTRICT    = 0x10,
+
+  /**
+   * Scan for known headers while reading, and automatically set
+   * metrics appropriately. Opening a file for reading with
+   * \a flags = OGGZ_READ | OGGZ_AUTO will allow seeking on Speex,
+   * Vorbis, Theora and all Annodex streams in units of milliseconds,
+   * once all bos pages have been delivered. */
+  OGGZ_AUTO         = 0x20
 };
 
 /**
@@ -88,11 +99,17 @@ enum OggzError {
   /** Operation is inappropriate for oggz in current eos state */
   OGGZ_ERR_EOS                          = -6,
 
+  /** Operation requires a valid metric, but none has been set */
+  OGGZ_ERR_BAD_METRIC                   = -7,
+
   /** System specific error; check errno for details */
   OGGZ_ERR_SYSTEM                       = -10,
 
   /** Functionality disabled at build time */
   OGGZ_ERR_DISABLED                     = -11,
+
+  /** Seeking operation is not possible for this OGGZ */
+  OGGZ_ERR_NOSEEK                       = -13,
 
   /** The requested serialno does not exist in this OGGZ */
   OGGZ_ERR_BAD_SERIALNO                 = -20,

@@ -46,6 +46,7 @@
 #include <ogg/ogg.h>
 
 #include "oggz_private.h"
+#include "oggz_vector.h"
 
 /*#define DEBUG*/
 
@@ -72,12 +73,12 @@ oggz_new (int flags)
   if (oggz == NULL) return NULL;
 
   oggz->flags = flags;
-  oggz->fd = -1;
+  oggz->file = NULL;
 
   oggz->offset = 0;
   oggz->offset_data_begin = 0;
 
-  oggz_vector_init (&oggz->streams, sizeof (oggz_stream_t));
+  oggz->streams = oggz_vector_new ();
   oggz->all_at_eos = 0;
 
   oggz->metric = NULL;
@@ -100,32 +101,32 @@ OGGZ *
 oggz_open (char * filename, int flags)
 {
   OGGZ * oggz = NULL;
-  int fd = -1;
+  FILE * file = NULL;
 
   if (oggz_flags_disabled (flags)) return NULL;
 
   if (flags & OGGZ_WRITE) {
-    fd = open (filename, O_WRONLY | O_CREAT | O_TRUNC, S_IRUSR | S_IWUSR);
+    file = fopen (filename, "w");
   } else {
-    fd = open (filename, O_RDONLY);
+    file = fopen (filename, "r");
   }
-  if (fd == -1) return NULL;
+  if (file == NULL) return NULL;
 
   oggz = oggz_new (flags);
-  oggz->fd = fd;
+  oggz->file = file;
 
   return oggz;
 }
 
 OGGZ *
-oggz_openfd (int fd, int flags)
+oggz_open_stdio (FILE * file, int flags)
 {
   OGGZ * oggz = NULL;
 
   if (oggz_flags_disabled (flags)) return NULL;
 
   oggz = oggz_new (flags);
-  oggz->fd = fd;
+  oggz->file = file;
 
   return oggz;
 }
@@ -135,9 +136,9 @@ oggz_flush (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
-  if (oggz->fd == -1) return OGGZ_ERR_INVALID;
+  if (oggz->file == NULL) return OGGZ_ERR_INVALID;
 
-  if (fsync (oggz->fd) == -1) {
+  if (fflush (oggz->file) == EOF) {
     return OGGZ_ERR_SYSTEM;
   }
 
@@ -163,8 +164,8 @@ oggz_close (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
-  oggz_vector_foreach (&oggz->streams, oggz_stream_clear);
-  oggz_vector_clear (&oggz->streams);
+  oggz_vector_foreach (oggz->streams, oggz_stream_clear);
+  oggz_vector_delete (oggz->streams);
 
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
     oggz_write_close (oggz);
@@ -172,8 +173,8 @@ oggz_close (OGGZ * oggz)
     oggz_read_close (oggz);
   }
 
-  if (oggz->fd != -1) {
-    if (close (oggz->fd) == -1) {
+  if (oggz->file != NULL) {
+    if (fclose (oggz->file) == EOF) {
       return OGGZ_ERR_SYSTEM;
     }
   }
@@ -206,7 +207,7 @@ oggz_get_stream (OGGZ * oggz, long serialno)
 {
   if (serialno < 0) return NULL;
 
-  return oggz_vector_find (&oggz->streams, oggz_find_stream, serialno);
+  return oggz_vector_find (oggz->streams, oggz_find_stream, serialno);
 }
 
 oggz_stream_t *
@@ -233,7 +234,7 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   stream->read_packet = NULL;
   stream->read_user_data = NULL;
 
-  oggz_vector_add_element (&oggz->streams, stream);
+  oggz_vector_insert_p (oggz->streams, stream);
 
   return stream;
 }
@@ -242,13 +243,14 @@ int
 oggz_get_bos (OGGZ * oggz, long serialno)
 {
   oggz_stream_t * stream;
-  int i;
+  int i, size;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (serialno == -1) {
-    for (i = 0; i < oggz->streams.nr_elements; i++) {
-      stream = (oggz_stream_t *)oggz->streams.data[i];
+    size = oggz_vector_size (oggz->streams);
+    for (i = 0; i < size; i++) {
+      stream = (oggz_stream_t *)oggz_vector_nth_p (oggz->streams, i);
 #if 1
       /* If this stream has delivered a non bos packet, return FALSE */
       if (stream->delivered_non_b_o_s) return 0;
@@ -271,13 +273,14 @@ int
 oggz_get_eos (OGGZ * oggz, long serialno)
 {
   oggz_stream_t * stream;
-  int i;
+  int i, size;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (serialno == -1) {
-    for (i = 0; i < oggz->streams.nr_elements; i++) {
-      stream = (oggz_stream_t *)oggz->streams.data[i];
+    size = oggz_vector_size (oggz->streams);
+    for (i = 0; i < size; i++) {
+      stream = (oggz_stream_t *)oggz_vector_nth_p (oggz->streams, i);
       if (!stream->e_o_s) return 0;
     }
     return 1;
@@ -294,13 +297,14 @@ int
 oggz_set_eos (OGGZ * oggz, long serialno)
 {
   oggz_stream_t * stream;
-  int i;
+  int i, size;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (serialno == -1) {
-    for (i = 0; i < oggz->streams.nr_elements; i++) {
-      stream = (oggz_stream_t *)oggz->streams.data[i];
+    size = oggz_vector_size (oggz->streams);
+    for (i = 0; i < size; i++) {
+      stream = (oggz_stream_t *) oggz_vector_nth_p (oggz->streams, i);
       stream->e_o_s = 1;
     }
     oggz->all_at_eos = 1;
@@ -346,7 +350,7 @@ oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
   return (ldata->gr_n * granulepos / ldata->gr_d);
 }
 
-static int
+int
 oggz_set_metric_internal (OGGZ * oggz, long serialno,
 			  OggzMetric metric, void * user_data, int internal)
 {
