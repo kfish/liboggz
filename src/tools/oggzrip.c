@@ -64,12 +64,9 @@ typedef struct {
   int numwrite;
   OggzTable *streams;
   int verbose;
-  int num_serialnos;
-  long serialnos[MAX_FILTER];
-  int num_streamids;
-  long streamids[MAX_FILTER];
-  int num_content_types;
-  const char *content_types[MAX_FILTER];
+  OggzTable *serialno_table;
+  OggzTable *stream_index_table;
+  OggzTable *content_types_table;
 } ORData;
 
 typedef struct {
@@ -117,6 +114,15 @@ ordata_new ()
   
   ordata->streams = oggz_table_new ();
   assert (ordata->streams != NULL);
+
+  ordata->serialno_table = oggz_table_new();
+  assert (ordata->serialno_table != NULL);
+
+  ordata->stream_index_table = oggz_table_new();
+  assert (ordata->stream_index_table != NULL);
+
+  ordata->content_types_table = oggz_table_new();
+  assert (ordata->content_types_table != NULL);
   
   return ordata;
 }
@@ -125,6 +131,9 @@ static void
 ordata_delete (ORData *ordata)
 {
   oggz_table_delete (ordata->streams);
+  oggz_table_delete (ordata->serialno_table);
+  oggz_table_delete (ordata->stream_index_table);
+  oggz_table_delete (ordata->content_types_table);
   
   if (ordata->reader)
     oggz_close (ordata->reader);
@@ -138,23 +147,21 @@ static int
 filter_stream_p (const ORData *ordata, ORStream *stream, 
 		 const ogg_page *og, long serialno)
 {
-  int i;
-
-  for (i = 0; i < ordata->num_serialnos; i++) {
-    if (ordata->serialnos[i] == serialno)
-      return 1;
-  }
+  int i, n;
+  
+  if (oggz_table_lookup (ordata->serialno_table, serialno) != NULL)
+    return 1;
 
   if (stream == NULL)
     return 0;
-  
-  for (i = 0; i < ordata->num_streamids; i++) {
-    if (ordata->streamids[i] == stream->streamid)
-      return 1;
-  }
 
-  for (i = 0; i < ordata->num_content_types; i++) {
-    if (strcmp (ordata->content_types[i], stream->content_type) == 0)
+  if (oggz_table_lookup (ordata->stream_index_table, (long)stream->streamid) != NULL)
+    return 1;
+
+  n = oggz_table_size (ordata->content_types_table);
+  for (i = 0; i < n; i++) {
+    char * c = oggz_table_nth (ordata->content_types_table, i, NULL);
+    if (strcmp (c, stream->content_type) == 0)
       return 1;
   }
 
@@ -295,7 +302,8 @@ main (int argc, char * argv[])
   FILE * infile = NULL;
   const char *currentopt = argv[1];
   ORData * ordata;
-  int i;
+  long l;
+  int i, n;
 
 #ifdef _WIN32
   /* We need to set stdin/stdout to binary mode */
@@ -352,31 +360,19 @@ main (int argc, char * argv[])
       ordata->verbose = 1;
       break;
     case 's': /* serialno */
-      if (ordata->num_serialnos >= MAX_FILTER) {
-	fprintf (stderr, "ERROR: too many serialnos on command line\n");
+      if (or_get_long (optarg, currentopt, &l))
 	goto exit_err;
-      }
-      if (or_get_long (optarg, currentopt, 
-		       &ordata->serialnos[ordata->num_serialnos++]))
-	goto exit_err;
-
+      oggz_table_insert (ordata->serialno_table, l, (void *)0x7);
       break;
     case 'i': /* stream index */
-      if (ordata->num_streamids >= MAX_FILTER) {
-	fprintf (stderr, "ERROR: too many stream indexes on command line\n");
+      if (or_get_long (optarg, currentopt, &l))
 	goto exit_err;
-      }
-      if (or_get_long (optarg, currentopt, 
-		       &ordata->streamids[ordata->num_streamids++]))
-	goto exit_err;
-    case 'c': /* content-type */
-      if (ordata->num_content_types >= MAX_FILTER) {
-	fprintf (stderr, "ERROR: too many content-types on command line\n");
-	goto exit_err;
-      }
-      ordata->content_types[ordata->num_content_types++] = optarg;	     
+      oggz_table_insert (ordata->stream_index_table, l, (void *)0x7);
       break;
-	  
+    case 'c': /* content-type */
+      n = oggz_table_size (ordata->content_types_table);
+      oggz_table_insert (ordata->content_types_table, (long)n, optarg);
+      break;
     default:
       break;
     }
