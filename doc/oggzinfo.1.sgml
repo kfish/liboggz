@@ -1,0 +1,259 @@
+<!DOCTYPE refentry PUBLIC "-//OASIS//DTD DocBook V4.1//EN"[
+<!-- Process this file with docbook-to-man to generate an nroff manual
+     page: `docbook-to-man manpage.sgml > manpage.1'.  You may view
+     the manual page with: `docbook-to-man manpage.sgml | nroff -man |
+     less'.  A typical entry in a Makefile or Makefile.am is:
+ 
+manpage.1: manpage.sgml
+        docbook-to-man $< > $@
+  -->
+ 
+  <!-- Fill in your name for FIRSTNAME and SURNAME. -->
+  <!ENTITY dhfirstname "<firstname>Conrad</firstname>">
+  <!ENTITY dhsurname   "<surname>Parker</surname>">
+  <!-- Please adjust the date whenever revising the manpage. -->
+  <!ENTITY dhdate      "<date>March 10, 2005</date>">
+  <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
+       allowed: see man(7), man(1). -->
+  <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
+  <!ENTITY dhemail     "<email>conrad.parker@csiro.au</email>">
+  <!ENTITY dhusername  "CSIRO Australia">
+  <!ENTITY dhucpackage "<refentrytitle>oggzinfo</refentrytitle>">
+  <!ENTITY dhpackage   "oggzinfo">
+                                                                                 <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
+  <!ENTITY gnu         "<acronym>GNU</acronym>">
+]>
+
+<refentry id="oggzinfo">
+
+  <refentryinfo>
+    <address>
+      &dhemail;
+    </address>
+    <author>
+      &dhfirstname;
+      &dhsurname;
+    </author>
+    <copyright>
+      <year>2005</year>
+      <holder>&dhusername;</holder>
+    </copyright>
+    &dhdate;
+  </refentryinfo>
+
+  <refmeta>
+    &dhucpackage;
+    &dhsection;
+  </refmeta>
+
+  <refnamediv>
+    <refname>&dhpackage;</refname>
+    <refpurpose>Display information about one or more Ogg files and their bitstreams.
+    </refpurpose>
+  </refnamediv>
+
+  <!-- A warning of 
+  "document type does not allow element "PARAMETER" here"
+  for all the <parameter> tags in the refsynopsisdiv.
+  Ignore them as the <parameter> tag still gets interpreted correctly in
+  the manpage. Deleting the tag however results in non-underlined 
+  -->
+  <refsynopsisdiv>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <group><arg choice="opt">-l</arg><arg choice="opt">--length</arg></group>
+      <group><arg choice="opt">-b</arg><arg choice="opt">--bitrate</arg></group>
+      <group><arg choice="opt">-g</arg><arg choice="opt">--page-stats</arg></group>
+      <group><arg choice="opt">-p</arg><arg choice="opt">--packet-stats</arg></group>
+      <group><arg choice="opt">-a</arg><arg choice="opt">--all</arg></group>
+      <arg choice="plain" rep="repeat">filename</arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
+      <group><arg choice="opt">-v</arg><arg choice="opt">--version</arg></group>
+    </cmdsynopsis>
+    
+  </refsynopsisdiv>
+    
+  <refsect1>
+    <title>Description</title>
+    <para>
+      <command>&dhpackage;</command> displays information about one or more
+      Ogg files and their bitstreams.
+    </para>
+  </refsect1>
+  
+  <refsect1>
+    <title>Options</title>
+    <para>
+      <command>&dhpackage;</command> accepts the following options:
+    </para>
+
+    <refsect2>
+      <title>Display options</title>
+      <variablelist>
+
+	<varlistentry>
+	  <term>-l, --length</term>
+	  <listitem><para>Display content lengths.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-b, --bitrate</term>
+	  <listitem><para>Display bitrate information.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-g, --page-stats</term>
+	  <listitem><para>Display Ogg page statistics.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-p, --packet-stats</term>
+	  <listitem><para>Display Ogg packet statistics.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-a, --all</term>
+	  <listitem><para>Display all information.</para></listitem>
+	</varlistentry>
+
+      </variablelist>
+    </refsect2>
+            
+    <refsect2>
+      <title>Miscellaneous options</title>
+      <variablelist>
+
+	<varlistentry>
+	  <term>-h, --help</term>
+	  <listitem><para>Display usage information and exit.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-v, --version</term>
+	  <listitem><para>Output version information and exit.</para></listitem>
+	</varlistentry>
+	
+      </variablelist>
+    </refsect2>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Units of measurement</title>
+
+    <para><command>&dhpackage;</command> displays information using the
+      following units:
+    </para>
+
+    <refsect2>
+      <title>Byte lengths</title>
+      <variablelist>
+
+	<varlistentry>
+	  <term>bytes</term>
+	  <listitem><para>(8 bits)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>kB</term>
+	  <listitem><para>kilobytes (1024 bytes)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>MB</term>
+	  <listitem><para>megabytes (1024*1024 bytes)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>GB</term>
+	  <listitem><para>gigabytes (1024*1024*1024 bytes)</para></listitem>
+	</varlistentry>
+
+      </variablelist>
+    </refsect2>
+
+    <refsect2>
+      <title>Bitrates</title>
+      <variablelist>
+	
+	<varlistentry>
+	  <term>bps</term>
+	  <listitem><para>bits per second (bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>kbps</term>
+	  <listitem><para>kilobits per second (1000 bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>Mbps</term>
+	  <listitem><para>megabits per second (1000000 bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>Gbps</term>
+	  <listitem><para>gigabits per second (1000000000 bit/s)</para></listitem>
+	</varlistentry>
+	
+      </variablelist>
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
+    <title>AUTHOR</title>
+    <para>
+      <author>
+	&dhfirstname; &dhsurname;
+      </author>
+      &dhdate
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>COPYRIGHT</title>
+    <para>
+      Copyright &copy; 2005 &dhusername;
+    </para>
+  </refsect1>
+
+  <refsect1>
+    <title>SEE ALSO</title>
+    <para>
+      <citerefentry>
+	<refentrytitle>oggzdump</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>oggzrip</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>oggzdiff</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>
+    </para>
+  </refsect1>
+
+</refentry>
+
+<!-- Keep this comment at the end of the file
+Local variables:
+mode: sgml
+sgml-omittag:t
+sgml-shorttag:t
+sgml-minimize-attributes:nil
+sgml-always-quote-attributes:t
+sgml-indent-step:2
+sgml-indent-data:t
+sgml-parent-document:nil
+sgml-default-dtd-file:nil
+sgml-exposed-tags:nil
+sgml-local-catalogs:nil
+sgml-local-ecat-files:nil
+End:
+-->
