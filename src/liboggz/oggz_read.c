@@ -342,6 +342,8 @@ oggz_read (OGGZ * oggz, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
+  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
+
   while (cb_ret == 0 && bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
