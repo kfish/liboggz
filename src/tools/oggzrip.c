@@ -117,6 +117,8 @@ usage (char * progname)
   printf ("                         Filter by codec-name.  The following codecs\n");
   printf ("                         are currently detected: \"theora\",\n");
   printf ("                         \"vorbis\", \"speex\", \"annodex\"\n");
+  printf ("\n");
+  printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
 static ORData *
