@@ -1,3 +1,7 @@
+Thu Mar 11 11:00:00 EST 2004 Silvia Pfeiffer <silvia.pfeiffer@csiro.au>
+	* Version 0.8.2
+	* fixed up the Makefiles to not include the CVS subdirectories
+	
 Sun Mar 07 16:00:00 EST 2004 Silvia Pfeiffer <silvia.pfeiffer@csiro.au>
 	* Version 0.8.1
 	* includes Windows port with Makefile & VC6 workspace & .NET solution

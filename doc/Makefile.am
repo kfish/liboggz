@@ -41,12 +41,14 @@ dist-hook:
 	if test -d liboggz; then \
 	  mkdir $(dist_docdir); \
 	  for dir in liboggz/*; do \
-            if test -d $$dir; then \
-              b=`basename $$dir`; \
-              mkdir $(dist_docdir)/$$b; \
-	      for f in $$dir/*; do \
-                cp -p $$f $(dist_docdir)/$$b; \
-              done \
+            b=`basename $$dir`; \
+            if test $$b != "CVS"; then \
+              if test -d $$dir; then \
+                mkdir $(dist_docdir)/$$b; \
+	        for f in $$dir/*; do \
+                  cp -p $$f $(dist_docdir)/$$b; \
+                done \
+              fi \
             fi \
           done \
 	fi
