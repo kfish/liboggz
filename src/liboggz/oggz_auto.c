@@ -165,6 +165,22 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 }
 
 static int
+auto_annodex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+
+  if (op->bytes < 8) return 0;
+
+  if (strncmp ((char *)header, "Annodex", 8)) return 0;
+  if (!op->b_o_s) return 0;
+
+  /* Yeah ... set it up with a "linear" metric with numerator 0 :) */
+  oggz_set_metric_linear (oggz, serialno, 0, 1);
+
+  return 1;
+}
+
+static int
 auto_anxdata (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
@@ -193,6 +209,7 @@ static OggzReadPacket auto_readers[] = {
   auto_speex,
   auto_vorbis,
   auto_theora,
+  auto_annodex,
   auto_anxdata,
   NULL
 };
