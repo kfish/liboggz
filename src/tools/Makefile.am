@@ -15,7 +15,7 @@ if OGGZ_CONFIG_READ
 oggz_read_programs = oggzinfo oggzdump oggzed
 
 if OGGZ_CONFIG_WRITE
-oggz_rw_programs = oggzmerge
+oggz_rw_programs = oggzmerge oggzrip
 endif
 
 endif
@@ -34,3 +34,6 @@ oggzdump_LDADD = $(OGGZ_LIBS)
 
 oggzmerge_SOURCES = oggzmerge.c
 oggzmerge_LDADD = $(OGGZ_LIBS)
+
+oggzrip_SOURCES = oggzrip.c
+oggzrip_LDADD = $(OGGZ_LIBS)
