@@ -80,8 +80,8 @@ manpage.1: manpage.sgml
     <para>
       <command>&dhpackage;</command> merges Ogg files together, interleaving
       pages in order of presentation time. It correctly interprets the
-      granulepos timestamps of Ogg Vorbis, Speex and Theora bitstreams, and
-      all bitstreams of Annodex files.
+      granulepos timestamps of Ogg Vorbis, Speex, FLAC and Theora bitstreams,
+      and all bitstreams of Annodex files.
     </para>
   </refsect1>
   
