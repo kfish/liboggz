@@ -100,8 +100,6 @@ oggz_new (int flags)
     oggz_read_init (oggz);
   }
 
-  oggz->status = OGGZ_STATUS_INITIALIZED;
-
   return oggz;
 }
 

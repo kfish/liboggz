@@ -166,8 +166,6 @@ struct _OggzIO {
 
 struct _OGGZ {
   int flags;
-  enum OggzStatus status;
-
   FILE * file;
   OggzIO * io;
 
