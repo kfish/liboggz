@@ -245,6 +245,17 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  */
 
 /**
+ * Retrieve the granuleshift of a logical bitstream.
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz
+ * \returns The granuleshift of the specified logical bitstream.
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ */
+int oggz_get_granuleshift (OGGZ * oggz, long serialno);
+
+/**
  * Specify the granuleshift of a logical bitstream.
  * \param oggz An OGGZ handle
  * \param serialno Identify the logical bitstream in \a oggz to attach
@@ -257,6 +268,22 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  */
 int oggz_set_granuleshift (OGGZ * oggz, long serialno, int granuleshift);
+
+/**
+ * Retrieve the granulerate of a logical bitstream.
+ * \param oggz An OGGZ handle
+ * \param serialno Identify the logical bitstream in \a oggz
+ * \param granulerate_n Return location for the granulerate numerator
+ * \param granulerate_d Return location for the granulerate denominator
+ * \returns 0 Success
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ *
+ */
+int oggz_get_granulerate (OGGZ * oggz, long serialno,
+			  ogg_int64_t * granulerate_n,
+			  ogg_int64_t * granulerate_d);
 
 /**
  * Specify the granulerate of a logical bitstream.
