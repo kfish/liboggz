@@ -71,7 +71,7 @@ struct _OMITrack {
 };
 
 static ogg_page *
-_ogg_page_copy (ogg_page * og)
+_ogg_page_copy (const ogg_page * og)
 {
   ogg_page * new_og;
 
@@ -87,11 +87,11 @@ _ogg_page_copy (ogg_page * og)
 }
 
 static int
-_ogg_page_free (ogg_page * og)
+_ogg_page_free (const ogg_page * og)
 {
   free (og->header);
   free (og->body);
-  free (og);
+  free ((ogg_page *)og);
   return 0;
 }
 
@@ -168,7 +168,6 @@ read_page (OGGZ * oggz, const ogg_page * og, void * user_data)
 static int
 oggz_merge (OMData * omdata, FILE * outfile)
 {
-  unsigned char buf[READ_SIZE];
   OMInput * input;
   int ninputs, i, min_i;
   long key, n;
@@ -194,12 +193,11 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	  }
 	}
 	if (input && input->og) {
-	  if (ogg_page_bos (input->og)) {
+	  if (ogg_page_bos ((ogg_page *)input->og)) {
 	    min_i = i;
 	    active = 0;
 	  }
 	  units = oggz_tell_units (input->reader);
-	  printf ("cmp units %lld < %lld ?\n", units, min_units);
 	  if (min_units == -1 || units == 0 ||
 	      (units > -1 && units < min_units)) {
 	    min_units = units;
