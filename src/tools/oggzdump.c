@@ -413,8 +413,7 @@ main (int argc, char ** argv)
     if (i == -1) break;
     if (i == ':') {
       usage (progname);
-      oggz_table_delete(table);
-      exit (1);
+      goto exit_err;
     }
 
     switch (i) {
