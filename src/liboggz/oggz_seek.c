@@ -537,6 +537,10 @@ oggz_seek_guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
 			  offset_begin, offset_end);
   }
 
+#ifdef DEBUG
+    printf ("oggz_seek_guess: guessed %ld\n", offset_guess);
+#endif
+
   return offset_guess;
 }
 
@@ -656,10 +660,6 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 				    offset_at,
 				    offset_begin, offset_end);
     if (offset_guess == -1) break;
-
-#ifdef DEBUG
-    printf ("oggz_seek_set: guessed %ld\n", offset_guess);
-#endif
 
     if (offset_guess == offset_at) {
       /* Already there, looping */
