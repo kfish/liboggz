@@ -46,7 +46,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
   ogg_packet op;
   int err;
 
-  buf[1] = 'x';
+  buf[0] = 'x';
 
   op.packet = buf;
   op.bytes = 1;

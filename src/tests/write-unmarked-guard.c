@@ -46,7 +46,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
   ogg_packet op;
   int ret;
 
-  buf[1] = 'x';
+  buf[0] = 'x';
 
   /* Main check */
   if (packetno > 0) {

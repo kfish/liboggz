@@ -43,7 +43,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
   unsigned char buf[1];
   ogg_packet op;
 
-  buf[1] = 'x';
+  buf[0] = 'x';
 
   op.packet = buf;
   op.bytes = 1;
