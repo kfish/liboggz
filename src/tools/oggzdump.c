@@ -89,6 +89,8 @@ usage (char * progname)
   printf ("                         Specify output filename\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
+  printf ("\n");
+  printf ("Please report bugs to <libannodex-dev@lists.annodex.net>\n");
 }
 
 static void
