@@ -47,6 +47,7 @@
 #include <errno.h>
 
 #include <oggz/oggz.h>
+#include "oggz_tools.h"
 
 #define DEBUG
 
@@ -376,6 +377,8 @@ main (int argc, char ** argv)
   OggzReadPacket my_read_packet = read_packet;
   int i, size;
   long n;
+
+  ot_init ();
 
   progname = argv[0];
 

@@ -52,4 +52,10 @@ int ot_print_bitrate (long bps);
 
 int ot_print_time (double seconds);
 
+/*
+ * Tool initialization function. Sets stdin, stdio to binary on windows etc.
+ * Call this at the beginning of main().
+ */
+void ot_init (void);
+
 #endif /* __OGGZ_TOOLS_H__ */

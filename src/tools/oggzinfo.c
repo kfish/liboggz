@@ -41,10 +41,10 @@
 #include <oggz/oggz.h>
 #include "oggz_tools.h"
 
-#ifndef WIN32
-#include <inttypes.h>
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
 #else
-#define PRId64 "ld"
+#  define PRId64 "I64d"
 #endif
 
 static void

@@ -249,3 +249,14 @@ ot_print_time (double seconds)
     return printf ("%s%02d:%02d:%02.3f", sign, hrs, min, sec);
   }
 }
+
+void
+ot_init (void)
+{
+#ifdef _WIN32
+  /* We need to set stdin/stdout to binary mode */
+
+  _setmode( _fileno( stdin ), _O_BINARY );
+  _setmode( _fileno( stdout ), _O_BINARY );
+#endif
+}

@@ -35,17 +35,13 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <fcntl.h>
 
 #include <getopt.h>
 #include <errno.h>
 
 #include <oggz/oggz.h>
-
-#ifdef _WIN32
-/* Supply missing headers and functions for Win32 */
-
-#include <fcntl.h>
-#endif
+#include "oggz_tools.h"
 
 #define READ_SIZE 4096
 
@@ -245,12 +241,7 @@ main (int argc, char * argv[])
   OMData * omdata;
   int i;
 
-#ifdef _WIN32
-  /* We need to set stdin/stdout to binary mode */
-
-  _setmode( _fileno( stdin ), _O_BINARY );
-  _setmode( _fileno( stdout ), _O_BINARY );
-#endif
+  ot_init ();
 
   progname = argv[0];
 

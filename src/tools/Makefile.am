@@ -33,10 +33,10 @@ oggzinfo_LDADD = $(OGGZ_LIBS) -lm
 oggzed_SOURCES = oggzed.c
 oggzed_LDADD = $(OGGZ_LIBS)
 
-oggzdump_SOURCES = oggzdump.c
+oggzdump_SOURCES = oggzdump.c oggz_tools.c
 oggzdump_LDADD = $(OGGZ_LIBS)
 
-oggzmerge_SOURCES = oggzmerge.c
+oggzmerge_SOURCES = oggzmerge.c oggz_tools.c
 oggzmerge_LDADD = $(OGGZ_LIBS)
 
 oggzrip_SOURCES = oggzrip.c oggz_tools.c
