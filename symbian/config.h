@@ -41,4 +41,14 @@
 
 #define OGGZ_CONFIG_WRITE 0
 
+#ifdef __WINS__
+
+/* Disable some pointless warnings */
+
+#pragma warning(disable : 4100) /* unreferenced formal parameter */
+#pragma warning(disable : 4127) /* conditional expression is constant */
+#pragma warning(disable : 4702) /* unreachable code */
+
+#endif /* __WINS__ */
+
 #endif /* ! CONFIG_H */
