@@ -68,9 +68,13 @@ manpage.1: manpage.sgml
 	<arg choice="opt">--output <parameter>filename</parameter></arg>
       </group>
 
-      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
+      <arg choice="plain" rep="repeat">filename</arg>
+    </cmdsynopsis>
 
-      <arg choice="plain">filename</arg>
+    <cmdsynopsis>
+      <command>&dhpackage;</command>
+      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
+      <group><arg choice="opt">-v</arg><arg choice="opt">--version</arg></group>
     </cmdsynopsis>
     
   </refsynopsisdiv>
