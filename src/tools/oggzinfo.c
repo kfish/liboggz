@@ -32,8 +32,14 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <inttypes.h>
 #include <oggz/oggz.h>
+
+#ifndef WIN32
+#include <inttypes.h>
+#else
+#define PRId64 "ld"
+#endif
+
 
 static int got_an_eos = 0;
 

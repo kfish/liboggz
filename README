@@ -1,0 +1,29 @@
+liboggz is a library that provides simple parsing and seeking of files
+and streams based on the Ogg file format. liboggz requires libogg to
+work.
+
+liboggz knows about Ogg speex, Ogg vorbis, Ogg theora, and the Ogg
+based Annodex formats, thus allows parsing (though not decoding) of
+these files. For getting decoding and encoding functionality you will
+require in addition libspeex, libvorbis, libtheora, and libannodex
+respectively.
+
+The src/ directory contains the source code.
+The src/liboggz/ directory has the library source code.
+The src/tools/ directory has some command line tools for analysing
+               ogg files.
+
+The include/ directory contains the oggz include files that will
+be installed into the system include directory.
+
+The doc/ directory contains some documentation for oggz. The
+subdirectory liboggz is autocreated by doxygen from comments contained
+in the source code.
+
+The win32/ directory contains the files necessary to compile the
+library for MS Windows.
+
+This library is installed using the standard configure, make, make
+install sequence. Full details in the file INSTALL.
+
+Read the file README.win32 for installing under MS Windows.
