@@ -155,6 +155,9 @@ oggzinfo_trackinfo_new (void)
   oi_stats_clear (&oit->pages);
   oi_stats_clear (&oit->packets);
 
+  oit->codec_name = NULL;
+  oit->codec_info = NULL;
+
   return oit;
 }
 
