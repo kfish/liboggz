@@ -57,7 +57,7 @@ oggz_io_read (OGGZ * oggz, void * buf, size_t n)
   if (oggz->file != NULL) {
     if ((bytes = fread (buf, 1, n, oggz->file)) == 0) {
       if (ferror (oggz->file)) {
-	return OGGZ_ERR_SYSTEM;
+        return (size_t) OGGZ_ERR_SYSTEM;
       }
     }
   }
