@@ -112,7 +112,7 @@ omdata_delete (OMData * omdata)
 
   ninputs = oggz_table_size (omdata->inputs);
   for (i = 0; i < ninputs; i++) {
-    input = (OMInput *) oggz_table_nth (omdata->inputs, i);
+    input = (OMInput *) oggz_table_nth (omdata->inputs, i, NULL);
     ominput_delete (input);
   }
   oggz_table_delete (omdata->inputs);
