@@ -159,12 +159,12 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
       vorbis_info_init (&vi);
       vorbis_comment_init (&vc);
-      
+
       if ((ret = vorbis_synthesis_headerin (&vi, &vc, op)) == 0) {
 	if (vi.rate != 0) {
 	  printf ("Got vorbis info: version %d\tchannels %d\trate %ld\n",
 		  vi.version, vi.channels, vi.rate);
-	  
+
 	  init_stream (serialno, vi.rate, 1, 0);
 	}
       }
@@ -172,14 +172,14 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     } else if (!strncmp ((char *)&op->packet[0], "Speex   ", 8)) {
 #ifdef HAVE_SPEEX
       SpeexHeader * header;
-    
+
       header = speex_packet_to_header ((char *)op->packet, op->bytes);
-    
+
       if (header) {
 	init_stream (serialno, header->rate, 1, 0);
 
 	printf ("Got speex samplerate %d\n", header->rate);
-	
+
 	free (header);
       }
 #endif
@@ -215,7 +215,8 @@ main (int argc, char ** argv)
   long n;
 
   if (argc < 2) {
-    printf ("usage: %s filename\n", argv[0]);
+    printf ("Usage: %s filename\n", argv[0]);
+    return (1);
   }
 
   granule_rate = 1000000;
@@ -227,7 +228,7 @@ main (int argc, char ** argv)
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ)) == NULL) {
     printf ("unable to open file %s\n", argv[1]);
-    exit (1);
+    return (1);
   }
 
   oggz_set_metric (oggz, -1, gp_metric, NULL);
@@ -245,5 +246,5 @@ main (int argc, char ** argv)
 
   oggz_close (oggz);
 
-  exit (0);
+  return (0);
 }

@@ -117,7 +117,7 @@ omdata_delete (OMData * omdata)
   }
   oggz_table_delete (omdata->inputs);
 
-  free (omdata);  
+  free (omdata);
 }
 
 static int
@@ -140,7 +140,7 @@ omdata_add_input (OMData * omdata, FILE * infile)
     ominput_delete (input);
     return -1;
   }
-  
+
   return 0;
 }
 
@@ -213,6 +213,12 @@ main (int argc, char * argv[])
   int i;
 
   progname = argv[0];
+
+  if (argc < 2) {
+    usage (progname);
+    return (1);
+  }
+
   omdata = omdata_new();
 
   while (1) {
@@ -233,14 +239,14 @@ main (int argc, char * argv[])
     if (i == ':') {
       usage (progname);
       omdata_delete (omdata);
-      exit (1);
+      return (1);
     }
 
     switch (i) {
     case 'h': /* help */
       usage (progname);
       omdata_delete (omdata);
-      exit (0);
+      return (0);
       break;
     case 'o': /* output */
       outfilename = optarg;
@@ -254,7 +260,7 @@ main (int argc, char * argv[])
   if (optind >= argc) {
     usage (progname);
     omdata_delete (omdata);
-    exit (1);
+    return (1);
   }
 
   while (optind < argc) {
@@ -276,7 +282,7 @@ main (int argc, char * argv[])
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
       omdata_delete (omdata);
-      exit (1);
+      return (1);
     }
   }
 
@@ -284,5 +290,5 @@ main (int argc, char * argv[])
 
   omdata_delete (omdata);
 
-  exit (0);
+  return (0);
 }

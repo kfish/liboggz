@@ -73,13 +73,13 @@ main (int argc, char ** argv)
   long n;
 
   if (argc < 2) {
-    printf ("usage: %s filename\n", argv[0]);
+    printf ("Usage: %s filename\n", argv[0]);
+    return (1);
   }
-
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ)) == NULL) {
     printf ("unable to open file %s\n", argv[1]);
-    exit (1);
+    return (1);
   }
 
   oggz_set_read_callback (oggz, -1, read_packet, NULL);
@@ -87,5 +87,5 @@ main (int argc, char ** argv)
 
   oggz_close (oggz);
 
-  exit (0);
+  return (0);
 }

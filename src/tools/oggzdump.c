@@ -77,7 +77,7 @@ dump_char_line (unsigned char * buf, long n)
   int i;
 
   fprintf (outfile, "  ");
-  
+
   for (i = 0; i < n; i++) {
     if (isgraph(buf[i])) fprintf (outfile, "%c", buf[i]);
     else if (isspace(buf[i])) fprintf (outfile, " ");
@@ -259,7 +259,7 @@ revert_file (char * infilename)
       if (current_serialno != -1) {
 	int ret;
 
-#ifdef DEBUG	
+#ifdef DEBUG
 	printf ("feeding packet (%010ld) %ld bytes\n",
 		current_serialno, op.bytes);
 #endif
@@ -271,7 +271,7 @@ revert_file (char * infilename)
 	  fwrite (buf, 1, 1024, outfile);
 	}
       }
-      
+
       /* Start new packet */
       bos = 0; eos = 0;
       if (sscanf (&line[line_offset], " *** %[b]%[o]%[s]%n", &c, &c, &c,
@@ -327,7 +327,7 @@ revert_file (char * infilename)
 	      op.packet = packet;
 	    }
 	  }
-	  
+
 	  packet[op.bytes-1] = (unsigned char) val;
 
 	  line_offset += consumed;
@@ -355,7 +355,8 @@ main (int argc, char ** argv)
   progname = argv[0];
 
   if (argc < 2) {
-    printf ("usage: %s filename\n", progname);
+    usage (progname);
+    return (1);
   }
 
   table = oggz_table_new();
@@ -387,14 +388,14 @@ main (int argc, char ** argv)
     if (i == ':') {
       usage (progname);
 	  oggz_table_delete(table);
-      exit (1);
+      return (1);
     }
 
     switch (i) {
     case 'h': /* help */
       usage (progname);
 	  oggz_table_delete(table);
-      exit (0);
+      return (0);
       break;
     case 'b': /* binary */
       dump_bits = 1;
@@ -433,7 +434,7 @@ main (int argc, char ** argv)
   if (optind >= argc) {
     usage (progname);
 	oggz_table_delete(table);
-    exit (1);
+    return (1);
   }
 
   infilename = argv[optind++];
@@ -446,7 +447,7 @@ main (int argc, char ** argv)
       fprintf (stderr, "%s: unable to open output file %s\n",
 	       progname, outfilename);
 	  oggz_table_delete(table);
-      exit (1);
+      return (1);
     }
   }
 
@@ -454,7 +455,7 @@ main (int argc, char ** argv)
     if (dump_bits) {
       fprintf (stderr, "%s: Revert of binary dump not supported\n", progname);
 	  oggz_table_delete(table);
-      exit (1);
+      return (1);
     }
 
     revert_file (infilename);
@@ -476,7 +477,7 @@ main (int argc, char ** argv)
 		 progname, infilename, strerror (errno));
       }
 	oggz_table_delete(table);
-      exit (1);
+      return (1);
     }
 
     if (dump_all_serialnos) {
@@ -490,9 +491,10 @@ main (int argc, char ** argv)
     }
 
     while ((n = oggz_read (oggz, 1024)) > 0);
-    
+
     oggz_close (oggz);
   }
   oggz_table_delete(table);
-  exit (0);
+
+  return (0);
 }
