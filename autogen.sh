@@ -49,5 +49,5 @@ if grep -q AC_LIBLTDL_CONVENIENCE configure.*; then
 fi
 
 AUTORECONF=${AUTORECONF:-autoreconf}
-"$AUTORECONF" --install "$@"
+"$AUTORECONF" -i "$@"
 
