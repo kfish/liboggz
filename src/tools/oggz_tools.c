@@ -141,12 +141,12 @@ ot_speex_info (unsigned char * data, long len)
 }
 
 static const OTCodecIdent codec_ident[] = {
-  {"\200theora", 7, "theora", ot_theora_info},
-  {"\001vorbis", 7, "vorbis", ot_vorbis_info},
-  {"Speex", 5, "speex", ot_speex_info},
-  {"CMML\0\0\0\0", 8, "cmml", NULL},
-  {"Annodex", 8, "annodex", NULL},
-  {"fishead", 8, "skeleton", NULL},
+  {"\200theora", 7, "Theora", ot_theora_info},
+  {"\001vorbis", 7, "Vorbis", ot_vorbis_info},
+  {"Speex", 5, "Speex", ot_speex_info},
+  {"CMML\0\0\0\0", 8, "CMML", NULL},
+  {"Annodex", 8, "Annodex", NULL},
+  {"fishead", 8, "Skeleton", NULL},
   {NULL}
 };
 

@@ -161,7 +161,7 @@ filter_stream_p (const ORData *ordata, ORStream *stream,
   n = oggz_table_size (ordata->content_types_table);
   for (i = 0; i < n; i++) {
     char * c = oggz_table_nth (ordata->content_types_table, i, NULL);
-    if (strcmp (c, stream->content_type) == 0)
+    if (strcasecmp (c, stream->content_type) == 0)
       return 1;
   }
 
