@@ -136,9 +136,11 @@ oggz_set_read_callback (OGGZ * oggz, long serialno,
 }
 
 int
-oggz_set_read_page (OGGZ * oggz, OggzReadPage read_page, void * user_data)
+oggz_set_read_page (OGGZ * oggz, long serialno, OggzReadPage read_page,
+		    void * user_data)
 {
   OggzReader * reader;
+  oggz_stream_t * stream;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -148,8 +150,21 @@ oggz_set_read_page (OGGZ * oggz, OggzReadPage read_page, void * user_data)
     return OGGZ_ERR_INVALID;
   }
 
-  reader->read_page = read_page;
-  reader->read_page_user_data = user_data;
+  if (serialno == -1) {
+    reader->read_page = read_page;
+    reader->read_page_user_data = user_data;
+  } else {
+    stream = oggz_get_stream (oggz, serialno);
+#if 0
+    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+#else
+    if (stream == NULL)
+      stream = oggz_add_stream (oggz, serialno);
+#endif
+
+    stream->read_page = read_page;
+    stream->read_page_user_data = user_data;
+  }
 
   return 0;
 }
@@ -333,8 +348,12 @@ oggz_read_sync (OGGZ * oggz)
       }
     }
 
-    if (reader->read_page) {
-      cb_ret = reader->read_page (oggz, &og, reader->read_page_user_data);
+    if (stream->read_page) {
+      cb_ret =
+	stream->read_page (oggz, &og, serialno, stream->read_page_user_data);
+    } else if (reader->read_page) {
+      cb_ret = reader->read_page (oggz, &og, serialno,
+				  reader->read_page_user_data);
     }
 
 #if 0

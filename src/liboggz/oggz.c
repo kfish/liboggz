@@ -273,6 +273,8 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   stream->order_user_data = NULL;
   stream->read_packet = NULL;
   stream->read_user_data = NULL;
+  stream->read_page = NULL;
+  stream->read_page_user_data = NULL;
 
   oggz_vector_insert_p (oggz->streams, stream);
 

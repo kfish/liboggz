@@ -104,24 +104,31 @@ int oggz_set_read_callback (OGGZ * oggz, long serialno,
  * \returns 0 to continue, non-zero to instruct OGGZ to stop.
  */
 typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og,
-			     void * user_data);
+			     long serialno, void * user_data);
 
 /**
  * Set a callback for Oggz to call when a new Ogg page is found in the
  * stream.
  *
  * \param oggz An OGGZ handle previously opened for reading
+ * \param serialno Identify the logical bitstream in \a oggz to attach
+ * this callback to, or -1 to attach this callback to all unattached
+ * logical bitstreams in \a oggz.
  * \param read_page Your OggzReadPage callback function
  * \param user_data Arbitrary data you wish to pass to your callback
  * \retval 0 Success
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
  *
+ * \note Values of \a serialno other than -1 allows you to specify different
+ * callback functions for each logical bitstream.
+ *
  * \note It is safe to call this callback from within an OggzReadPage
  * function, in order to specify that subsequent pages should be handled
  * by a different OggzReadPage function.
  */
-int oggz_set_read_page (OGGZ * oggz, OggzReadPage read_page, void * user_data);
+int oggz_set_read_page (OGGZ * oggz, long serialno,
+			OggzReadPage read_page, void * user_data);
 
 
 /**

@@ -43,9 +43,6 @@
 
 #define READ_SIZE 4096
 
-static int
-read_page (OGGZ * oggz, const ogg_page * og, void * user_data);
-
 static void
 usage (char * progname)
 {
@@ -139,6 +136,16 @@ omdata_delete (OMData * omdata)
 }
 
 static int
+read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  OMInput * input = (OMInput *) user_data;
+
+  input->og = _ogg_page_copy (og);
+
+  return OGGZ_STOP_OK;
+}
+
+static int
 omdata_add_input (OMData * omdata, FILE * infile)
 {
   OMInput * input;
@@ -151,7 +158,7 @@ omdata_add_input (OMData * omdata, FILE * infile)
   input->reader = oggz_open_stdio (infile, OGGZ_READ|OGGZ_AUTO);
   input->og = NULL;
 
-  oggz_set_read_page (input->reader, read_page, input);
+  oggz_set_read_page (input->reader, -1, read_page, input);
 
   nfiles = oggz_table_size (omdata->inputs);
   if (!oggz_table_insert (omdata->inputs, nfiles++, input)) {
@@ -160,16 +167,6 @@ omdata_add_input (OMData * omdata, FILE * infile)
   }
 
   return 0;
-}
-
-static int
-read_page (OGGZ * oggz, const ogg_page * og, void * user_data)
-{
-  OMInput * input = (OMInput *) user_data;
-
-  input->og = _ogg_page_copy (og);
-
-  return OGGZ_STOP_OK;
 }
 
 static int

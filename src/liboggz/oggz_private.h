@@ -49,7 +49,7 @@ typedef struct _OggzWriter OggzWriter;
 
 typedef int (*OggzReadPacket) (OGGZ * oggz, ogg_packet * op, long serialno,
 			       void * user_data);
-typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og,
+typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og, long serialno,
 			     void * user_data);
 
 typedef ogg_int64_t (*OggzMetric) (OGGZ * oggz, long serialno,
@@ -88,6 +88,9 @@ typedef struct {
 
   OggzReadPacket read_packet;
   void * read_user_data;
+
+  OggzReadPage read_page;
+  void * read_page_user_data;
 } oggz_stream_t;
 
 struct _OggzReader {
