@@ -271,6 +271,11 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 
   /* OK -- Update stream's memory of packet details */
 
+  if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
+    fprintf (stderr, "oggz_write: oggz_auto()\n");
+    oggz_auto (oggz, op, serialno, NULL);
+  }
+
   stream->b_o_s = 0; /* The stream is henceforth no longer at bos */
   stream->e_o_s = e_o_s; /* We believe the eos value */
   stream->granulepos = op->granulepos; /* and the granulepos */

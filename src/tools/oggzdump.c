@@ -240,21 +240,40 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   ODData * oddata = (ODData *) user_data;
   ogg_int64_t units;
   double time_offset;
+  int granuleshift;
 
-  units = oggz_tell_units (oggz);
   if (oddata->hide_offset) {
     fprintf (outfile, "oOo");
-  } else if (units == -1) {
-    fprintf (outfile, "%08" PRI_off_t "x", oggz_tell (oggz));
   } else {
-    time_offset = (double)units / 1000.0;
-    ot_fprint_time (outfile, time_offset);
+    units = oggz_tell_units (oggz);
+    if (units == -1) {
+      fprintf (outfile, "%08" PRI_off_t "x", oggz_tell (oggz));
+    } else {
+      time_offset = (double)units / 1000.0;
+      ot_fprint_time (outfile, time_offset);
+    }
   }
 
-  fprintf (outfile, ": serialno %010ld, "
-	   "granulepos %" PRId64 ", packetno %" PRId64,
-	   oddata->hide_serialno ? -1 : serialno,
-	   oddata->hide_granulepos ? -1 : op->granulepos,
+  fprintf (outfile, ": serialno %010ld, ",
+	   oddata->hide_serialno ? -1 : serialno);
+
+  if (oddata->hide_granulepos) {
+    fprintf (outfile, "granulepos gGg,");
+  } else {
+    granuleshift = oggz_get_granuleshift (oggz, serialno);
+    if (granuleshift < 1) {
+      fprintf (outfile, "granulepos %" PRId64 ",", op->granulepos);
+    } else {
+      ogg_int64_t iframe, pframe;
+      iframe = op->granulepos >> granuleshift;
+      pframe = op->granulepos - (iframe << granuleshift);
+
+      fprintf (outfile, "granulepos %" PRId64 "|%" PRId64 ",",
+	       iframe, pframe);
+    }
+  }
+
+  fprintf (outfile, " packetno %" PRId64,
 	   oddata->hide_packetno ? -1 : op->packetno);
 
   if (op->b_o_s) {
@@ -325,7 +344,8 @@ revert_file (char * infilename)
   int hh, mm, ss;
   unsigned int offset;
   long current_serialno = -1, serialno;
-  ogg_int64_t granulepos, packetno;
+  ogg_int64_t granulepos, iframe, pframe, packetno;
+  int is_packetinfo = 0;
   int bos = 0, eos = 0;
 
   int line_offset = 0, consumed = 0;
@@ -345,7 +365,7 @@ revert_file (char * infilename)
     infile = fopen (infilename, "rb");
   }
 
-  oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT);
+  oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT|OGGZ_AUTO);
 
   while (fgets (line, 80, infile)) {
     line_offset = 0;
@@ -354,17 +374,31 @@ revert_file (char * infilename)
     if (sscanf (line, "%2d:%2d:%2d.%n", &hh, &mm, &ss, &line_offset) < 3)
       line_offset = 0;
 
+    is_packetinfo = 0;
     if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %lld, packetno %lld%n",
 		&offset, &serialno, &granulepos, &packetno,
 		&line_offset) >= 4) {
+      is_packetinfo = 1;
+    } else {
+      if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %lld|%lld, packetno %lld%n",
+		  &offset, &serialno, &iframe, &pframe, &packetno,
+		  &line_offset) >= 5) {
+	int granuleshift = oggz_get_granuleshift (oggz, serialno);
+	fprintf (stderr, "granuleshift %d\n", granuleshift);
+	is_packetinfo = 1;
+	granulepos = (iframe<<granuleshift)+pframe;
+      }
+    }
 
+    if (is_packetinfo) {
       /* flush any existing packets */
       if (current_serialno != -1) {
 	int ret;
 
 #ifdef DEBUG
-	printf ("feeding packet (%010ld) %ld bytes\n",
-		current_serialno, op.bytes);
+	printf ("feeding packet (%010ld) %ld bytes %s\n",
+		current_serialno, op.bytes,
+		op.b_o_s ? "bos" : "not bos");
 #endif
 	if ((ret = oggz_write_feed (oggz, &op, current_serialno, flush, NULL)) != 0) {
 	  fprintf (stderr, "%s: oggz_write_feed error %d\n", progname, ret);
@@ -377,15 +411,16 @@ revert_file (char * infilename)
 
       /* Start new packet */
       bos = 0; eos = 0;
-      if (sscanf (&line[line_offset], " *** %[b]%[o]%[s]%n", &c, &c, &c,
-		  &consumed) >= 3) {
-	bos = 1;
-	line_offset += consumed;
-      }
-      if (sscanf (&line[line_offset], " *** %[e]%[o]%[s]%n", &c, &c, &c,
-		  &consumed) >= 3) {
-	eos = 1;
-	line_offset += consumed;
+      while ((c=line[line_offset++]) && c != '*');
+      if (c == '*') {
+	if (!strncmp (&line[line_offset], "** bos", 6)) {
+	  bos = 1;
+	  line_offset += 6;
+	}
+	if (!strncmp (&line[line_offset], "** eos", 6)) {
+	  eos = 1;
+	  line_offset += 6;
+	}
       }
 
       current_serialno = serialno;
