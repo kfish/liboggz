@@ -1,18 +1,21 @@
 Microsoft Visual Studio Solution File, Format Version 8.00
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "libOggz", "C_libOGGZ.vcproj", "{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "liboggz", "liboggz.vcproj", "{63367224-9D03-495E-8172-B8A940B5D7BB}"
 	ProjectSection(ProjectDependencies) = postProject
 	EndProjectSection
 EndProject
-Project("{54435603-DBB4-11D2-8724-00A0C9A8B90C}") = "liboggz_bin_installer", "liboggz_bin_installer\liboggz_bin_installer.vdproj", "{1412AEA3-2CC9-488E-9555-C011E9985302}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oggzdump", "oggzdump.vcproj", "{CE0AD0B6-90D0-4F3B-85B1-8C09AD6EDAF4}"
 	ProjectSection(ProjectDependencies) = postProject
+		{63367224-9D03-495E-8172-B8A940B5D7BB} = {63367224-9D03-495E-8172-B8A940B5D7BB}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "OGGZDump", "OGGZDump.vcproj", "{65EEF875-D215-4248-B216-8B9701AA7A31}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oggzed", "oggzed.vcproj", "{151AB719-9953-4AA7-9EEB-2A59769C6AE3}"
 	ProjectSection(ProjectDependencies) = postProject
+		{63367224-9D03-495E-8172-B8A940B5D7BB} = {63367224-9D03-495E-8172-B8A940B5D7BB}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "testOggzPause", "..\..\..\..\..\testOggzPause\testOggzPause.vcproj", "{B99582B1-5F9E-458A-B89B-219807747301}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "oggzinfo", "oggzinfo.vcproj", "{98E7D5E7-056D-4F82-AA3A-503A23482A30}"
 	ProjectSection(ProjectDependencies) = postProject
+		{63367224-9D03-495E-8172-B8A940B5D7BB} = {63367224-9D03-495E-8172-B8A940B5D7BB}
 	EndProjectSection
 EndProject
 Global
@@ -21,22 +24,22 @@ Global
 		Release = Release
 	EndGlobalSection
 	GlobalSection(ProjectConfiguration) = postSolution
-		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Debug.ActiveCfg = Debug|Win32
-		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Debug.Build.0 = Debug|Win32
-		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Release.ActiveCfg = Release|Win32
-		{A8D30F09-A16C-49E2-ACBA-A4876D8E0925}.Release.Build.0 = Release|Win32
-		{1412AEA3-2CC9-488E-9555-C011E9985302}.Debug.ActiveCfg = Debug
-		{1412AEA3-2CC9-488E-9555-C011E9985302}.Debug.Build.0 = Debug
-		{1412AEA3-2CC9-488E-9555-C011E9985302}.Release.ActiveCfg = Release
-		{1412AEA3-2CC9-488E-9555-C011E9985302}.Release.Build.0 = Release
-		{65EEF875-D215-4248-B216-8B9701AA7A31}.Debug.ActiveCfg = Debug|Win32
-		{65EEF875-D215-4248-B216-8B9701AA7A31}.Debug.Build.0 = Debug|Win32
-		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.ActiveCfg = Release|Win32
-		{65EEF875-D215-4248-B216-8B9701AA7A31}.Release.Build.0 = Release|Win32
-		{B99582B1-5F9E-458A-B89B-219807747301}.Debug.ActiveCfg = Debug|Win32
-		{B99582B1-5F9E-458A-B89B-219807747301}.Debug.Build.0 = Debug|Win32
-		{B99582B1-5F9E-458A-B89B-219807747301}.Release.ActiveCfg = Release|Win32
-		{B99582B1-5F9E-458A-B89B-219807747301}.Release.Build.0 = Release|Win32
+		{63367224-9D03-495E-8172-B8A940B5D7BB}.Debug.ActiveCfg = Debug|Win32
+		{63367224-9D03-495E-8172-B8A940B5D7BB}.Debug.Build.0 = Debug|Win32
+		{63367224-9D03-495E-8172-B8A940B5D7BB}.Release.ActiveCfg = Release|Win32
+		{63367224-9D03-495E-8172-B8A940B5D7BB}.Release.Build.0 = Release|Win32
+		{CE0AD0B6-90D0-4F3B-85B1-8C09AD6EDAF4}.Debug.ActiveCfg = Debug|Win32
+		{CE0AD0B6-90D0-4F3B-85B1-8C09AD6EDAF4}.Debug.Build.0 = Debug|Win32
+		{CE0AD0B6-90D0-4F3B-85B1-8C09AD6EDAF4}.Release.ActiveCfg = Release|Win32
+		{CE0AD0B6-90D0-4F3B-85B1-8C09AD6EDAF4}.Release.Build.0 = Release|Win32
+		{151AB719-9953-4AA7-9EEB-2A59769C6AE3}.Debug.ActiveCfg = Debug|Win32
+		{151AB719-9953-4AA7-9EEB-2A59769C6AE3}.Debug.Build.0 = Debug|Win32
+		{151AB719-9953-4AA7-9EEB-2A59769C6AE3}.Release.ActiveCfg = Release|Win32
+		{151AB719-9953-4AA7-9EEB-2A59769C6AE3}.Release.Build.0 = Release|Win32
+		{98E7D5E7-056D-4F82-AA3A-503A23482A30}.Debug.ActiveCfg = Debug|Win32
+		{98E7D5E7-056D-4F82-AA3A-503A23482A30}.Debug.Build.0 = Debug|Win32
+		{98E7D5E7-056D-4F82-AA3A-503A23482A30}.Release.ActiveCfg = Release|Win32
+		{98E7D5E7-056D-4F82-AA3A-503A23482A30}.Release.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ExtensibilityGlobals) = postSolution
 	EndGlobalSection
