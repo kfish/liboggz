@@ -1,0 +1,105 @@
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
+.de P!
+.fl
+\!!1 setgray
+.fl
+\\&.\"
+.fl
+\!!0 setgray
+.fl			\" force out current output buffer
+\!!save /psv exch def currentpoint translate 0 0 moveto
+\!!/showpage{}def
+.fl			\" prolog
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
+\!!psv restore
+.
+.de pF
+.ie     \\*(f1 .ds f1 \\n(.f
+.el .ie \\*(f2 .ds f2 \\n(.f
+.el .ie \\*(f3 .ds f3 \\n(.f
+.el .ie \\*(f4 .ds f4 \\n(.f
+.el .tm ? font overflow
+.ft \\$1
+..
+.de fP
+.ie     !\\*(f4 \{\
+.	ft \\*(f4
+.	ds f4\"
+'	br \}
+.el .ie !\\*(f3 \{\
+.	ft \\*(f3
+.	ds f3\"
+'	br \}
+.el .ie !\\*(f2 \{\
+.	ft \\*(f2
+.	ds f2\"
+'	br \}
+.el .ie !\\*(f1 \{\
+.	ft \\*(f1
+.	ds f1\"
+'	br \}
+.el .tm ? font underflow
+..
+.ds f1\"
+.ds f2\"
+.ds f3\"
+.ds f4\"
+'\" t 
+.ta 8n 16n 24n 32n 40n 48n 56n 64n 72n  
+.TH "oggz-validate" "1" 
+.SH "NAME" 
+oggz-validate \(em Validate the Ogg framing of one or more files 
+ 
+.SH "SYNOPSIS" 
+.PP 
+\fBoggz-validate \fRfilename \&...  
+.PP 
+\fBoggz-validate\fR [-h  | --help ]  [-v  | --version ]  
+.SH "Description" 
+.PP 
+\fBoggz-validate\fR validates the Ogg framing of one or more 
+Ogg files. 
+.PP 
+\fBoggz-validate\fR detects the following errors 
+in Ogg framing: 
+ 
+.IP "   \(bu" 6 
+Packet out of order 
+.IP "   \(bu" 6 
+Multiple bos packets 
+.IP "   \(bu" 6 
+Multiple eos packets 
+.IP "   \(bu" 6 
+Packet belongs to unknown serialno 
+.IP "   \(bu" 6 
+Granulepos decreasing within track      
+.PP 
+\fBoggz-validate\fR exits with status 0 if all files 
+are valid, and with status 1 if one or more errors are found. 
+ 
+.SH "Options" 
+.PP 
+\fBoggz-validate\fR accepts the following options: 
+ 
+.SS "Miscellaneous options" 
+.IP "-h, --help" 10 
+Display usage information and exit. 
+.IP "-v, --version" 10 
+Output version information and exit. 
+.SH "AUTHOR" 
+.PP 
+Conrad Parker        April 3, 2005;      
+.SH "COPYRIGHT" 
+.PP 
+Copyright \(co 2005 CSIRO Australia 
+ 
+.SH "SEE ALSO" 
+.PP 
+\fBoggzdump\fP\fB(1)\fP, 
+\fBoggzinfo\fP\fB(1)\fP      
+.\" created by instant / docbook-to-man, Mon 04 Apr 2005, 08:26 
