@@ -47,6 +47,9 @@ typedef struct _OggzIO OggzIO;
 typedef struct _OggzReader OggzReader;
 typedef struct _OggzWriter OggzWriter;
 
+/* oggz_stream */
+#include "oggz_stream.h"
+
 typedef int (*OggzReadPacket) (OGGZ * oggz, ogg_packet * op, long serialno,
 			       void * user_data);
 typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og, long serialno,
@@ -68,7 +71,7 @@ typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
 typedef long (*OggzIOTell) (void * user_handle);
 typedef int (*OggzIOFlush) (void * user_handle);
 
-typedef struct {
+struct _oggz_stream_t {
   ogg_stream_state ogg_stream;
 
   /* non b_o_s packet has been written (not just queued) */
@@ -91,7 +94,7 @@ typedef struct {
 
   OggzReadPage read_page;
   void * read_page_user_data;
-} oggz_stream_t;
+};
 
 struct _OggzReader {
   ogg_sync_state ogg_sync;
@@ -206,9 +209,6 @@ OGGZ * oggz_read_close (OGGZ * oggz);
 OGGZ * oggz_write_init (OGGZ * oggz);
 int oggz_write_flush (OGGZ * oggz);
 OGGZ * oggz_write_close (OGGZ * oggz);
-
-oggz_stream_t * oggz_get_stream (OGGZ * oggz, long serialno);
-oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
 
 int oggz_get_bos (OGGZ * oggz, long serialno);
 ogg_int64_t oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos);

@@ -42,10 +42,11 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "oggz_private.h"
+#include <oggz/oggz.h>
 #include "oggz_auto.h"
 #include "oggz_byteorder.h"
 #include "oggz_macros.h"
+#include "oggz_stream.h"
 
 /* Allow use of internal metrics; ie. the user_data for these gets free'd
  * when the metric is overwritten, or on close */
@@ -299,7 +300,6 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
   long fisbone_serialno; /* The serialno referred to in this fisbone */
-  oggz_stream_t * fisbone_stream; /* The stream of that serialno */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
 
   if (op->bytes < 48) return 0;
@@ -307,10 +307,9 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (strncmp ((char *)header, "fisbone", 7)) return 0;
 
   fisbone_serialno = (long) INT32_LE_AT(&header[12]);
-  fisbone_stream = oggz_get_stream (oggz, fisbone_serialno);
 
   /* Don't override an already assigned metric */
-  if (fisbone_stream->metric) return 1;
+  if (oggz_stream_has_metric (oggz, fisbone_serialno)) return 1;
 
   granule_rate_numerator = INT64_LE_AT(&header[20]);
   granule_rate_denominator = INT64_LE_AT(&header[28]);

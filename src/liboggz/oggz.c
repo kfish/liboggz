@@ -450,6 +450,24 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
 }
 
 /*
+ * Check if a stream in an oggz has a metric
+ */
+int
+oggz_stream_has_metric (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+
+  if (oggz->metric != NULL) return 1;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+  if (stream->metric != NULL) return 1;
+
+  return 0;
+}
+
+/*
  * Check if an oggz has metrics for all streams
  */
 int
