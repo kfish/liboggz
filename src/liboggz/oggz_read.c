@@ -345,18 +345,18 @@ oggz_read (OGGZ * oggz, long n)
   /* If there's nothing to read yet, don't flag an error */
   if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
 
-  while (cb_ret != -1 && bytes_read > 0 && remaining > 0) {
+  while (cb_ret != -1 && cb_ret != 1 && bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     if ((bytes_read = (long)fread (buffer, 1, bytes, oggz->file)) == 0) {
-		
+
       if (ferror (oggz->file)) {
 	return OGGZ_ERR_SYSTEM;
       }
     }
 
     ogg_sync_wrote (&reader->ogg_sync, bytes_read);
-    
+
     remaining -= bytes_read;
     nread += bytes_read;
 
@@ -390,7 +390,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   /* If there's nothing to read yet, don't flag an error */
   if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
 
-  while (cb_ret != -1 && /* !oggz->eos && */ remaining > 0) {
+  while (cb_ret != -1 && cb_ret != 1 && /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     memcpy (buffer, buf, bytes);
