@@ -277,27 +277,31 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
-#if 0
 static int
 auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
+  int content;
+  
+  if (op->b_o_s) {
+    if (op->bytes < 8) return 0;
+    if (strncmp ((char *)header, "fishead", 8)) return 0;
+    oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_SKELETON);
+  } else if (op->e_o_s) {
+    content =  oggz_stream_get_content (oggz, serialno);
+    if (content != OGGZ_CONTENT_SKELETON) return 0;
 
-  if (op->bytes < 8) return 0;
-
-  if (strncmp ((char *)header, "fishead", 8)) return 0;
-  if (!op->b_o_s) return 0;
-
-  /* Yeah ... set it up with a "linear" metric with numerator 0 :) */
-  oggz_set_metric_linear (oggz, serialno, 0, 1);
+    /* Finished processing the skeleton; apply a zero metric */
+    oggz_set_metric_linear (oggz, serialno, 0, 1);
+  }
 
   return 1;
 }
-#endif
 
 static int
 auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
+  int content;
   unsigned char * header = op->packet;
   long fisbone_serialno; /* The serialno referred to in this fisbone */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
@@ -305,6 +309,8 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (op->bytes < 48) return 0;
 
   if (strncmp ((char *)header, "fisbone", 7)) return 0;
+  content =  oggz_stream_get_content (oggz, serialno);
+  if (content != OGGZ_CONTENT_SKELETON) return 0;
 
   fisbone_serialno = (long) INT32_LE_AT(&header[12]);
 

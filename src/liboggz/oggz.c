@@ -260,6 +260,8 @@ oggz_add_stream (OGGZ * oggz, long serialno)
 
   ogg_stream_init (&stream->ogg_stream, (int)serialno);
 
+  stream->content = OGGZ_CONTENT_UNKNOWN;
+
   stream->delivered_non_b_o_s = 0;
   stream->b_o_s = 1;
   stream->e_o_s = 0;

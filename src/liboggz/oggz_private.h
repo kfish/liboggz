@@ -74,6 +74,8 @@ typedef int (*OggzIOFlush) (void * user_handle);
 struct _oggz_stream_t {
   ogg_stream_state ogg_stream;
 
+  int content;
+
   /* non b_o_s packet has been written (not just queued) */
   int delivered_non_b_o_s;
 

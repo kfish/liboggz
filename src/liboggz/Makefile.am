@@ -15,6 +15,7 @@ liboggz_la_SOURCES = \
 	oggz_io.c \
 	oggz_read.c oggz_write.c \
 	oggz_auto.c oggz_auto.h \
+	oggz_stream.c oggz_stream.h \
 	oggz_table.c \
 	oggz_vector.c oggz_vector.h
 

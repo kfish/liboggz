@@ -30,21 +30,28 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_STREAM_H__
-#define __OGGZ_STREAM_H__
+#include "oggz_private.h"
 
-enum {
-  OGGZ_CONTENT_UNKNOWN = 0,
-  OGGZ_CONTENT_SKELETON = 1
-};
+int
+oggz_stream_set_content (OGGZ * oggz, long serialno, int content)
+{
+  oggz_stream_t * stream;
 
-typedef struct _oggz_stream_t oggz_stream_t;
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
-oggz_stream_t * oggz_get_stream (OGGZ * oggz, long serialno);
-oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
+  stream->content = content;
 
-int oggz_stream_has_metric (OGGZ * oggz, long serialno);
-int oggz_stream_set_content (OGGZ * oggz, long serialno, int content);
-int oggz_stream_get_content (OGGZ * oggz, long serialno);
+  return 0;
+}
 
-#endif /* __OGGZ_STREAM_H__ */
+int
+oggz_stream_get_content (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+  return stream->content;
+}
