@@ -130,6 +130,9 @@ enum OggzError {
    * before any input bytes were consumed */
   OGGZ_ERR_READ_STOP_ERR                = -15,
 
+  /** no data available from IO, try again */
+  OGGZ_ERR_IO_AGAIN                     = -16,
+
   /** The requested serialno does not exist in this OGGZ */
   OGGZ_ERR_BAD_SERIALNO                 = -20,
 

@@ -380,6 +380,13 @@ oggz_read (OGGZ * oggz, long n)
 
   /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
+    switch (bytes_read) {
+    case OGGZ_ERR_IO_AGAIN:
+    case OGGZ_ERR_SYSTEM:
+      return bytes_read; break;
+    default: break;
+    }
+
     switch (cb_ret) {
     case OGGZ_CONTINUE: case OGGZ_READ_EOF: return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
