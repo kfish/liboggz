@@ -78,15 +78,21 @@ fi
 # autogoat bootstrap process
 # 
 
-# clean out old cruft
-clean
-
 ACLOCAL=${ACLOCAL:-aclocal}
 AUTOCONF=${AUTOCONF:-autoconf}
 AUTOHEADER=${AUTOHEADER:-autoheader}
 AUTOMAKE=${AUTOMAKE:-automake}
 
-"$ACLOCAL"
+# clean out old cruft
+clean
+
+# add Fink's /sw path to various search directories
+if [ -d /sw ]; then
+  ACLOCAL="$ACLOCAL -I /sw/share/aclocal"
+  FINK_DETECTED=1
+fi
+
+eval "$ACLOCAL"
 
 # do we need libtool?
 if grep -q PROG_LIBTOOL configure.*; then
@@ -111,6 +117,23 @@ if grep -q PROG_LIBTOOL configure.*; then
   fi
 fi
 
-"$AUTOCONF"
+eval "$AUTOCONF"
 grep -q CONFIG_HEADER configure.* && "$AUTOHEADER"
-"$AUTOMAKE" --add-missing --copy
+eval "$AUTOMAKE" --add-missing --copy
+
+# Print warning message if Fink detected
+if test "$FINK_DETECTED" = 1; then
+  cat << EOF
+
+Fink detected; added /sw/share/aclocal to aclocal's include directories.
+Make sure you have CPPFLAGS, LDFLAGS and PKG_CONFIG_PATH including Fink's
+distribution directories, e.g.:
+
+ export CPPFLAGS="-I/sw/include \$CPPFLAGS"
+ export LDFLAGS="-L/sw/lib \$LDFLAGS"
+ export PKG_CONFIG_PATH="/sw/lib/pkgconfig:\$PKG_CONFIG_PATH"
+ ./configure
+
+EOF
+fi
+
