@@ -1,8 +1,10 @@
 #!/bin/sh
 
-# find out the automake version number, in format 1.major.minor
-# (i don't think version 2 will be coming anytime soon :)  (stolen
-# from videolan's vlc bootstrap strip)
+
+#
+# check automake version number -- we require >= 1.5
+#
+
 automake_version="none"
 if automake-1.7 --version >/dev/null 2>&1; then
   automake_version="-1.7"
@@ -28,26 +30,58 @@ if test "x${automake_version}" = "xnone"; then
   exit 1
 fi
 
-
-
 automake_version_major=`echo "$automake_version" | cut -d. -f2`
 automake_version_minor=`echo "$automake_version" | cut -d. -f3`
 
 # need at least automake >= 1.5
 if test "$automake_version_major" -lt "5"; then
-  echo "$0: this project requires automake >= 1.5.  Please upgrade your version of automake to at least 1.5"
+  echo "$0"': this project requires automake >= 1.5.  Please upgrade your version of automake to at least 1.5'
   exit 1
 fi
 
-# make autotools directory if it doesn't already exist
-[ -d "autotools" ] || mkdir "autotools"
 
-# need libltdl?
-if grep -q AC_LIBLTDL_CONVENIENCE configure.*; then
-  LIBTOOLIZE=${LIBTOOLIZE:-libtoolize}
-  "$LIBTOOLIZE" --ltdl --copy --force
+#
+# autogoat bootstrap process
+# 
+
+# remove autotools cruft
+rm -f aclocal.m4 configure config.log
+rm -Rf autom4te.cache
+# remove old autotools extra cruft
+rm -f config.guess config.sub missing mkinstalldirs compile depcomp install-sh
+# remove libtool cruft
+rm -f ltmain.sh libtool ltconfig
+
+ACLOCAL=${ACLOCAL:-aclocal}
+AUTOCONF=${AUTOCONF:-autoconf}
+AUTOHEADER=${AUTOHEADER:-autoheader}
+AUTOMAKE=${AUTOMAKE:-automake}
+
+"$ACLOCAL"
+
+# do we need libtool?
+if grep -q PROG_LIBTOOL configure.*; then
+  # what's libtoolize called?
+  if glibtoolize --version > /dev/null 2> /dev/null; then
+    LIBTOOLIZE="glibtoolize"
+  elif glibtoolize --version > /dev/null 2> /dev/null; then
+    LIBTOOLIZE="libtoolize"
+  fi
+
+  # check libtool version -- only support 1.4 or 1.5 for now
+  if "$LIBTOOLIZE" --version | egrep -q '1\.4|1\.5'; then
+    if grep -q AC_LIBLTDL_CONVENIENCE configure.*; then
+      "$LIBTOOLIZE" --ltdl --copy --force
+    else
+      "$LIBTOOLIZE" --copy --force
+    fi
+  else
+    # libtool version is too old :(
+    echo "$0: need libtool >= 1.4 installed"
+    exit 1
+  fi
 fi
 
-AUTORECONF=${AUTORECONF:-autoreconf}
-"$AUTORECONF" -i "$@"
-
+"$AUTOCONF"
+grep -q CONFIG_HEADER configure.* && "$AUTOHEADER"
+"$AUTOMAKE" --add-missing --copy
