@@ -55,20 +55,20 @@
 #define MIN(a,b) (((a)<(b))?(a):(b))
 
 typedef struct {
+  OggzTable * serialno_table;
   OggzTable * content_types_table;
   OggzReadPacket read_packet;
+  int dump_bits;
+  int dump_char;
+  int hide_offset;
+  int hide_serialno;
+  int hide_granulepos;
+  int hide_packetno;
 } ODData;
 
 static char * progname;
 static FILE * outfile = NULL;
-static int dump_bits = 0;
-static int dump_char = 1;
 static int truth = 1;
-
-static int hide_offset = 0;
-static int hide_serialno = 0;
-static int hide_granulepos = 0;
-static int hide_packetno = 0;
 
 static void
 usage (char * progname)
@@ -108,7 +108,16 @@ oddata_new ()
   ODData * oddata = malloc (sizeof (ODData));
   memset (oddata, 0, sizeof (ODData));
 
+  oddata->serialno_table = oggz_table_new ();
   oddata->content_types_table = oggz_table_new ();
+
+  oddata->dump_bits = 0;
+  oddata->dump_char = 1;
+
+  oddata->hide_offset = 0;
+  oddata->hide_serialno = 0;
+  oddata->hide_granulepos = 0;
+  oddata->hide_packetno = 0;
 
   return oddata;
 }
@@ -116,6 +125,7 @@ oddata_new ()
 static void
 oddata_delete (ODData * oddata)
 {
+  oggz_table_delete (oddata->serialno_table);
   oggz_table_delete (oddata->content_types_table);
 
   free (oddata);
@@ -136,7 +146,7 @@ dump_char_line (unsigned char * buf, long n)
 }
 
 static void
-hex_dump (unsigned char * buf, long n)
+hex_dump (unsigned char * buf, long n, int dump_char)
 {
   int i;
   long remaining = n, count = 0;
@@ -174,7 +184,7 @@ hex_dump (unsigned char * buf, long n)
 }
 
 static void
-bin_dump (unsigned char * buf, long n)
+bin_dump (unsigned char * buf, long n, int dump_char)
 {
   int i, j;
   long remaining = n, count = 0;
@@ -227,11 +237,12 @@ bin_dump (unsigned char * buf, long n)
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
+  ODData * oddata = (ODData *) user_data;
   ogg_int64_t units;
   double time_offset;
 
   units = oggz_tell_units (oggz);
-  if (hide_offset) {
+  if (oddata->hide_offset) {
     fprintf (outfile, "oOo");
   } else if (units == -1) {
     fprintf (outfile, "%08" PRI_off_t "x", oggz_tell (oggz));
@@ -242,9 +253,9 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   fprintf (outfile, ": serialno %010ld, "
 	   "granulepos %" PRId64 ", packetno %" PRId64,
-	   hide_serialno ? -1 : serialno,
-	   hide_granulepos ? -1 : op->granulepos,
-	   hide_packetno ? -1 : op->packetno);
+	   oddata->hide_serialno ? -1 : serialno,
+	   oddata->hide_granulepos ? -1 : op->granulepos,
+	   oddata->hide_packetno ? -1 : op->packetno);
 
   if (op->b_o_s) {
     fprintf (outfile, " *** bos");
@@ -258,10 +269,10 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   ot_fprint_bytes (outfile, op->bytes);
   fputc ('\n', outfile);
 
-  if (dump_bits) {
-    bin_dump (op->packet, op->bytes);
+  if (oddata->dump_bits) {
+    bin_dump (op->packet, op->bytes, oddata->dump_char);
   } else {
-    hex_dump (op->packet, op->bytes);
+    hex_dump (op->packet, op->bytes, oddata->dump_char);
   }
 
   fprintf (outfile, "\n");
@@ -282,7 +293,7 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     for (i = 0; i < n; i++) {
       char * c = oggz_table_nth (oddata->content_types_table, i, NULL);
       if (strcasecmp (c, ident) == 0) {
-	oggz_set_read_callback (oggz, serialno, oddata->read_packet, NULL);
+	oggz_set_read_callback (oggz, serialno, oddata->read_packet, oddata);
       }
     }
   }
@@ -442,7 +453,6 @@ main (int argc, char ** argv)
   OGGZ * oggz;
   char * infilename = NULL, * outfilename = NULL;
   int revert = 0;
-  OggzTable * table = NULL;
   long serialno;
   int i, size;
   long n;
@@ -462,8 +472,6 @@ main (int argc, char ** argv)
   oddata = oddata_new ();
 
   oddata->read_packet = read_packet;
-
-  table = oggz_table_new();
 
   while (1) {
     char * optstring = "hvbxnro:s:c:OSGP";
@@ -504,7 +512,7 @@ main (int argc, char ** argv)
       show_version = 1;
       break;
     case 'b': /* binary */
-      dump_bits = 1;
+      oddata->dump_bits = 1;
       break;
     case 'n': /* new */
       oddata->read_packet = read_new_packet;
@@ -518,7 +526,7 @@ main (int argc, char ** argv)
     case 's': /* serialno */
       filter_serialnos = 1;
       serialno = atol (optarg);
-      oggz_table_insert (table, serialno, &truth);
+      oggz_table_insert (oddata->serialno_table, serialno, &truth);
       break;
     case 'c': /* content-type */
       filter_content_types = 1;
@@ -526,16 +534,16 @@ main (int argc, char ** argv)
       oggz_table_insert (oddata->content_types_table, (long)n, optarg);
       break;
     case 'O': /* hide offset */
-      hide_offset = 1;
+      oddata->hide_offset = 1;
       break;
     case 'S': /* hide serialno */
-      hide_serialno = 1;
+      oddata->hide_serialno = 1;
       break;
     case 'G': /* hide granulepos */
-      hide_granulepos = 1;
+      oddata->hide_granulepos = 1;
       break;
     case 'P': /* hide packetno */
-      hide_packetno = 1;
+      oddata->hide_packetno = 1;
       break;
     default:
       break;
@@ -573,7 +581,7 @@ main (int argc, char ** argv)
   }
 
   if (revert) {
-    if (dump_bits) {
+    if (oddata->dump_bits) {
       fprintf (stderr, "%s: Revert of binary dump not supported\n", progname);
       goto exit_err;
     }
@@ -600,13 +608,13 @@ main (int argc, char ** argv)
     }
 
     if (!filter_serialnos && !filter_content_types) {
-      oggz_set_read_callback (oggz, -1, oddata->read_packet, NULL);
+      oggz_set_read_callback (oggz, -1, oddata->read_packet, oddata);
     } else {
       if (filter_serialnos) {
-	size = oggz_table_size (table);
+	size = oggz_table_size (oddata->serialno_table);
 	for (i = 0; i < size; i++) {
-	  oggz_table_nth (table, i, &serialno);
-	  oggz_set_read_callback (oggz, serialno, oddata->read_packet, NULL);
+	  oggz_table_nth (oddata->serialno_table, i, &serialno);
+	  oggz_set_read_callback (oggz, serialno, oddata->read_packet, oddata);
 	}
       }
       
@@ -622,11 +630,9 @@ main (int argc, char ** argv)
 
  exit_ok:
   oddata_delete (oddata);
-  oggz_table_delete (table);
   exit (0);
 
  exit_err:
   oddata_delete (oddata);
-  oggz_table_delete (table);
   exit (1);
 }
