@@ -197,22 +197,18 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  * Annodex.
  * These can be handled \link seek_api automatically \endlink by Oggz.
  *
- * For most others it is simply a matter of providing a linear multiplication
- * factor (such as a sampling rate, if each packet's granulepos represents a
- * sample number). For non-linear data streams, you will need to explicitly
- * provide your own OggzMetric function.
- *
- * \subsection linear Linear Metrics
+ * For most others it is simply a matter of providing a "granulerate":
+ * a frame or sampling rate, if each packet's granulepos represents a
+ * sample number.
  *
  * - Set the \a granule_rate_numerator and \a granule_rate_denominator
  *   appropriately using oggz_set_granulerate()
  *
- * \subsection granuleshift Granuleshift Metrics
- *
- * Granuleshift metrics are used to divide a granulepos into two halves;
+ * Some codecs use a "granuleshift" to divide a granulepos into two halves;
  * the first describing a dependency on a previous packet, the second
  * giving the offset since that packet. This is used to mark keyframes and
  * intermediate frames.
+ *
  * - Set the \a granuleshift appropriately using oggz_set_granuleshift()
  *
  * \subsection custom Custom Metrics
@@ -278,37 +274,6 @@ int oggz_set_granuleshift (OGGZ * oggz, long serialno, int granuleshift);
 int oggz_set_granulerate (OGGZ * oggz, long serialno,
 			  ogg_int64_t granule_rate_numerator,
 			  ogg_int64_t granule_rate_denominator);
-
-/**
- * Specify that a logical bitstream has a constant zero metric. This is used
- * for header bitstreams and signifies that all packets are always at unit 0.
- * \param oggz An OGGZ handle
- * \param serialno Identify the logical bitstream in \a oggz to attach
- * this linear metric to. A value of -1 indicates that the metric should
- * be attached to all unattached logical bitstreams in \a oggz.
- * \returns 0 Success
- * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
- * logical bitstream in \a oggz.
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- */
-int oggz_set_metric_zero (OGGZ * oggz, long serialno);
-
-/**
- * Specify that a logical bitstream has a linear metric
- * \param oggz An OGGZ handle
- * \param serialno Identify the logical bitstream in \a oggz to attach
- * this linear metric to. A value of -1 indicates that the metric should
- * be attached to all unattached logical bitstreams in \a oggz.
- * \param granule_rate_numerator The numerator of the granule rate
- * \param granule_rate_denominator The denominator of the granule rate
- * \returns 0 Success
- * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
- * logical bitstream in \a oggz.
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- */
-int oggz_set_metric_linear (OGGZ * oggz, long serialno,
-			    ogg_int64_t granule_rate_numerator,
-			    ogg_int64_t granule_rate_denominator);
 
 /**
  * This is the signature of a function to correlate Ogg streams.
