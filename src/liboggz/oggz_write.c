@@ -56,7 +56,8 @@
 
 /* #define DEBUG */
 
-/* #define ALWAYS_FLUSH */
+/* Define to 0 or 1 */
+#define ALWAYS_FLUSH 0
 
 /* #define ZPACKET_CMP */
 
@@ -136,10 +137,29 @@ oggz_writer_packet_free (oggz_writer_packet_t * zpacket)
   return 0;
 }
 
+int
+oggz_write_flush (OGGZ * oggz)
+{
+  OggzWriter * writer = &oggz->x.writer;
+  ogg_stream_state * os;
+  ogg_page * og;
+  int ret = 0;
+
+  os = writer->current_stream;
+  og = &oggz->current_page;
+
+  if (os != NULL)
+    ret = ogg_stream_flush (os, og);
+
+  return ret;
+}
+
 OGGZ *
 oggz_write_close (OGGZ * oggz)
 {
   OggzWriter * writer = &oggz->x.writer;
+
+  oggz_write_flush (oggz);
 
   oggz_vector_foreach (writer->packet_queue,
 		       (OggzFunc)oggz_writer_packet_free);
@@ -182,6 +202,10 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   unsigned char * new_buf;
   int b_o_s, e_o_s, bos_auto;
   int strict;
+
+#ifdef DEBUG
+  printf ("oggz_write_feed: IN\n");
+#endif
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -288,6 +312,11 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
     return -1;
   }
 
+#ifdef DEBUG
+  printf ("oggz_write_feed: enqueued packet, queue size %d\n",
+	  oggz_vector_size (writer->packet_queue));
+#endif
+
   return 0;
 }
 
@@ -328,21 +357,17 @@ oggz_page_init (OGGZ * oggz)
   os = writer->current_stream;
   og = &oggz->current_page;
 
-#ifdef ALWAYS_FLUSH
-  ret = ogg_stream_flush (os, og);
-#else
-  if (writer->flushing) {
+  if (ALWAYS_FLUSH || writer->flushing) {
 #ifdef DEBUG
-    printf ("*** ATTEMPT FLUSH: ");
+    printf ("oggz_page_init: ATTEMPT FLUSH: ");
 #endif
-    ret = ogg_stream_flush (os, og);
+    ret = oggz_write_flush (oggz);
   } else {
 #ifdef DEBUG
-    printf ("*** ATTEMPT pageout: ");
+    printf ("oggz_page_init: ATTEMPT pageout: ");
 #endif
     ret = ogg_stream_pageout (os, og);
   }
-#endif
 
   if (ret) {
     writer->page_offset = 0;
@@ -528,7 +553,7 @@ oggz_writer_make_packet (OGGZ * oggz)
   int cb_ret = 0, ret = 0;
 
 #ifdef DEBUG
-  printf ("make packet ...\n");
+  printf ("oggz_writer_make_packet: IN\n");
 #endif
 
   /* finished with current packet; unguard */
@@ -547,6 +572,9 @@ oggz_writer_make_packet (OGGZ * oggz)
   if (cb_ret == 0) {
     /* dequeue and init the next packet */
     if ((next_zpacket = oggz_dequeue_packet (oggz)) == NULL) {
+#ifdef DEBUG
+      printf ("oggz_writer_make_packet: packet queue empty\n");
+#endif
       /*writer->eos = 1;*/
       ret = 0;
     } else {
@@ -720,6 +748,12 @@ OGGZ *
 oggz_write_init (OGGZ * oggz)
 {
   return NULL;
+}
+
+int
+oggz_write_flush (OGGZ * oggz)
+{
+  return OGGZ_ERR_DISABLED;
 }
 
 OGGZ *

@@ -196,6 +196,7 @@ OGGZ * oggz_read_init (OGGZ * oggz);
 OGGZ * oggz_read_close (OGGZ * oggz);
 
 OGGZ * oggz_write_init (OGGZ * oggz);
+int oggz_write_flush (OGGZ * oggz);
 OGGZ * oggz_write_close (OGGZ * oggz);
 
 oggz_stream_t * oggz_get_stream (OGGZ * oggz, long serialno);

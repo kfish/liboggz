@@ -148,6 +148,10 @@ oggz_flush (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
+  if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
+    oggz_write_flush (oggz);
+  }
+
   return oggz_io_flush (oggz);
 }
 
@@ -172,14 +176,14 @@ oggz_close (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
-  oggz_vector_foreach (oggz->streams, oggz_stream_clear);
-  oggz_vector_delete (oggz->streams);
-
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
     oggz_write_close (oggz);
   } else if (OGGZ_CONFIG_READ) {
     oggz_read_close (oggz);
   }
+
+  oggz_vector_foreach (oggz->streams, oggz_stream_clear);
+  oggz_vector_delete (oggz->streams);
 
   if (oggz->file != NULL) {
     if (fclose (oggz->file) == EOF) {
@@ -188,6 +192,7 @@ oggz_close (OGGZ * oggz)
   }
 
   if (oggz->io != NULL) {
+    oggz_io_flush (oggz);
     oggz_free (oggz->io);
   }
 
