@@ -180,6 +180,8 @@ ogg_int64_t oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos);
 int oggz_set_metric_internal (OGGZ * oggz, long serialno, OggzMetric metric,
 			      void * user_data, int internal);
 
+int oggz_purge (OGGZ * oggz);
+
 int oggz_auto (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data);
 
 #endif /* __OGGZ_PRIVATE_H__ */

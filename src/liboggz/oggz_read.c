@@ -199,7 +199,7 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
   return ret;
 }
 
-static long
+static int
 oggz_read_sync (OGGZ * oggz)
 {
   OggzReader * reader = &oggz->x.reader;
@@ -213,17 +213,19 @@ oggz_read_sync (OGGZ * oggz)
   ogg_packet packet;
   ogg_page og;
 
+  int cb_ret = 0;
+
   /*os = &reader->ogg_stream;*/
   op = &packet;
 
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
-  while(1){
+  while(cb_ret == 0){
 
     if (reader->current_serialno != -1) {
     /* process a packet if we can.  If the machine isn't loaded,
        neither is a page */
-    while(1) {
+    while(cb_ret == 0) {
       ogg_int64_t granulepos;
       int result;
 
@@ -260,9 +262,11 @@ oggz_read_sync (OGGZ * oggz)
 	}
 #ifndef DEBUG_BY_READING_PAGES
 	if (stream->read_packet) {
-	  stream->read_packet (oggz, op, serialno, stream->read_user_data);
+	  cb_ret =
+	    stream->read_packet (oggz, op, serialno, stream->read_user_data);
 	} else if (reader->read_packet) {
-	  reader->read_packet (oggz, op, serialno, reader->read_user_data);
+	  cb_ret =
+	    reader->read_packet (oggz, op, serialno, reader->read_user_data);
 	}
 #endif /* DEBUG_BY_READING_PAGES */
       }
@@ -299,11 +303,11 @@ oggz_read_sync (OGGZ * oggz)
       op_debug.packetno = ogg_page_packets (&og);
 
       if (stream->read_packet) {
-	stream->read_packet (oggz, &op_debug, serialno,
-			     stream->read_user_data);
+	cb_ret = stream->read_packet (oggz, &op_debug, serialno,
+				      stream->read_user_data);
       } else if (reader->read_packet) {
-	reader->read_packet (oggz, &op_debug, serialno,
-			     reader->read_user_data);
+	cb_ret = reader->read_packet (oggz, &op_debug, serialno,
+				      reader->read_user_data);
       }
     }
 #endif
@@ -317,7 +321,7 @@ oggz_read_sync (OGGZ * oggz)
     ogg_stream_pagein(os, &og);
   }
 
-  return nread; /* XXX: nread isn't even looked at!!! */
+  return cb_ret;
 }
 
 long
@@ -326,6 +330,7 @@ oggz_read (OGGZ * oggz, long n)
   OggzReader * reader;
   char * buffer;
   long bytes, bytes_read = 1, remaining = n, nread = 0;
+  int cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -335,9 +340,9 @@ oggz_read (OGGZ * oggz, long n)
 
   reader = &oggz->x.reader;
 
-  oggz_read_sync (oggz);
+  cb_ret = oggz_read_sync (oggz);
 
-  while (bytes_read > 0 && remaining > 0) {
+  while (cb_ret == 0 && bytes_read > 0 && remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     if ((bytes_read = (long)fread (buffer, 1, bytes, oggz->file)) == 0) {
@@ -352,8 +357,10 @@ oggz_read (OGGZ * oggz, long n)
     remaining -= bytes_read;
     nread += bytes_read;
 
-    oggz_read_sync (oggz);
+    cb_ret = oggz_read_sync (oggz);
   }
+
+  if (cb_ret == -1) oggz_purge (oggz);
 
   return nread;
 }
@@ -365,6 +372,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   OggzReader * reader;
   char * buffer;
   long bytes, remaining = n, nread = 0;
+  int cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -374,9 +382,9 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   reader = &oggz->x.reader;
 
-  oggz_read_sync (oggz);
+  cb_ret = oggz_read_sync (oggz);
 
-  while (/* !oggz->eos && */ remaining > 0) {
+  while (cb_ret == 0 && /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     memcpy (buffer, buf, bytes);
@@ -386,13 +394,15 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
     remaining -= bytes;
     nread += bytes;
 
-    oggz_read_sync (oggz);    
+    cb_ret = oggz_read_sync (oggz);    
   }
+
+  if (cb_ret == -1) oggz_purge (oggz);
 
   return nread;
 }
 
-/* oggz_seek() related functions from here down */
+/* oggz_seek() (and oggz_purge()) related functions from here down */
 
 /*
  * The typical usage is:
@@ -486,6 +496,24 @@ oggz_reset (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
   if (unit != -1) reader->current_unit = unit;
 
   return offset_at;
+}
+
+int
+oggz_purge (OGGZ * oggz)
+{
+  long reset_ret;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (oggz->flags & OGGZ_WRITE) {
+    return OGGZ_ERR_INVALID;
+  }
+
+  if (oggz_reset (oggz, oggz->offset, -1, SEEK_SET) < 0) {
+    return OGGZ_ERR_SYSTEM;
+  }
+
+  return 0;
 }
 
 /*
@@ -1014,7 +1042,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   if (oggz->flags & OGGZ_WRITE) {
     return -1;
   }
-
+  
   if (offset == 0) units = 0;
 
   return (off_t)oggz_reset (oggz, offset, units, whence);

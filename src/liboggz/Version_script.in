@@ -18,6 +18,7 @@
 		oggz_set_read_callback;
 		oggz_read;
 		oggz_read_input;
+		oggz_flush;
 		oggz_write_set_hungry_callback;
 		oggz_write_feed;
 		oggz_write;
