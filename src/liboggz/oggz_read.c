@@ -795,6 +795,13 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
   unit_at = oggz_get_unit (oggz, *serialno, *granule);
   offset_at = oggz_reset (oggz, prev_offset, unit_at, SEEK_SET);
+
+#ifdef DEBUG
+    printf ("get_prev_start_page: [C] offset_at: @%ld\t"
+	    "prev_offset: @%ld\tunit_at: %ld\n",
+	    offset_at, prev_offset, unit_at);
+#endif
+
   if (offset_at == -1) return -1;
 
   if (offset_at > 0)
@@ -994,7 +1001,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   for ( ; ; ) {
 
 #ifdef DEBUG
-    printf ("oggz_read_seek (%ld): (%ld - %ld) [%ld - %ld]\t",
+    printf ("oggz_seek_set: [A] want u%ld: (u%ld - u%ld) [@%ld - @%ld]\n",
 	    unit_target, unit_begin, unit_end, offset_begin, offset_end);
 #endif
 
@@ -1013,7 +1020,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 	  (unit_at - unit_begin);
 
 #ifdef DEBUG
-	printf ("\nseek_set: guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
+	printf ("\noggz_seek_set: [B] guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
 		guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
 #endif
 
@@ -1064,13 +1071,22 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
 					      &serialno);
+#ifdef DEBUG
+      printf ("oggz_seek_set: [C] offset_next @%ld, g%lld, (s%ld)\n",
+	      offset_next, granule_at, serialno);
+      printf ("oggz_seek_set: [c] u%lld\n",
+	      oggz_get_unit (oggz, serialno, granule_at));
+#endif
+    } else {
+      serialno = ogg_page_serialno (og);
+      granule_at = ogg_page_granulepos (og);
     }
 
     if (offset_next < 0) {
       goto notfound;
     }
 
-    if (offset_next > offset_end) {
+    if (offset_next < offset_end) {
       offset_next = oggz_scan_for_page (oggz, og, unit_target,
 					offset_begin, offset_end);
 
@@ -1088,14 +1104,12 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     }
 
     offset_at = offset_next;
-    serialno = ogg_page_serialno (og);
-    granule_at = ogg_page_granulepos (og);
 
     unit_at = oggz_get_unit (oggz, serialno, granule_at);
 
 #ifdef DEBUG
-    printf ("oggz_read_seek (%ld): got page (%ld) @%ld\n", unit_target,
-	    unit_at, offset_at);
+    printf ("oggz_seek_set: [D] want u%lld, got page u%lld @%ld g%lld\n",
+	    unit_target, unit_at, offset_at, granule_at);
 #endif
 
     if (unit_at < unit_target) {
