@@ -63,11 +63,11 @@ oggz_io_read (OGGZ * oggz, void * buf, size_t n)
   }
 
   else if ((io = oggz->io) != NULL) {
-    if (io->read == NULL) return -1;
+    if (io->read == NULL) return (size_t) -1;
     bytes = io->read (io->read_user_handle, buf, n);
   }
 
-  else return OGGZ_ERR_INVALID;
+  else return (size_t) OGGZ_ERR_INVALID;
 
   return bytes;
 }
@@ -83,12 +83,12 @@ oggz_io_write (OGGZ * oggz, void * buf, size_t n)
   }
 
   else if ((io = oggz->io) != NULL) {
-    if (io->write == NULL) return -1;
+    if (io->write == NULL) return (size_t) -1;
     bytes = io->write (io->write_user_handle, buf, n);
   }
 
-  else return OGGZ_ERR_INVALID;
-  
+  else return (size_t) OGGZ_ERR_INVALID;
+
   return bytes;
 }
 
@@ -96,7 +96,7 @@ int
 oggz_io_seek (OGGZ * oggz, long offset, int whence)
 {
   OggzIO * io;
-  
+
   if (oggz->file != NULL) {
     if (fseek (oggz->file, offset, whence) == -1) {
       if (errno == ESPIPE) {
@@ -124,7 +124,7 @@ oggz_io_tell (OGGZ * oggz)
 {
   OggzIO * io;
   long offset;
-  
+
   if (oggz->file != NULL) {
     if ((offset = ftell (oggz->file)) == -1) {
       if (errno == ESPIPE) {
