@@ -33,6 +33,17 @@
 		oggz_set_data_start;
 		oggz_serialno_new;
 
+		oggz_io_set_read;
+		oggz_io_get_read_user_handle;
+		oggz_io_set_write;
+		oggz_io_get_write_user_handle;
+		oggz_io_set_seek;
+		oggz_io_get_seek_user_handle;
+		oggz_io_set_tell;
+		oggz_io_get_tell_user_handle;
+		oggz_io_set_flush;
+		oggz_io_get_flush_user_handle;
+
 		oggz_table_new;
 		oggz_table_delete;
 		oggz_table_insert;
