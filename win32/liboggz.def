@@ -7,21 +7,23 @@ EXPORTS
 ;
 oggz_new				@1
 oggz_open				@2
-oggz_open_stdio				@3
+oggz_open_stdio			@3
 oggz_flush				@4
 oggz_close				@5
-oggz_get_bos				@6
-oggz_set_read_callback			@7
-oggz_read				@8
-oggz_read_input				@9
-oggz_write_set_hungry_callback		@10
-oggz_write_feed				@11
-oggz_write_output			@12
-oggz_write				@13
-oggz_write_get_next_page_size		@14
-oggz_set_metric				@15
-oggz_set_metric_linear			@16
-oggz_set_read_page			@17
+oggz_get_bos			@6
+oggz_get_eos			@7
+oggz_set_read_callback	@8
+oggz_set_read_page		@9
+oggz_read				@10
+oggz_read_input			@11
+oggz_purge				@12
+oggz_write_set_hungry_callback		@13
+oggz_write_feed			@14
+oggz_write				@15
+oggz_write_output		@16
+oggz_write_get_next_page_size		@17
+oggz_set_metric				@18
+oggz_set_metric_linear		@19
 
 ;
 ; Ogg file seeking functions
@@ -54,7 +56,7 @@ oggz_io_get_flush_user_handle		@39
 oggz_table_new				@40
 oggz_table_delete			@41
 oggz_table_insert			@42
-oggz_table_lookup			@43
-oggz_table_size				@44
-oggz_table_nth				@45
-oggz_table_remove			@46
+oggz_table_remove			@43
+oggz_table_lookup			@44
+oggz_table_size				@45
+oggz_table_nth				@46
