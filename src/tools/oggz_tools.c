@@ -275,7 +275,7 @@ ot_print_bitrate (long bps)
 }
 
 int
-ot_print_time (double seconds)
+ot_fprint_time (FILE * stream, double seconds)
 {
   int hrs, min;
   double sec;
@@ -291,9 +291,9 @@ ot_print_time (double seconds)
 
   /* XXX: %02.3f workaround */
   if (sec < 10.0) {
-    return printf ("%s%02d:%02d:0%2.3f", sign, hrs, min, sec);
+    return fprintf (stream, "%s%02d:%02d:0%2.3f", sign, hrs, min, sec);
   } else {
-    return printf ("%s%02d:%02d:%02.3f", sign, hrs, min, sec);
+    return fprintf (stream, "%s%02d:%02d:%02.3f", sign, hrs, min, sec);
   }
 }
 

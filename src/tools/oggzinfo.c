@@ -504,7 +504,7 @@ main (int argc, char ** argv)
     if (many_files)
       printf ("Filename: %s\n", infilename);
     fputs ("Content-Duration: ", stdout);
-    ot_print_time ((double)info.duration / 1000.0);
+    ot_fprint_time (stdout, (double)info.duration / 1000.0);
     putchar ('\n');
     
     if (show_length) {

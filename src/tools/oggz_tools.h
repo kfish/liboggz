@@ -50,7 +50,7 @@ int ot_fprint_bytes (FILE * stream, long nr_bytes);
  */
 int ot_print_bitrate (long bps);
 
-int ot_print_time (double seconds);
+int ot_fprint_time (FILE * stream, double seconds);
 
 /*
  * Tool initialization function. Sets stdin, stdio to binary on windows etc.
