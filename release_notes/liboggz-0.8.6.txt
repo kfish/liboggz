@@ -26,8 +26,8 @@ New in this release:
 About Oggz
 ----------
 
-Oggz comprises liboggz and the command-line tools oggzdump, oggzdiff and
-oggzmerge.
+Oggz comprises liboggz and the command-line tools oggzdump, oggzdiff,
+oggzmerge and oggzrip.
 
 liboggz supports the flexibility afforded by the Ogg file format while
 presenting the following API niceties:
