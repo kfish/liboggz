@@ -34,14 +34,11 @@
 #define __OGGZ_H__
 
 #include <stdio.h>
+#include <sys/types.h>
 
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
 #include <oggz/oggz_table.h>
-
-#include <ogg_compat.h>
-
-
 
 /** \mainpage
  *
