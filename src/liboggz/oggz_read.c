@@ -777,7 +777,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
       granule_at = (long)ogg_page_granulepos (og);
 
-#ifdef DEBUG
+#ifdef DEBUG_VERBOSE
       printf ("get_prev_start_page: GOT page (%ld) @%ld\tat @%ld\n",
 	      granule_at, page_offset, offset_at);
 #endif
@@ -807,7 +807,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
 #ifdef DEBUG
     printf ("get_prev_start_page: [C] offset_at: @%ld\t"
-	    "prev_offset: @%ld\tunit_at: %ld\n",
+	    "prev_offset: @%ld\tunit_at: %lld\n",
 	    offset_at, prev_offset, unit_at);
 #endif
 
@@ -1050,6 +1050,11 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 	offset_guess = guess (unit_at, unit_target, unit_begin, unit_end,
 			      offset_begin, offset_at);
       }
+    } else if (unit_end == unit_begin) {
+#ifdef DEBUG
+      printf ("oggz_seek_set: unit_end == unit_begin (FOUND)\n");
+#endif
+      goto found;
     } else if (unit_end <= unit_begin) {
 #ifdef DEBUG
       printf ("oggz_seek_set: unit_end <= unit_begin (ERROR)\n");
@@ -1083,6 +1088,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
 					      &serialno);
+      unit_end = oggz_get_unit (oggz, serialno, granule_at);
 #ifdef DEBUG
       printf ("oggz_seek_set: [C] offset_next @%ld, g%lld, (s%ld)\n",
 	      offset_next, granule_at, serialno);
@@ -1126,7 +1132,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (!looping && unit_at < unit_target) {
       offset_begin = offset_at;
       unit_begin = unit_at;
-    } else if (unit_at > unit_target) {
+    } else if (!looping && unit_at > unit_target) {
       offset_end = offset_at-1;
       unit_end = unit_at;
     } else {
