@@ -122,8 +122,13 @@ enum OggzError {
   /** Seeking operation is not possible for this OGGZ */
   OGGZ_ERR_NOSEEK                       = -13,
 
-  /** Reading stopped by user before any input bytes were consumed */
-  OGGZ_ERR_USER_STOPPED                 = -14,
+  /** Reading was stopped by an OggzReadCallback returning OGGZ_STOP_OK
+   * before any input bytes were consumed */
+  OGGZ_ERR_READ_STOP_OK                 = -14,
+
+  /** Reading was stopped by an OggzReadCallback returning OGGZ_STOP_ERR
+   * before any input bytes were consumed */
+  OGGZ_ERR_READ_STOP_ERR                = -15,
 
   /** The requested serialno does not exist in this OGGZ */
   OGGZ_ERR_BAD_SERIALNO                 = -20,

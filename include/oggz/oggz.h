@@ -1161,6 +1161,7 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
 long oggz_serialno_new (OGGZ * oggz);
 
 #include <oggz/oggz_io.h>
+#include <oggz/oggz_deprecated.h>
 
 #ifdef __cplusplus
 }
