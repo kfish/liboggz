@@ -342,6 +342,7 @@ oggz_read (OGGZ * oggz, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
+  /* If there's nothing to read yet, don't flag an error */
   if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
 
   while (cb_ret == 0 && bytes_read > 0 && remaining > 0) {
@@ -385,6 +386,9 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   reader = &oggz->x.reader;
 
   cb_ret = oggz_read_sync (oggz);
+
+  /* If there's nothing to read yet, don't flag an error */
+  if (reader->current_unit == 0 && cb_ret == -404) cb_ret = 0;
 
   while (cb_ret == 0 && /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
