@@ -91,7 +91,7 @@ oggz_write_init (OGGZ * oggz)
 
 #ifdef ZPACKET_CMP
   /* XXX: comparison function should only kick in when a metric is set */
-  oggz_vector_set_cmp (writer->packet_queue, 
+  oggz_vector_set_cmp (writer->packet_queue,
 		       (OggzCmpFunc)oggz_zpacket_cmp, oggz);
 #endif
 
@@ -230,7 +230,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 
     if (op->granulepos != -1 && op->granulepos < stream->granulepos)
       return OGGZ_ERR_BAD_GRANULEPOS;
-    
+
     /* Allow packetno == -1 to indicate oggz should fill it in; otherwise:
      * if op is the first packet in the stream, initialize the stream's
      * packetno to the given one, otherwise check it for strictness */
@@ -413,7 +413,7 @@ oggz_page_copyout (OGGZ * oggz, unsigned char * buf, long n)
   } else {
     h = 0;
   }
-  
+
   b = MIN (n, og->header_len + og->body_len - writer->page_offset);
   if (b > 0) {
 #ifdef DEBUG
@@ -472,7 +472,7 @@ oggz_page_writeout (OGGZ * oggz, long n)
   } else {
     h = 0;
   }
-  
+
   b = MIN (n, og->header_len + og->body_len - writer->page_offset);
   if (b > 0) {
 #ifdef OGGZ_WRITE_DIRECT
@@ -679,7 +679,7 @@ oggz_write (OGGZ * oggz, long n)
       }
 
       remaining -= bytes_written;
-      nwritten += bytes_written;      
+      nwritten += bytes_written;
     }
   }
 
@@ -713,6 +713,18 @@ oggz_write_get_next_page_size (OGGZ * oggz)
 
 #include <ogg/ogg.h>
 #include "oggz_private.h"
+
+OGGZ *
+oggz_write_init (OGGZ * oggz)
+{
+  return NULL;
+}
+
+OGGZ *
+oggz_write_close (OGGZ * oggz)
+{
+  return NULL;
+}
 
 int
 oggz_write_set_hungry_callback (OGGZ * oggz, OggzWriteHungry hungry,
