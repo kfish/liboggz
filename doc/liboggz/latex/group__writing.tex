@@ -1,8 +1,0 @@
-\section{Writing}
-\label{group__writing}\index{Writing@{Writing}}
-\subsection{Packet queuing}\label{hungry}
-Further, the mechanisms provided by liboggz for ensuring general structure conformance may be useful for implementing additional structuring rules for specific needs.\subsubsection{Flushing packets}\label{flushing}
-\begin{itemize}
-\item When writing, you can ensure that a packet starts on a new page by setting the {\em flush\/} parameter of {\bf oggz\_\-write\_\-feed()}{\rm (p.\,\pageref{group__write__api_a2})} to {\em OGGZ\_\-FLUSH\_\-BEFORE\/} when enqueuing it. Similarly you can ensure that the last page a packet is written into won't contain any following packets by setting the {\em flush\/} parameter of {\bf oggz\_\-write\_\-feed()}{\rm (p.\,\pageref{group__write__api_a2})} to {\em OGGZ\_\-FLUSH\_\-AFTER\/}.\item The {\em OGGZ\_\-FLUSH\_\-BEFORE\/} and {\em OGGZ\_\-FLUSH\_\-AFTER\/} flags can be bitwise OR'd together to ensure that the packet will not share any pages with any other packets, either before or after. \end{itemize}
-
-
