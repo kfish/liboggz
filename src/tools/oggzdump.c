@@ -384,7 +384,6 @@ revert_file (char * infilename)
 		  &offset, &serialno, &iframe, &pframe, &packetno,
 		  &line_offset) >= 5) {
 	int granuleshift = oggz_get_granuleshift (oggz, serialno);
-	fprintf (stderr, "granuleshift %d\n", granuleshift);
 	is_packetinfo = 1;
 	granulepos = (iframe<<granuleshift)+pframe;
       }
