@@ -62,8 +62,6 @@
 
 /*#define DEBUG*/
 
-/*#define DEBUG_BY_READING_PAGES*/
-
 #define CHUNKSIZE 65536
 
 #define OGGZ_READ_EMPTY (-404)
