@@ -1,9 +1,9 @@
-...\" $Header: /var/lib/cvsd/annodex/liboggz/doc/oggzdiff.1,v 1.1 2004/01/04 05:28:25 zen Exp $
-...\"
-...\"	transcript compatibility for postscript use.
-...\"
-...\"	synopsis:  .P! <file.ps>
-...\"
+.\" $Header: /aolnet/dev/src/CVS/sgml/docbook-to-man/cmd/docbook-to-man.sh,v 1.1.1.1 1998/11/13 21:31:59 db3l Exp $
+.\"
+.\"	transcript compatibility for postscript use.
+.\"
+.\"	synopsis:  .P! <file.ps>
+.\"
 .de P!
 .fl
 \!!1 setgray
@@ -15,7 +15,7 @@
 \!!save /psv exch def currentpoint translate 0 0 moveto
 \!!/showpage{}def
 .fl			\" prolog
-.sy sed -e 's/^/!/' \\$1\" bring in postscript file
+.sy sed \-e 's/^/!/' \\$1\" bring in postscript file
 \!!psv restore
 .
 .de pF
@@ -61,9 +61,9 @@ oggzdiff \(em Hexdump the packets of two Ogg files and output differences
 .PP 
 \fB\fBoptions:\fR\fR [--verbose ]  [-v  | --version ]  [-h  | --help ]  
 .PP 
-\fB\fBOGGZDUMP_OPTIONS:\fR\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-s serialno  | --serialno serialno ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ]  
+\fB\fBOGGZDUMP_OPTIONS:\fR\fR [-b  | --binary ]  [-x  | --hexadecimal ]  [-c content-type  | --content-type content-type ]  [-s serialno  | --serialno serialno ]  [-O  | --hide-offset ]  [-S  | --hide-serialno ]  [-G  | --hide-granulepos ]  [-P  | --hide-packetno ]  
 .PP 
-\fB\fBDIFF_OPTIONS:\fR\fR [-q  | --brief ]  [-c  | -C NUM  | --context[=NUM] ]  [-u  | -U NUM  | --unified[=NUM] ]  [-e  | --ed ]  [--normal ]  [--rcs ]  [-y  | --side-by-side ]  [-l  | --paginate ]  
+\fB\fBDIFF_OPTIONS:\fR\fR [-q  | --brief ]  [-C NUM  | --context[=NUM] ]  [-u  | -U NUM  | --unified[=NUM] ]  [-e  | --ed ]  [--normal ]  [--rcs ]  [-y  | --side-by-side ]  [-l  | --paginate ]  
 .SH "Description" 
 .PP 
 \fBoggzdiff\fR is a \fBsh\fR script which 
@@ -87,6 +87,11 @@ Generate a binary dump of each packet
 Generate a hexadecimal dump of each packet 
  
 .SS "oggzdump filtering options" 
+.IP "-c \fBcontent-type\fR, --content-type \fBcontent-type\fR" 10 
+Dump only the logical bitstreams for a specific 
+\fBcontent-type\fR. The following codec names 
+are currently detected: "theora", "vorbis", "speex", "cmml" 
+ 
 .IP "-s \fBserialno\fR, --serialno \fBserialno\fR" 10 
 Dump only the logical bitstream with specified 
 \fBserialno\fR. 
@@ -116,8 +121,8 @@ The -w (--ignore-all-space) option to \fBdiff\fR 	is always implied.
 .IP "-q, --brief" 10 
 Output only whether files differ. 
  
-.IP "-c, -C \fBNUM\fR, --context[=\fBNUM\fR]" 10 
-Output NUM (default 3) lines of copied context. 
+.IP "-C \fBNUM\fR, --context[=\fBNUM\fR]" 10 
+Output NUM lines of copied context. 
  
 .IP "-u, -U \fBNUM\fR, --unified[=\fBNUM\fR]" 10 
 Output NUM (default 3) lines of unified context. 
@@ -157,4 +162,4 @@ Copyright \(co 2003 CSIRO Australia
 \fBoggzdump\fP\fB(1)\fP, 
 \fBdiff\fP\fB(1)\fP, 
 \fBpatch\fP\fB(1)\fP      
-...\" created by instant / docbook-to-man, Wed 19 Nov 2003, 12:25 
+.\" created by instant / docbook-to-man, Thu 31 Mar 2005, 00:07 

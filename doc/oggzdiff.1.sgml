@@ -91,6 +91,11 @@ manpage.1: manpage.sgml
       </group>
 
       <group>
+	<arg choice="opt">-c content-type</arg>
+	<arg choice="opt">--content-type content-type</arg>
+      </group>
+
+      <group>
 	<arg choice="opt">-s serialno</arg>
 	<arg choice="opt">--serialno serialno</arg>
       </group>
@@ -117,7 +122,6 @@ manpage.1: manpage.sgml
       </group>
 
       <group>
-	<arg choice="opt">-c</arg>
 	<arg choice="opt">-C NUM</arg>
 	<arg choice="opt">--context[=NUM]</arg>
       </group>
@@ -192,6 +196,14 @@ manpage.1: manpage.sgml
       <variablelist>
 	
 	<varlistentry>
+	  <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
+	  <listitem><para>Dump only the logical bitstreams for a specific
+	      <parameter>content-type</parameter>. The following codec names
+	      are currently detected: "theora", "vorbis", "speex", "cmml"
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
 	  <term>-s <parameter>serialno</parameter>, --serialno <parameter>serialno</parameter></term>
 	  <listitem><para>Dump only the logical bitstream with specified
 	      <parameter>serialno</parameter>.
@@ -246,8 +258,8 @@ manpage.1: manpage.sgml
 	</varlistentry>
 
 	<varlistentry>
-	  <term>-c, -C <parameter>NUM</parameter>, --context[=<parameter>NUM</parameter>]</term>
-	  <listitem><para>Output NUM (default 3) lines of copied context.
+	  <term>-C <parameter>NUM</parameter>, --context[=<parameter>NUM</parameter>]</term>
+	  <listitem><para>Output NUM lines of copied context.
 	    </para></listitem>
 	</varlistentry>
 

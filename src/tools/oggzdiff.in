@@ -47,8 +47,9 @@ usage () {
   echo >&2 "OGGZDUMP_OPTIONS: [-b | --binary] [-x | --hexadecimal]"
   echo >&2 "    [-O | --hide-offset] [-S | --hide-serialno] [-G | --hide-granulepos]"
   echo >&2 "    [-P | --hide-packetno] [-s serialno | --serialno serialno]"
+  echo >&2 "    [-c content-type | --content-type content-type]"
   echo >&2
-  echo >&2 "DIFF_OPTIONS: [-q | --brief] [-c | -C NUM | --context[=NUM]]"
+  echo >&2 "DIFF_OPTIONS: [-q | --brief] [-C NUM | --context[=NUM]]"
   echo >&2 "     [-u | -U NUM | --unified[=NUM]] [-e | -ed] [--normal] [--rcs]"
   echo >&2 "     [-y | --side-by-side] [-l | --paginate]"
   echo >&2
@@ -58,10 +59,10 @@ usage () {
 GETOPTEST=`getopt --version`
 case $GETOPTEST in
 getopt*) # GNU getopt
-  TEMP=`getopt -l verbose -l version -l brief -l context:: -l unified:: -l ed -l normal -l rcs -l side-by-side -l paginate -l binary -l hexadecimal -l serialno: -l hide-offset -l hide-serialno -l hide-granulepos -l hide-packetno -l help -- +qcC:uU:eylbxs:OSGPhv "$@"`
+  TEMP=`getopt -l verbose -l version -l brief -l context:: -l unified:: -l ed -l normal -l rcs -l side-by-side -l paginate -l binary -l hexadecimal -l serialno: -l content-type: -l hide-offset -l hide-serialno -l hide-granulepos -l hide-packetno -l help -- +qC:uU:eylbxs:c:OSGPhv "$@"`
   ;;
 *) # POSIX getopt ?
-  TEMP=`getopt qcC:uU:eylbxs:OSGPhv "$@"`
+  TEMP=`getopt qC:uU:eylbxs:c:OSGPhv "$@"`
   ;;
 esac
 
@@ -79,9 +80,6 @@ while test "X$1" != "X--"; do
   case "$1" in
     -q|--brief)
       DIFFOPTS=$DIFFOPTS" -q"
-      ;;
-    -c)
-      DIFFOPTS=$DIFFOPTS" -c"
       ;;
     -C)
       shift
@@ -134,6 +132,10 @@ while test "X$1" != "X--"; do
     -s|--serialno)
       shift
       DUMPOPTS=$DUMPOPTS" -s $1"
+      ;;
+    -c)
+      shift
+      DUMPOPTS=$DUMPOPTS" -c $1"
       ;;
     -O|--hide-offset)
       DUMPOPTS=$DUMPOPTS" -O"
