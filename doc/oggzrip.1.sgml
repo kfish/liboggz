@@ -125,8 +125,8 @@ manpage.1: manpage.sgml
           </para></listitem>
         </varlistentry>
         <varlistentry>
-          <term>-c <parameter>codec-name</parameter> --codec-name <parameter>codec-name</parameter></term>
-          <listitem><para>Filter by codec-name.  The following codecs
+          <term>-c <parameter>content-type</parameter> --content-type <parameter>content-type</parameter></term>
+          <listitem><para>Filter by content-type.  The following codec names
                          are currently detected: "theora",
                          "vorbis", "speex", "annodex"
           </para></listitem>

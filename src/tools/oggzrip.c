@@ -67,21 +67,21 @@ typedef struct {
   long serialnos[MAX_FILTER];
   int num_streamids;
   long streamids[MAX_FILTER];
-  int num_codec_names;
-  const char *codec_names[MAX_FILTER];
+  int num_content_types;
+  const char *content_types[MAX_FILTER];
 } ORData;
 
 typedef struct {
   long serialno;
   int streamid;
-  const char *codec_name;
+  const char *content_type;
   int bos;
 } ORStream;
 
 typedef struct {
   const char *bos_str;
   int bos_str_len;
-  const char *codec_name;
+  const char *content_type;
 } ORCodecIdent;
 
 static int streamid_count = 0;
@@ -113,9 +113,9 @@ usage (char * progname)
   printf ("                         Filter by stream-ID, IDs are assigned to\n");
   printf ("                         streams in the order of their BOS pages,\n");
   printf ("                         starting at 0.\n");
-  printf ("  -c codec-name --codec-name codec-name\n");
-  printf ("                         Filter by codec-name.  The following codecs\n");
-  printf ("                         are currently detected: \"theora\",\n");
+  printf ("  -c content-type --content-type content-type\n");
+  printf ("                         Filter by content-type.  The following codec\n");
+  printf ("                         names are currently detected: \"theora\",\n");
   printf ("                         \"vorbis\", \"speex\", \"annodex\"\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
@@ -166,8 +166,8 @@ filter_stream_p (const ORData *ordata, ORStream *stream,
       return 1;
   }
 
-  for (i = 0; i < ordata->num_codec_names; i++) {
-    if (strcmp (ordata->codec_names[i], stream->codec_name) == 0)
+  for (i = 0; i < ordata->num_content_types; i++) {
+    if (strcmp (ordata->content_types[i], stream->content_type) == 0)
       return 1;
   }
 
@@ -184,7 +184,7 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
 
   stream->serialno = serialno;
   stream->streamid = streamid_count++;
-  stream->codec_name = "unknown";
+  stream->content_type = "unknown";
 
   /* try to identify stream codec name by looking at the first bytes of the
    * first packet */
@@ -195,7 +195,7 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
       break;
     if (og->body_len >= ident->bos_str_len &&
 	memcmp (og->body, ident->bos_str, ident->bos_str_len) == 0) {
-      stream->codec_name = ident->codec_name;
+      stream->content_type = ident->content_type;
       break;
     }
   }
@@ -203,7 +203,7 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
   if (ordata->verbose)
     fprintf (stderr, 
 	     "New logical stream, serialno %li, id %i, codec %s, will be %s\n",
-	     stream->serialno, stream->streamid, stream->codec_name,
+	     stream->serialno, stream->streamid, stream->content_type,
 	     (filter_stream_p (ordata, stream, og, serialno) ? 
 	      "copied" :"dropped"));
 
@@ -339,7 +339,7 @@ main (int argc, char * argv[])
       {"verbose", no_argument, 0, 'V'},
       {"serialno", required_argument, 0, 's'},
       {"streamid", required_argument, 0, 'i'},
-      {"codec-name", required_argument, 0, 'c'},
+      {"content-type", required_argument, 0, 'c'},
       {0,0,0,0}
     };
 
@@ -384,12 +384,12 @@ main (int argc, char * argv[])
       if (or_get_long (optarg, currentopt, 
 		       &ordata->streamids[ordata->num_streamids++]))
 	goto exit_err;
-    case 'c': /* codec-name */
-      if (ordata->num_codec_names >= MAX_FILTER) {
-	fprintf (stderr, "ERROR: too many codec-names on command line\n");
+    case 'c': /* content-type */
+      if (ordata->num_content_types >= MAX_FILTER) {
+	fprintf (stderr, "ERROR: too many content-types on command line\n");
 	goto exit_err;
       }
-      ordata->codec_names[ordata->num_codec_names++] = optarg;	     
+      ordata->content_types[ordata->num_content_types++] = optarg;	     
       break;
 	  
     default:
