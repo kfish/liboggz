@@ -104,6 +104,7 @@ typedef struct {
   int keyframe_shift;
 } oggz_theora_metric_t;
 
+#if USE_THEORA_PRE_ALPHA_3_FORMAT
 static int intlog(int num) {
   int ret=0;
   while(num>0){
@@ -112,6 +113,7 @@ static int intlog(int num) {
   }
   return(ret);
 }
+#endif
 
 static ogg_int64_t
 auto_theora_metric (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
