@@ -200,9 +200,21 @@ bin_dump (unsigned char * buf, long n)
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  fprintf (outfile, "%08" PRI_off_t "x: serialno %010ld, "
+  ogg_int64_t units;
+  double time_offset;
+
+  units = oggz_tell_units (oggz);
+  if (hide_offset) {
+    fprintf (outfile, "oOo");
+  } else if (units == -1) {
+    fprintf (outfile, "%08" PRI_off_t "x", oggz_tell (oggz));
+  } else {
+    time_offset = (double)units / 1000.0;
+    ot_fprint_time (outfile, time_offset);
+  }
+
+  fprintf (outfile, ": serialno %010ld, "
 	   "granulepos %" PRId64 ", packetno %" PRId64,
-	   hide_offset ? -1 : oggz_tell (oggz),
 	   hide_serialno ? -1 : serialno,
 	   hide_granulepos ? -1 : op->granulepos,
 	   hide_packetno ? -1 : op->packetno);
@@ -251,6 +263,7 @@ revert_file (char * infilename)
   OGGZ * oggz;
   FILE * infile;
   char line[80];
+  int hh, mm, ss;
   unsigned int offset;
   long current_serialno = -1, serialno;
   ogg_int64_t granulepos, packetno;
@@ -276,7 +289,13 @@ revert_file (char * infilename)
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT);
 
   while (fgets (line, 80, infile)) {
-    if (sscanf (line, "%x: serialno %ld, granulepos %lld, packetno %lld%n",
+    line_offset = 0;
+
+    /* Skip time offsets, OR ensure line_offset is 0 */
+    if (sscanf (line, "%2d:%2d:%2d.%n", &hh, &mm, &ss, &line_offset) < 3)
+      line_offset = 0;
+
+    if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %lld, packetno %lld%n",
 		&offset, &serialno, &granulepos, &packetno,
 		&line_offset) >= 4) {
 
@@ -503,9 +522,9 @@ main (int argc, char ** argv)
     errno = 0;
 
     if (strcmp (infilename, "-") == 0) {
-      oggz = oggz_open_stdio (stdin, OGGZ_READ);
+      oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
     } else {
-      oggz = oggz_open (infilename, OGGZ_READ);
+      oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO);
     }
 
     if (oggz == NULL) {
