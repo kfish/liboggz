@@ -23,12 +23,14 @@ oggz_set_metric_linear			@15
 oggz_set_data_start			@16
 oggz_set_metric				@17
 
+
 ;
 ; Ogg file seeking functions
 ;
 oggz_tell				@18
 oggz_seek				@19
 oggz_seek_units				@20
+oggz_purge				@21
 
 ;
 ;oggz table functions.

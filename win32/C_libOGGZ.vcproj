@@ -22,8 +22,8 @@
 				AdditionalIncludeDirectories=".;..\..\libogg\include;..\..\liboggz\include"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;C_LIBOGGZ_EXPORTS;DEBUG"
 				MinimalRebuild="TRUE"
-				BasicRuntimeChecks="3"
-				RuntimeLibrary="1"
+				BasicRuntimeChecks="0"
+				RuntimeLibrary="3"
 				UsePrecompiledHeader="0"
 				WarningLevel="3"
 				Detect64BitPortabilityProblems="TRUE"
@@ -188,5 +188,8 @@
 		</File>
 	</Files>
 	<Globals>
+		<Global
+			Name="DevPartner_IsInstrumented"
+			Value="1"/>
 	</Globals>
 </VisualStudioProject>
