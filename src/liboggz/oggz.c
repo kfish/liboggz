@@ -38,7 +38,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
@@ -49,6 +49,7 @@
 
 #include <ogg/ogg.h>
 
+#include "oggz_compat.h"
 #include "oggz_private.h"
 #include "oggz_vector.h"
 
@@ -332,13 +333,7 @@ oggz_serialno_new (OGGZ * oggz)
   long serialno;
 
   do {
-
-
-#ifndef WIN32
-    serialno = random();
-#else
-    serialno = rand();
-#endif
+    serialno = oggz_random();
   } while (oggz_get_stream (oggz, serialno) != NULL);
 
   return serialno;

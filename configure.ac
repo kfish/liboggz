@@ -34,7 +34,7 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memmove])
+AC_CHECK_FUNCS([memmove random])
 
 
 # Check for doxygen

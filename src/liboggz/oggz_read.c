@@ -36,11 +36,7 @@
  * Conrad Parker <conrad@annodex.net>
  */
 
-#ifndef WIN32
 #include "config.h"
-#else
-#include <config.h>
-#endif
 
 #if OGGZ_CONFIG_READ
 
@@ -50,7 +46,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 
-#ifndef WIN32
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
 
@@ -61,6 +57,7 @@
 
 #include <ogg/ogg.h>
 
+#include "oggz_compat.h"
 #include "oggz_private.h"
 
 /*#define DEBUG*/
@@ -789,6 +786,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 
+#if 0
 #ifndef WIN32
   if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
     offset_end = statbuf.st_size;
@@ -797,7 +795,15 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     return -1;
   }
 #else
-	if (statbuf.st_mode & S_IFREG) {
+  if (statbuf.st_mode & S_IFREG) {
+    offset_end = statbuf.st_size;
+  } else {
+    /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
+    return -1;
+  }
+#endif
+#else
+  if (oggz_stat_regular (statbuf.st_mode)) {
     offset_end = statbuf.st_size;
   } else {
     /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/

@@ -46,85 +46,89 @@
 00039 <span class="preprocessor">#include &lt;<a class="code" href="oggz__constants_8h.html">oggz/oggz_constants.h</a>&gt;</span>
 00040 <span class="preprocessor">#include &lt;<a class="code" href="oggz__table_8h.html">oggz/oggz_table.h</a>&gt;</span>
 00041 
-<a name="l00422"></a><a class="code" href="oggz_8h.html#a0">00422</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="oggz_8h.html#a0">OGGZ</a>;
-00423 
-00430 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a4">oggz_new</a> (<span class="keywordtype">int</span> flags);
-00431 
-00439 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a5">oggz_open</a> (<span class="keywordtype">char</span> * filename, <span class="keywordtype">int</span> flags);
-00440 
-00448 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a6">oggz_open_stdio</a> (FILE * file, <span class="keywordtype">int</span> flags);
-00449 
-00458 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a7">oggz_flush</a> (OGGZ * oggz);
-00459 
-00467 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a8">oggz_close</a> (OGGZ * oggz);
-00468 
-00479 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a9">oggz_get_bos</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno);
-00480 
-00491 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a10">oggz_get_eos</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno);
-00492 
-<a name="l00524"></a><a class="code" href="group__read__api.html#a0">00524</a> <span class="keyword">typedef</span> int (*<a class="code" href="group__read__api.html#a0">OggzReadPacket</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, ogg_packet * op, <span class="keywordtype">long</span> serialno,
-00525                                <span class="keywordtype">void</span> * user_data);
-00526 
-00550 <span class="keywordtype">int</span> <a class="code" href="group__read__api.html#a1">oggz_set_read_callback</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno,
-00551                             <a class="code" href="group__read__api.html#a0">OggzReadPacket</a> read_packet, <span class="keywordtype">void</span> * user_data);
-00552 
-00563 <span class="keywordtype">long</span> <a class="code" href="group__read__api.html#a2">oggz_read</a> (OGGZ * oggz, <span class="keywordtype">long</span> n);
-00564 
-00574 <span class="keywordtype">long</span> <a class="code" href="group__read__api.html#a3">oggz_read_input</a> (OGGZ * oggz, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> * buf, <span class="keywordtype">long</span> n);
-00575 
-<a name="l00662"></a><a class="code" href="group__write__api.html#a0">00662</a> <span class="keyword">typedef</span> int (*<a class="code" href="group__write__api.html#a0">OggzWriteHungry</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, <span class="keywordtype">int</span> empty, <span class="keywordtype">void</span> * user_data);
-00663 
-00681 <span class="keywordtype">int</span> <a class="code" href="group__write__api.html#a1">oggz_write_set_hungry_callback</a> (OGGZ * oggz,
-00682                                     <a class="code" href="group__write__api.html#a0">OggzWriteHungry</a> hungry,
-00683                                     <span class="keywordtype">int</span> only_when_empty,
-00684                                     <span class="keywordtype">void</span> * user_data);
-00722 <span class="keywordtype">int</span> <a class="code" href="group__write__api.html#a2">oggz_write_feed</a> (OGGZ * oggz, ogg_packet * op, <span class="keywordtype">long</span> serialno, <span class="keywordtype">int</span> flush,
-00723                      <span class="keywordtype">int</span> * guard);
-00724 
-00739 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a3">oggz_write_output</a> (OGGZ * oggz, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> * buf, <span class="keywordtype">long</span> n);
-00740 
-00754 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a4">oggz_write</a> (OGGZ * oggz, <span class="keywordtype">long</span> n);
-00755 
-00764 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a5">oggz_write_get_next_page_size</a> (OGGZ * oggz);
-00765 
-00905 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a1">oggz_set_metric_linear</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno,
-00906                             ogg_int64_t granule_rate_numerator,
-00907                             ogg_int64_t granule_rate_denominator);
-00908 
-<a name="l00926"></a><a class="code" href="group__seek__api.html#a0">00926</a> <span class="keyword">typedef</span> ogg_int64_t (*<a class="code" href="group__seek__api.html#a0">OggzMetric</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, <span class="keywordtype">long</span> serialno,
-00927                                    ogg_int64_t granulepos, <span class="keywordtype">void</span> * user_data);
-00928 
-00951 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a2">oggz_set_metric</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno, <a class="code" href="group__seek__api.html#a0">OggzMetric</a> metric,
-00952                      <span class="keywordtype">void</span> * user_data);
-00953 
-00961 ogg_int64_t <a class="code" href="group__seek__api.html#a3">oggz_seek_units</a> (OGGZ * oggz, ogg_int64_t units, <span class="keywordtype">int</span> whence);
-00962 
-00963 <span class="preprocessor">#ifdef _UNIMPLEMENTED</span>
-00964 <span class="preprocessor"></span>
-01016 <span class="keyword">typedef</span> int (*OggzOrder) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, ogg_packet * op, <span class="keywordtype">void</span> * target,
-01017                          <span class="keywordtype">void</span> * user_data);
-01023 <span class="keywordtype">int</span> oggz_set_order (OGGZ * oggz, <span class="keywordtype">long</span> serialno, OggzOrder order,
-01024                     <span class="keywordtype">void</span> * user_data);
-01025 
-01026 <span class="keywordtype">long</span> oggz_seek_byorder (OGGZ * oggz, <span class="keywordtype">void</span> * target);
-01027 
-01028 <span class="preprocessor">#endif </span><span class="comment">/* _UNIMPLEMENTED */</span>
+00042 <span class="preprocessor">#include &lt;ogg_compat.h&gt;</span>
+00043 
+00044 
+00045 
+<a name="l00426"></a><a class="code" href="oggz_8h.html#a0">00426</a> <span class="keyword">typedef</span> <span class="keywordtype">void</span> <a class="code" href="oggz_8h.html#a0">OGGZ</a>;
+00427 
+00434 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a4">oggz_new</a> (<span class="keywordtype">int</span> flags);
+00435 
+00443 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a5">oggz_open</a> (<span class="keywordtype">char</span> * filename, <span class="keywordtype">int</span> flags);
+00444 
+00452 <a class="code" href="oggz_8h.html#a0">OGGZ</a> * <a class="code" href="oggz_8h.html#a6">oggz_open_stdio</a> (FILE * file, <span class="keywordtype">int</span> flags);
+00453 
+00462 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a7">oggz_flush</a> (OGGZ * oggz);
+00463 
+00471 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a8">oggz_close</a> (OGGZ * oggz);
+00472 
+00483 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a9">oggz_get_bos</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno);
+00484 
+00495 <span class="keywordtype">int</span> <a class="code" href="oggz_8h.html#a10">oggz_get_eos</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno);
+00496 
+<a name="l00528"></a><a class="code" href="group__read__api.html#a0">00528</a> <span class="keyword">typedef</span> int (*<a class="code" href="group__read__api.html#a0">OggzReadPacket</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, ogg_packet * op, <span class="keywordtype">long</span> serialno,
+00529                                <span class="keywordtype">void</span> * user_data);
+00530 
+00554 <span class="keywordtype">int</span> <a class="code" href="group__read__api.html#a1">oggz_set_read_callback</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno,
+00555                             <a class="code" href="group__read__api.html#a0">OggzReadPacket</a> read_packet, <span class="keywordtype">void</span> * user_data);
+00556 
+00567 <span class="keywordtype">long</span> <a class="code" href="group__read__api.html#a2">oggz_read</a> (OGGZ * oggz, <span class="keywordtype">long</span> n);
+00568 
+00578 <span class="keywordtype">long</span> <a class="code" href="group__read__api.html#a3">oggz_read_input</a> (OGGZ * oggz, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> * buf, <span class="keywordtype">long</span> n);
+00579 
+<a name="l00666"></a><a class="code" href="group__write__api.html#a0">00666</a> <span class="keyword">typedef</span> int (*<a class="code" href="group__write__api.html#a0">OggzWriteHungry</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, <span class="keywordtype">int</span> empty, <span class="keywordtype">void</span> * user_data);
+00667 
+00685 <span class="keywordtype">int</span> <a class="code" href="group__write__api.html#a1">oggz_write_set_hungry_callback</a> (OGGZ * oggz,
+00686                                     <a class="code" href="group__write__api.html#a0">OggzWriteHungry</a> hungry,
+00687                                     <span class="keywordtype">int</span> only_when_empty,
+00688                                     <span class="keywordtype">void</span> * user_data);
+00726 <span class="keywordtype">int</span> <a class="code" href="group__write__api.html#a2">oggz_write_feed</a> (OGGZ * oggz, ogg_packet * op, <span class="keywordtype">long</span> serialno, <span class="keywordtype">int</span> flush,
+00727                      <span class="keywordtype">int</span> * guard);
+00728 
+00743 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a3">oggz_write_output</a> (OGGZ * oggz, <span class="keywordtype">unsigned</span> <span class="keywordtype">char</span> * buf, <span class="keywordtype">long</span> n);
+00744 
+00758 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a4">oggz_write</a> (OGGZ * oggz, <span class="keywordtype">long</span> n);
+00759 
+00768 <span class="keywordtype">long</span> <a class="code" href="group__write__api.html#a5">oggz_write_get_next_page_size</a> (OGGZ * oggz);
+00769 
+00909 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a1">oggz_set_metric_linear</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno,
+00910                             ogg_int64_t granule_rate_numerator,
+00911                             ogg_int64_t granule_rate_denominator);
+00912 
+<a name="l00930"></a><a class="code" href="group__seek__api.html#a0">00930</a> <span class="keyword">typedef</span> ogg_int64_t (*<a class="code" href="group__seek__api.html#a0">OggzMetric</a>) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, <span class="keywordtype">long</span> serialno,
+00931                                    ogg_int64_t granulepos, <span class="keywordtype">void</span> * user_data);
+00932 
+00955 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a2">oggz_set_metric</a> (OGGZ * oggz, <span class="keywordtype">long</span> serialno, <a class="code" href="group__seek__api.html#a0">OggzMetric</a> metric,
+00956                      <span class="keywordtype">void</span> * user_data);
+00957 
+00965 ogg_int64_t <a class="code" href="group__seek__api.html#a3">oggz_seek_units</a> (OGGZ * oggz, ogg_int64_t units, <span class="keywordtype">int</span> whence);
+00966 
+00967 <span class="preprocessor">#ifdef _UNIMPLEMENTED</span>
+00968 <span class="preprocessor"></span>
+01020 <span class="keyword">typedef</span> int (*OggzOrder) (<a class="code" href="oggz_8h.html#a0">OGGZ</a> * oggz, ogg_packet * op, <span class="keywordtype">void</span> * target,
+01021                          <span class="keywordtype">void</span> * user_data);
+01027 <span class="keywordtype">int</span> oggz_set_order (OGGZ * oggz, <span class="keywordtype">long</span> serialno, OggzOrder order,
+01028                     <span class="keywordtype">void</span> * user_data);
 01029 
-01043 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a4">oggz_set_data_start</a> (OGGZ * oggz, off_t offset);
-01044 
-01057 off_t <a class="code" href="group__seek__api.html#a5">oggz_tell</a> (OGGZ * oggz);
-01058 
-01066 off_t <a class="code" href="group__seek__api.html#a6">oggz_seek</a> (OGGZ * oggz, off_t offset, <span class="keywordtype">int</span> whence);
-01067 
-01068 <span class="preprocessor">#ifdef _UNIMPLEMENTED</span>
-01069 <span class="preprocessor"></span><span class="keywordtype">long</span> oggz_seek_packets (OGGZ * oggz, <span class="keywordtype">long</span> serialno, <span class="keywordtype">long</span> packets, <span class="keywordtype">int</span> whence);
-01070 <span class="preprocessor">#endif</span>
-01071 <span class="preprocessor"></span>
-01082 <span class="keywordtype">long</span> <a class="code" href="oggz_8h.html#a25">oggz_serialno_new</a> (OGGZ * oggz);
-01083 
-01084 
-01085 <span class="preprocessor">#endif </span><span class="comment">/* __OGGZ_H__ */</span>
-</pre></div><hr size="1"><address style="align: right;"><small>Generated on Mon Dec 15 09:53:56 2003 for liboggz by
+01030 <span class="keywordtype">long</span> oggz_seek_byorder (OGGZ * oggz, <span class="keywordtype">void</span> * target);
+01031 
+01032 <span class="preprocessor">#endif </span><span class="comment">/* _UNIMPLEMENTED */</span>
+01033 
+01047 <span class="keywordtype">int</span> <a class="code" href="group__seek__api.html#a4">oggz_set_data_start</a> (OGGZ * oggz, off_t offset);
+01048 
+01061 off_t <a class="code" href="group__seek__api.html#a5">oggz_tell</a> (OGGZ * oggz);
+01062 
+01070 off_t <a class="code" href="group__seek__api.html#a6">oggz_seek</a> (OGGZ * oggz, off_t offset, <span class="keywordtype">int</span> whence);
+01071 
+01072 <span class="preprocessor">#ifdef _UNIMPLEMENTED</span>
+01073 <span class="preprocessor"></span><span class="keywordtype">long</span> oggz_seek_packets (OGGZ * oggz, <span class="keywordtype">long</span> serialno, <span class="keywordtype">long</span> packets, <span class="keywordtype">int</span> whence);
+01074 <span class="preprocessor">#endif</span>
+01075 <span class="preprocessor"></span>
+01086 <span class="keywordtype">long</span> <a class="code" href="oggz_8h.html#a25">oggz_serialno_new</a> (OGGZ * oggz);
+01087 
+01088 
+01089 <span class="preprocessor">#endif </span><span class="comment">/* __OGGZ_H__ */</span>
+</pre></div><hr size="1"><address style="align: right;"><small>Generated on Wed Jan 21 15:05:41 2004 for liboggz by
 <a href="http://www.doxygen.org/index.html">
 <img src="doxygen.png" alt="doxygen" align="middle" border=0 > 
 </a>1.3.4 </small></address>

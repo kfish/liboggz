@@ -30,15 +30,19 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <config.h>
+#include "config.h"
 
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <ctype.h>
-#ifndef WIN32
-#include <inttypes.h>
+
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
 #endif
+
 #include <getopt.h>
 #include <errno.h>
 
@@ -165,9 +169,6 @@ bin_dump (unsigned char * buf, long n)
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-#ifdef WIN32
-#define PRId64 "I64d"
-#endif
   fprintf (outfile, "%08lx: serialno %010ld, "
 	   "granulepos %" PRId64 ", packetno %" PRId64,
 	   hide_offset ? -1 : oggz_tell (oggz),

@@ -39,9 +39,11 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
-#ifndef WIN32
+
+#ifdef HAVE_UNISTD_H
 #include <unistd.h>
 #endif
+
 #include <fcntl.h>
 #include <errno.h>
 #include <string.h>
