@@ -25,7 +25,6 @@ oggz_write_get_next_page_size		@17
 
 oggz_set_metric				@18
 oggz_set_metric_linear		@19
-oggz_set_metric_granuleshift	@50
 
 ;
 ; Ogg file seeking functions
@@ -62,3 +61,11 @@ oggz_table_remove			@43
 oggz_table_lookup			@44
 oggz_table_size				@45
 oggz_table_nth				@46
+
+;
+;oggz stream functions
+;
+oggz_set_granulerate			@50
+oggz_get_granulerate			@51
+oggz_set_granuleshift			@52
+oggz_get_granuleshift			@53

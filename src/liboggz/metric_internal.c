@@ -183,9 +183,3 @@ oggz_set_metric_linear (OGGZ * oggz, long serialno,
   return oggz_metric_update (oggz, serialno);
 }
 
-int
-oggz_set_metric_zero (OGGZ * oggz, long serialno)
-{
-  return oggz_set_metric_linear (oggz, serialno, 0, 1);
-}
-

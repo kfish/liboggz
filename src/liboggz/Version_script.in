@@ -30,7 +30,10 @@
 
 		oggz_set_metric;
 		oggz_set_metric_linear;
-		oggz_set_metric_granuleshift;
+		oggz_set_granulerate;
+		oggz_get_granulerate;
+		oggz_set_granuleshift;
+		oggz_get_granuleshift;
 
 		oggz_tell;
 		oggz_tell_units;
