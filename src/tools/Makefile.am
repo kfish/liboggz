@@ -26,7 +26,7 @@ bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
 noinst_PROGRAMS = $(oggz_read_noinst_programs)
 
 oggzinfo_SOURCES = oggzinfo.c
-oggzinfo_LDADD = $(OGGZ_LIBS)
+oggzinfo_LDADD = $(OGGZ_LIBS) -lm
 
 oggzed_SOURCES = oggzed.c
 oggzed_LDADD = $(OGGZ_LIBS)
