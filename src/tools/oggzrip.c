@@ -82,12 +82,6 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
-  printf ("\nMiscellaneous options\n");
-  printf ("  -o filename, --output filename\n");
-  printf ("                         Specify output filename\n");
-  printf ("  -h, --help             Display this help and exit\n");
-  printf ("  -v, --version          Output version information and exit\n");
-  printf ("  -V                     Verbose operation\n");
   printf ("\nFilter options\n");
   printf ("  These options can be used multiple times. Pages matching ANY of\n");
   printf ("  the filter options will be included into the output.\n\n");
@@ -100,7 +94,13 @@ usage (char * progname)
   printf ("  -c content-type --content-type content-type\n");
   printf ("                         Filter by content-type.  The following codec\n");
   printf ("                         names are currently detected: \"theora\",\n");
-  printf ("                         \"vorbis\", \"speex\", \"annodex\"\n");
+  printf ("                         \"vorbis\", \"speex\", \"cmml\"\n");
+  printf ("\nMiscellaneous options\n");
+  printf ("  -o filename, --output filename\n");
+  printf ("                         Specify output filename\n");
+  printf ("  -h, --help             Display this help and exit\n");
+  printf ("  -v, --version          Output version information and exit\n");
+  printf ("  -V                     Verbose operation\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
