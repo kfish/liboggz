@@ -9,6 +9,8 @@ OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
 # Test programs
 
+TESTS_ENVIRONMENT = $(VALGRIND_ENVIRONMENT)
+
 test: check
 
 if OGGZ_CONFIG_WRITE
