@@ -169,8 +169,12 @@ ot_page_identify (const ogg_page * og, char ** info)
     if (og->body_len >= ident->bos_str_len &&
 	memcmp (og->body, ident->bos_str, ident->bos_str_len) == 0) {
       ret = ident->content_type;
-      if (info && ident->info_func) {
-	*info = ident->info_func (og->body, og->body_len);
+      if (info) {
+	if (ident->info_func) {
+	  *info = ident->info_func (og->body, og->body_len);
+	} else {
+	  *info = NULL;
+	}
       }
       break;
     }

@@ -51,7 +51,7 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
-  printf ("Display information about an Ogg file and the bitstreams it contains\n");
+  printf ("Display information about one or more Ogg files and their bitstreams\n");
   printf ("\nDisplay options\n");
   printf ("  -l, --length           Display content lengths\n");
   printf ("  -b, --bitrate          Display bitrate information\n");
@@ -64,6 +64,8 @@ usage (char * progname)
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
+
+#define SEP "------------------------------------------------------------"
 
 typedef struct _OI_Info OI_Info;
 typedef struct _OI_Stats OI_Stats;
@@ -358,6 +360,7 @@ main (int argc, char ** argv)
   int i;
   int show_all = 0;
 
+  int many_files = 0;
   char * infilename;
   OGGZ * oggz;
   OI_Info info;
@@ -445,43 +448,53 @@ main (int argc, char ** argv)
     show_packet_stats = 1;
   }
 
-  infilename = argv[optind++];
-
-  if ((oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
-    printf ("unable to open file %s\n", argv[1]);
-    return (1);
+  if (argc > optind+1) {
+    many_files = 1;
   }
 
-  info.tracks = oggz_table_new ();
-  info.length_total = 0;
+  while (optind < argc) {
+    infilename = argv[optind++];
 
-  oi_pass1 (oggz, &info);
+    if ((oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
+      printf ("unable to open file %s\n", argv[1]);
+      return (1);
+    }
 
-  oggz_seek_units (oggz, 0, SEEK_END);
-  info.duration = oggz_tell_units (oggz);
+    info.tracks = oggz_table_new ();
+    info.length_total = 0;
+    
+    oi_pass1 (oggz, &info);
 
-  oi_pass2 (oggz, &info);
+    oggz_seek_units (oggz, 0, SEEK_END);
+    info.duration = oggz_tell_units (oggz);
+    
+    oi_pass2 (oggz, &info);
+    
+    oggz_close (oggz);
+    
+    /* Print summary information */
+    if (many_files)
+      printf ("Filename: %s\n", infilename);
+    fputs ("Content-Duration: ", stdout);
+    ot_print_time ((double)info.duration / 1000.0);
+    putchar ('\n');
+    
+    if (show_length) {
+      printf ("Content-Length: %ld bytes\n", info.length_total);
+    }
+    
+    if (show_bitrate) {
+      printf ("Content-Bitrate-Average: %ld bps\n",
+	      oi_bitrate (info.length_total, info.duration));
+    }
 
-  oggz_close (oggz);
+    oggzinfo_apply (oit_print, &info);
+    
+    oggzinfo_apply (oit_delete, &info);
+    oggz_table_delete (info.tracks);
 
-  /* Print summary information */
-  fputs ("Content-Duration: ", stdout);
-  ot_print_time ((double)info.duration / 1000.0);
-  putchar ('\n');
-
-  if (show_length) {
-    printf ("Content-Length: %ld bytes\n", info.length_total);
+    if (optind < argc) puts (SEP);
   }
-
-  if (show_bitrate) {
-    printf ("Content-Bitrate-Average: %ld bps\n",
-	    oi_bitrate (info.length_total, info.duration));
-  }
-
-  oggzinfo_apply (oit_print, &info);
-
-  oggzinfo_apply (oit_delete, &info);
-  oggz_table_delete (info.tracks);
 
  exit_ok:
   exit (0);
