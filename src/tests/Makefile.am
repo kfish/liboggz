@@ -22,7 +22,7 @@ endif
 if OGGZ_CONFIG_READ
 if OGGZ_CONFIG_WRITE
 rw_tests = read-generated read-stop-ok read-stop-err \
-	io-read io-seek io-write
+	io-read io-seek io-write io-read-single
 endif
 endif
 
@@ -75,3 +75,6 @@ io_seek_LDADD = $(OGGZ_LIBS)
 
 io_write_SOURCES = io-write.c
 io_write_LDADD = $(OGGZ_LIBS)
+
+io_read_single_SOURCES = io-read-single.c
+io_read_single_LDADD = $(OGGZ_LIBS)
