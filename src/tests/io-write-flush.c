@@ -32,6 +32,7 @@
 
 #include "config.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include <oggz/oggz.h>
@@ -42,46 +43,60 @@
 
 #define DATA_BUF_LEN 1024
 
-static long serialno;
+static long serialno1, serialno2;
 static int write_called = 0;
+static int newpage = 0;
+
+static int hungry_iter = 0;
+static int hungry_e_o_s = 0;
+static int read_iter = 0;
+static int read_e_o_s = 0;
+
 
 static int
 hungry (OGGZ * oggz, int empty, void * user_data)
 {
+  int flush = *((int *)user_data);
   unsigned char buf[1];
   ogg_packet op;
-  static int iter = 0;
-  static long b_o_s = 1;
-  static long e_o_s = 0;
+  long serialno;
 
-  if (iter > 10) return 1;
+  if (hungry_iter > 21) return 1;
 
-  buf[0] = 'a' + iter;
+  buf[0] = 'a' + hungry_iter/2;
+  serialno = (hungry_iter%2) ? serialno1 : serialno2;
 
   op.packet = buf;
   op.bytes = 1;
-  op.b_o_s = b_o_s;
-  op.e_o_s = e_o_s;
-  op.granulepos = iter;
-  op.packetno = iter;
+  op.b_o_s = -1;
+  op.e_o_s = hungry_e_o_s;
+  op.granulepos = hungry_iter/2;
+  op.packetno = hungry_iter/2;
 
   /* Main check */
-   if (oggz_write_feed (oggz, &op, serialno, 0, NULL) != 0)
+  if (oggz_write_feed (oggz, &op, serialno, flush, NULL) != 0)
     FAIL ("Oggz write failed");
 
-  iter++;
-  b_o_s = 0;
-  if (iter == 10) e_o_s = 1;
+  hungry_iter++;
+  if (hungry_iter >= 20) hungry_e_o_s = 1;
   
+  return 0;
+}
+
+static int
+read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  if (newpage != 0) FAIL ("New page found where none is needed");
+  newpage = 1;
+
   return 0;
 }
 
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  static int iter = 0;
-  static long b_o_s = 1;
-  static long e_o_s = 0;
+  if (newpage != 1) FAIL ("Packet is not the first on a new page");
+  newpage = 0;
 
 #ifdef DEBUG
   printf ("%08" PRI_off_t "x: serialno %010ld, "
@@ -102,24 +117,17 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (op->bytes != 1)
     FAIL ("Packet too long");
 
-  if (op->packet[0] != 'a' + iter)
+  if (op->packet[0] != 'a' + read_iter/2)
     FAIL ("Packet contains incorrect data");
 
-  if ((op->b_o_s == 0) != (b_o_s == 0))
-    FAIL ("Packet has incorrect b_o_s");
-
-  if ((op->e_o_s == 0) != (e_o_s == 0))
-    FAIL ("Packet has incorrect e_o_s");
-
-  if (op->granulepos != -1 && op->granulepos != iter)
+  if (op->granulepos != read_iter/2)
     FAIL ("Packet has incorrect granulepos");
 
-  if (op->packetno != iter)
+  if (op->packetno != read_iter/2)
     FAIL ("Packet has incorrect packetno");
 
-  iter++;
-  b_o_s = 0;
-  if (iter == 10) e_o_s = 1;
+  read_iter++;
+  if (read_iter >= 20) read_e_o_s = 1;
 
   return 0;
 }
@@ -142,30 +150,37 @@ my_io_write (void * user_handle, void * buf, size_t n)
   return len;
 }
 
-int
-main (int argc, char * argv[])
+static int
+test_flushing (int flush, char * filename)
 {
   OGGZ * reader, * writer;
   unsigned char data_buf[DATA_BUF_LEN];
   long n;
 
-  INFO ("Testing override of IO writing");
+  hungry_iter = 0;
+  hungry_e_o_s = 0;
+
+  read_iter = 0;
+  read_e_o_s = 0;
 
   writer = oggz_new (OGGZ_WRITE);
   if (writer == NULL)
     FAIL("newly created OGGZ writer == NULL");
 
-  serialno = oggz_serialno_new (writer);
+  serialno1 = oggz_serialno_new (writer);
+  serialno2 = oggz_serialno_new (writer);
 
-  if (oggz_write_set_hungry_callback (writer, hungry, 1, NULL) == -1)
+  if (oggz_write_set_hungry_callback (writer, hungry, 1, &flush) == -1)
     FAIL("Could not set hungry callback");
 
   oggz_io_set_write (writer, my_io_write, data_buf);
+
 
   reader = oggz_new (OGGZ_READ);
   if (reader == NULL)
     FAIL("newly created OGGZ reader == NULL");
 
+  oggz_set_read_page (reader, -1, read_page, NULL);
   oggz_set_read_callback (reader, -1, read_packet, NULL);
 
   /* Write using the IO callback */
@@ -188,6 +203,37 @@ main (int argc, char * argv[])
 
   if (oggz_close (writer) != 0)
     FAIL("Could not close OGGZ writer");
+
+  /* Optionally copy the generated stream to a file for manual checking */
+  if (filename != NULL) {
+    FILE * f;
+    f = fopen (filename, "w");
+    fwrite (data_buf, 1, n, f);
+    fclose (f);
+  }
+
+  return 0;
+}
+
+int
+main (int argc, char * argv[])
+{
+  char * filename = NULL;
+
+  INFO ("Testing page flushing");
+
+  if (argc > 1) {
+    filename = argv[1];
+  }
+
+  INFO ("+ OGGZ_FLUSH_BEFORE");
+  test_flushing (OGGZ_FLUSH_BEFORE, filename);
+
+  INFO ("+ OGGZ_FLUSH_AFTER");
+  test_flushing (OGGZ_FLUSH_AFTER, filename);
+
+  INFO ("+ OGGZ_FLUSH_BEFORE|OGGZ_FLUSH_AFTER");
+  test_flushing (OGGZ_FLUSH_BEFORE|OGGZ_FLUSH_AFTER, filename);
 
   exit (0);
 }
