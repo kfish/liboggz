@@ -927,6 +927,8 @@ guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
   ogg_int64_t guess_ratio;
   oggz_off_t offset_guess;
 
+  if (unit_at == unit_begin) return offset_begin;
+
   guess_ratio =
     GUESS_MULTIPLIER * (unit_target - unit_begin) /
     (unit_at - unit_begin);
