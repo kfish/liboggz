@@ -18,7 +18,6 @@
 		oggz_set_read_callback;
 		oggz_read;
 		oggz_read_input;
-		oggz_flush;
 		oggz_write_set_hungry_callback;
 		oggz_write_feed;
 		oggz_write;
@@ -26,6 +25,7 @@
 		oggz_write_get_next_page_size;
 		oggz_set_metric;
 		oggz_set_metric_linear;
+
 		oggz_tell;
 		oggz_tell_units;
 		oggz_seek;
