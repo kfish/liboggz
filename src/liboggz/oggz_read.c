@@ -66,7 +66,7 @@
 
 #define CHUNKSIZE 65536
 
-#define OGGZ_READ_EOF (-404)
+#define OGGZ_READ_EMPTY (-404)
 
 #define oggz_off_t long
 
@@ -283,7 +283,7 @@ oggz_read_sync (OGGZ * oggz)
     if (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR) return cb_ret;
 
     if(oggz_get_next_page_7 (oggz, &og) < 0)
-      return OGGZ_READ_EOF; /* eof. leave uninitialized */
+      return OGGZ_READ_EMPTY; /* eof. leave uninitialized */
 
     serialno = ogg_page_serialno (&og);
     reader->current_serialno = serialno; /* XXX: maybe not necessary */
@@ -349,7 +349,7 @@ oggz_read (OGGZ * oggz, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
-  if (cb_ret == OGGZ_READ_EOF) {
+  if (cb_ret == OGGZ_READ_EMPTY) {
     /* If there's nothing to read yet, don't return 0 (eof) */
     if (reader->current_unit == 0) cb_ret = 0;
     else return 0;
@@ -388,7 +388,7 @@ oggz_read (OGGZ * oggz, long n)
     }
 
     switch (cb_ret) {
-    case OGGZ_CONTINUE: case OGGZ_READ_EOF: return 0; break;
+    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
@@ -416,7 +416,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   cb_ret = oggz_read_sync (oggz);
 
-  if (cb_ret == OGGZ_READ_EOF) {
+  if (cb_ret == OGGZ_READ_EMPTY) {
     /* If there's nothing to read yet, don't return 0 (eof) */
     if (reader->current_unit == 0) cb_ret = 0;
     else return 0;
@@ -440,7 +440,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
     switch (cb_ret) {
-    case OGGZ_CONTINUE: case OGGZ_READ_EOF: return 0; break;
+    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
