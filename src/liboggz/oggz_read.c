@@ -790,6 +790,8 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
   return offset_at;
 }
 
+#define GUESS_MULTIPLIER (1<<16)
+
 static long
 oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 {
@@ -801,7 +803,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   ogg_int64_t granule_at;
   ogg_int64_t unit_at, unit_begin = 0, unit_end = -1;
   long serialno;
-  double guess_ratio;
+  ogg_int64_t guess_ratio;
   ogg_page * og;
 
   if (oggz == NULL) {
@@ -896,16 +898,17 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 	printf ("*G2*");
 #endif
 	guess_ratio =
-	  (double)(unit_target - unit_begin) /
-	  (double)(unit_at - unit_begin);
+	  GUESS_MULTIPLIER * (unit_target - unit_begin) /
+	  (unit_at - unit_begin);
 
 #ifdef DEBUG
-	printf ("\nguess_ration %f = (%ld - %ld) / (%ld - %ld)\n",
+	printf ("\nguess_ratio %ld = (%ld - %ld) / (%ld - %ld)\n",
 		guess_ratio, unit_target, unit_begin, unit_at, unit_begin);
 #endif
 
 	offset_guess = offset_begin +
-	  (oggz_off_t)((offset_at - offset_begin) * guess_ratio);
+	  (oggz_off_t)(((offset_at - offset_begin) * guess_ratio) /
+		       GUESS_MULTIPLIER);
       }
     } else if (unit_end <= unit_begin) {
 #ifdef DEBUG
@@ -915,11 +918,12 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     } else {
 #if 1
       guess_ratio =
-	(double)(unit_target - unit_begin) /
-	(double)(unit_end - unit_begin);
+	GUESS_MULTIPLIER * (unit_target - unit_begin) /
+	(unit_end - unit_begin);
 
       offset_guess = offset_begin +
-	(oggz_off_t)((offset_end - offset_begin) * guess_ratio);
+	(oggz_off_t)(((offset_end - offset_begin) * guess_ratio) /
+		     GUESS_MULTIPLIER);
 
       /*
       if (offset_guess <= offset_begin) {
