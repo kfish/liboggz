@@ -61,7 +61,7 @@
 #include "oggz_private.h"
 
 /*#define DEBUG*/
-/* #define DEBUG_VERBOSE */
+/*#define DEBUG_VERBOSE*/
 
 #define CHUNKSIZE 65536
 
@@ -645,7 +645,13 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
 
       buffer = ogg_sync_buffer (&reader->ogg_sync, CHUNKSIZE);
       if ((bytes = (long) oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
-	/* schyeah! */
+	if (oggz->file && feof (oggz->file)) {
+#ifdef DEBUG_VERBOSE
+	  printf ("get_next_page: feof (oggz->file), returning -2\n");
+#endif
+	  clearerr (oggz->file);
+	  return -2;
+	}
       }
       if (bytes == OGGZ_ERR_SYSTEM) {
 	  /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
@@ -657,12 +663,14 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
 	printf ("get_next_page: bytes == 0, returning -2\n");
 #endif
 	return -2;
+#if 0
       } else if (oggz->file && feof (oggz->file)) {
 #ifdef DEBUG_VERBOSE
 	printf ("get_next_page: feof (oggz->file), returning -2\n");
 #endif
 	clearerr (oggz->file);
 	return -2;
+#endif
       }
 
       ogg_sync_wrote(&reader->ogg_sync, bytes);
@@ -972,6 +980,9 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
     if (oggz_stat_regular (statbuf.st_mode)) {
       offset_end = statbuf.st_size;
+#ifdef DEBUG
+      printf ("oggz_seek_set: stat size %ld\n", offset_end);
+#endif
     } else {
       /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
 
@@ -1023,7 +1034,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   for ( ; ; ) {
 
 #ifdef DEBUG
-    printf ("oggz_seek_set: [A] want u%ld: (u%ld - u%ld) [@%ld - @%ld]\n",
+    printf ("oggz_seek_set: [A] want u%lld: (u%lld - u%lld) [@%ld - @%ld]\n",
 	    unit_target, unit_begin, unit_end, offset_begin, offset_end);
 #endif
 
@@ -1044,12 +1055,20 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 			    offset_begin, offset_end);
     }
 
+#ifdef DEBUG
+    printf ("oggz_seek_set: guessed %ld\n", offset_guess);
+#endif
+
     offset_at = oggz_seek_raw (oggz, offset_guess, SEEK_SET);
     if (offset_at == -1) {
       goto notfound;
     }
 
     offset_next = oggz_get_next_start_page (oggz, og);
+
+#ifdef DEBUG
+    printf ("oggz_seek_set: offset_next %ld\n", offset_next);
+#endif
 
     if (unit_end == -1 && offset_next == -2) { /* reached eof, backtrack */
       offset_next = oggz_get_prev_start_page (oggz, og, &granule_at,
@@ -1069,7 +1088,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
       goto notfound;
     }
 
-    if (offset_next < offset_end) {
+    if (offset_next > offset_end) {
       offset_next =
 	oggz_scan_for_page (oggz, og, unit_target, offset_begin, offset_end);
       if (offset_next < 0) goto notfound;
@@ -1105,7 +1124,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
  found:
 #ifdef DEBUG
-  printf ("FOUND (%ld)\n", unit_at);
+  printf ("oggz_seek_set: FOUND (%ld)\n", unit_at);
 #endif
 
   offset_at = oggz_reset (oggz, offset_at, unit_at, SEEK_SET);
@@ -1115,7 +1134,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
  notfound:
 #ifdef DEBUG
-  printf ("NOT FOUND\n");
+  printf ("oggz_seek_set: NOT FOUND\n");
 #endif
 
   oggz_reset (oggz, offset_orig, -1, SEEK_SET);
