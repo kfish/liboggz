@@ -612,7 +612,7 @@ oggz_get_next_start_page (OGGZ * oggz, ogg_page * og)
   oggz_off_t page_offset;
   int found = 0;
 
-  while (!found) {
+  do {
     page_offset = oggz_get_next_page (oggz, og);
 
     /* Return this value if one of the following conditions is met:
@@ -624,6 +624,7 @@ oggz_get_next_start_page (OGGZ * oggz, ogg_page * og)
     if (page_offset <= 0 || !ogg_page_continued (og))
       found = 1;
   }
+  while (!found);
 
   return page_offset;
 }
@@ -717,7 +718,7 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
   printf (" SCANNING from %ld...", offset_begin);
 #endif
 
-  while (1) {
+  for ( ; ; ) {
     offset_at = oggz_seek_raw (oggz, offset_begin, SEEK_SET);
     if (offset_at == -1) return -1;
 
@@ -891,7 +892,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
   og = &oggz->current_page;
 
-  while (1) {
+  for ( ; ; ) {
 
 #ifdef DEBUG
     printf ("oggz_read_seek (%ld): (%ld - %ld) [%ld - %ld]\t",
