@@ -45,4 +45,4 @@
  */
 #define OGGZ_ERR_USER_STOPPED OGGZ_ERR_READ_STOP_OK
 
-#endif __OGGZ_DEPRECATED_H__
+#endif /* __OGGZ_DEPRECATED_H__ */
