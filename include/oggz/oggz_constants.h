@@ -58,8 +58,8 @@ enum OggzFlags {
    * Scan for known headers while reading, and automatically set
    * metrics appropriately. Opening a file for reading with
    * \a flags = OGGZ_READ | OGGZ_AUTO will allow seeking on Speex,
-   * Vorbis, Theora and all Annodex streams in units of milliseconds,
-   * once all bos pages have been delivered. */
+   * Vorbis, FLAC, Theora, CMML and all Annodex streams in units of
+   * milliseconds, once all bos pages have been delivered. */
   OGGZ_AUTO         = 0x20
 };
 

@@ -42,7 +42,9 @@
  * common media codecs
  * <a href="http://www.speex.org/">Speex</a>,
  * <a href="http://www.vorbis.com/">Vorbis</a>,
- * and <a href="http://www.theora.org/">Theora</a>,
+ * <a href="http://flac.sourceforge.net/">FLAC</a>,
+ * <a href="http://www.theora.org/">Theora</a>,
+ * and <a href="http://www.annodex.net/">CMML</a>,
  * as well as all <a href="http://www.annodex.net/">Annodex</a> streams.
  * You need do nothing more than open the file with the OGGZ_AUTO flag set.
  *
