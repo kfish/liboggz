@@ -125,7 +125,7 @@ if grep -q PROG_LIBTOOL configure.*; then
   # what's libtoolize called?
   if glibtoolize --version > /dev/null 2> /dev/null; then
     LIBTOOLIZE="glibtoolize"
-  elif glibtoolize --version > /dev/null 2> /dev/null; then
+  elif libtoolize --version > /dev/null 2> /dev/null; then
     LIBTOOLIZE="libtoolize"
   fi
 
