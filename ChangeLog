@@ -1,3 +1,7 @@
+Fri Jan 21 17:38:33 EST 2005 Conrad Parker <conrad@annodex.net>
+
+	* added FLAC header parsing from Tobias Gehrig
+
 Fri May 28 11:08:34 EST 2004 Conrad Parker <conrad@annodex.net>
 
 	* removed use of floating point in liboggz
