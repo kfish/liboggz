@@ -366,12 +366,14 @@ oggz_read (OGGZ * oggz, long n)
       return OGGZ_ERR_SYSTEM;
     }
 
-    ogg_sync_wrote (&reader->ogg_sync, bytes_read);
-
-    remaining -= bytes_read;
-    nread += bytes_read;
-
-    cb_ret = oggz_read_sync (oggz);
+    if (bytes_read > 0) {
+      ogg_sync_wrote (&reader->ogg_sync, bytes_read);
+      
+      remaining -= bytes_read;
+      nread += bytes_read;
+      
+      cb_ret = oggz_read_sync (oggz);
+    }
   }
 
   if (cb_ret == OGGZ_STOP_ERR) oggz_purge (oggz);
@@ -379,7 +381,7 @@ oggz_read (OGGZ * oggz, long n)
   /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
     switch (cb_ret) {
-    case OGGZ_CONTINUE: return 0; break;
+    case OGGZ_CONTINUE: case OGGZ_READ_EOF: return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
@@ -431,7 +433,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
     switch (cb_ret) {
-    case OGGZ_CONTINUE: return 0; break;
+    case OGGZ_CONTINUE: case OGGZ_READ_EOF: return 0; break;
     case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
     case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
     }
