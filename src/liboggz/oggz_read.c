@@ -635,8 +635,14 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       }
 
       if (bytes == 0) {
+#ifdef DEBUG
+	printf ("get_next_page: bytes == 0, returning -2\n");
+#endif
 	return -2;
       } else if (oggz->file && feof (oggz->file)) {
+#ifdef DEBUG
+	printf ("get_next_page: feof (oggz->file), returning -2\n");
+#endif
 	clearerr (oggz->file);
 	return -2;
       }
@@ -683,9 +689,11 @@ oggz_get_next_start_page (OGGZ * oggz, ogg_page * og)
      *
      *   page_offset < 0     : error or EOF
      *   page_offset == 0    : start of stream
-     *   !ogg_page_continued : start of page
+     *   !ogg_page_continued : page contains start of a packet
+     *   ogg_page_packets > 1: page contains start of a packet
      */
-    if (page_offset <= 0 || !ogg_page_continued (og))
+    if (page_offset <= 0 || !ogg_page_continued (og) ||
+	ogg_page_packets (og) > 1)
       found = 1;
   }
   while (!found);
@@ -699,6 +707,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 {
   oggz_off_t offset_at, offset_start;
   oggz_off_t page_offset, prev_offset = 0;
+  ogg_int64_t unit_at;
   long granule_at = -1;
 
 #if 0
@@ -720,10 +729,10 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
 #ifdef DEBUG
 
-    printf ("[A] offset_at: @%ld\toffset_start: @%ld\n",
+    printf ("get_prev_start_page: [A] offset_at: @%ld\toffset_start: @%ld\n",
 	    offset_at, offset_start);
 
-    printf ("*** get_prev_start_page: seeked to %ld\n", offset_start);
+    printf ("get_prev_start_page: seeked to %ld\n", offset_start);
 #endif
 
     page_offset = 0;
@@ -733,13 +742,18 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
 
       page_offset = oggz_get_next_start_page (oggz, og);
       if (page_offset == -1) return -1;
-      if (page_offset == -2) break;
+      if (page_offset == -2) {
+#ifdef DEBUG
+	printf ("*** get_prev_start_page: page_offset = -2\n");
+#endif
+	break;
+      }
 
       granule_at = (long)ogg_page_granulepos (og);
 
 #ifdef DEBUG
-      printf ("\tGOT page (%ld) @%ld\tat @%ld\n", granule_at,
-	      page_offset, offset_at);
+      printf ("get_prev_start_page: GOT page (%ld) @%ld\tat @%ld\n",
+	      granule_at, page_offset, offset_at);
 #endif
 
       /* Need to stash the granule and serialno of this page because og
@@ -753,7 +767,7 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
     } while (page_offset >= 0 && page_offset < offset_at);
 
 #ifdef DEBUG
-    printf ("[B] offset_at: @%ld\toffset_start: @%ld\n"
+    printf ("get_prev_start_page: [B] offset_at: @%ld\toffset_start: @%ld\n"
 	    "prev_offset: @%ld\tpage_offset: @%ld\n",
 	    offset_at, offset_start, prev_offset, page_offset);
 #endif
@@ -761,6 +775,10 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
     offset_at = offset_start;
 
   } while (offset_at > 0 && prev_offset == 0);
+
+  unit_at = oggz_get_unit (oggz, *serialno, *granule);
+  offset_at = oggz_reset (oggz, prev_offset, unit_at, SEEK_SET);
+  if (offset_at == -1) return -1;
 
   if (offset_at > 0)
     return prev_offset;
@@ -868,7 +886,7 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 
 #define GUESS_MULTIPLIER (1<<16)
 
-static long
+static ogg_int64_t
 oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 {
   OggzReader * reader = &oggz->x.reader;
@@ -1089,7 +1107,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   return -1;
 }
 
-static long
+static ogg_int64_t
 oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
 {
   oggz_off_t offset_orig, offset_at, offset_end;
@@ -1115,8 +1133,8 @@ oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
   }
 
 #ifdef DEBUG
-  printf ("*** oggz_seek_end: found packet (%ld) at @%ld\n",
-	  unit_end, offset_end);
+  printf ("*** oggz_seek_end: found packet (%ld) at @%ld [%ld]\n",
+	  unit_end, offset_end, granulepos);
 #endif
 
   return oggz_seek_set (oggz, unit_end + unit_offset);
@@ -1138,7 +1156,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   return (off_t)oggz_reset (oggz, offset, units, whence);
 }
 
-long
+ogg_int64_t
 oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   OggzReader * reader = &oggz->x.reader;
