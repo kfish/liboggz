@@ -205,7 +205,6 @@ static int
 oggz_read_sync (OGGZ * oggz)
 {
   OggzReader * reader = &oggz->x.reader;
-  long nread = 0;
 
   oggz_stream_t * stream;
   ogg_stream_state * os;
@@ -455,11 +454,9 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
     return -1;
   }
 
-
   offset_at = oggz_io_tell (oggz);
 
   oggz->offset = offset_at;
-
 
   ogg_sync_reset (&reader->ogg_sync);
 
@@ -515,8 +512,6 @@ oggz_reset (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 int
 oggz_purge (OGGZ * oggz)
 {
-  long reset_ret;
-
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (oggz->flags & OGGZ_WRITE) {
@@ -559,7 +554,7 @@ oggz_get_next_page (OGGZ * oggz, ogg_page * og)
       if ((bytes = (long) oggz_io_read (oggz, buffer, CHUNKSIZE)) == 0) {
 	/* schyeah! */
       }
-      if (bytes = OGGZ_ERR_SYSTEM) {
+      if (bytes == OGGZ_ERR_SYSTEM) {
 	  /*oggz_set_error (oggz, OGGZ_ERR_SYSTEM);*/
 	  return -1;
       }
@@ -800,7 +795,7 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   int fd;
   struct stat statbuf;
   oggz_off_t offset_orig, offset_at, offset_guess;
-  oggz_off_t offset_begin, offset_end, offset_next;
+  oggz_off_t offset_begin, offset_end = -1, offset_next;
   ogg_int64_t granule_at;
   ogg_int64_t unit_at, unit_begin = 0, unit_end = -1;
   long serialno;
@@ -827,34 +822,31 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
       return -1;
     }
 
-#if 0
-#ifndef WIN32
-    if (S_ISREG(statbuf.st_mode) || S_ISLNK(statbuf.st_mode)) {
-      offset_end = statbuf.st_size;
-    } else {
-      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-      return -1;
-    }
-#else
-    if (statbuf.st_mode & S_IFREG) {
-      offset_end = statbuf.st_size;
-    } else {
-      /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-      return -1;
-    }
-#endif
-#else
     if (oggz_stat_regular (statbuf.st_mode)) {
       offset_end = statbuf.st_size;
     } else {
       /*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
-      return -1;
+
+      /* XXX: should be able to just carry on and guess, as per io */
+      /*return -1;*/
     }
-#endif
   } else {
-    if (oggz->io == NULL || oggz->io->seek == NULL)
+    oggz_off_t offset_save;
+
+    if (oggz->io == NULL || oggz->io->seek == NULL) {
       /* No file, and no io seek method */
       return -1;
+    }
+
+    /* Get the offset of the end by querying the io seek method */
+    offset_save = oggz_io_tell (oggz);
+    if (oggz_io_seek (oggz, 0, SEEK_END) == -1) {
+      return -1;
+    }
+    offset_end = oggz_io_tell (oggz);
+    if (oggz_io_seek (oggz, offset_save, SEEK_SET) == -1) {
+      return -1; /* fubar */
+    }
   }
 
   if (unit_target == reader->current_unit) {
@@ -993,8 +985,6 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     } else {
       break;
     }
-
-
   }
 
  found:

@@ -69,5 +69,6 @@ install-data-local: doxygen-build.stamp
 uninstall-local:
 	rm -rf $(docdir)
 
-maintainer-clean-local:
+clean-local:
 	if test -d liboggz; then rm -rf liboggz; fi
+	if test -f doxygen-build.stamp; then rm -f doxygen-build.stamp; fi
