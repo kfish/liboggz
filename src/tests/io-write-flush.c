@@ -44,13 +44,16 @@
 #define DATA_BUF_LEN 1024
 
 static long serialno1, serialno2;
-static int write_called = 0;
 static int newpage = 0;
 
 static int hungry_iter = 0;
 static int hungry_e_o_s = 0;
+
 static int read_iter = 0;
 static int read_e_o_s = 0;
+
+static int write_called = 0;
+static int write_offset = 0;
 
 
 static int
@@ -136,16 +139,15 @@ static size_t
 my_io_write (void * user_handle, void * buf, size_t n)
 {
   unsigned char * data_buf = (unsigned char *)user_handle;
-  static int offset = 0;
   int len;
 
   /* Mark that the write IO method was actually used */
   write_called++;
 
-  len = MIN (n, DATA_BUF_LEN - offset);
-  memcpy (&data_buf[offset], buf, len);
+  len = MIN (n, DATA_BUF_LEN - write_offset);
+  memcpy (&data_buf[write_offset], buf, len);
 
-  offset += len;
+  write_offset += len;
 
   return len;
 }
@@ -157,11 +159,16 @@ test_flushing (int flush, char * filename)
   unsigned char data_buf[DATA_BUF_LEN];
   long n;
 
+  newpage = 0;
+
   hungry_iter = 0;
   hungry_e_o_s = 0;
 
   read_iter = 0;
   read_e_o_s = 0;
+
+  write_called = 0;
+  write_offset = 0;
 
   writer = oggz_new (OGGZ_WRITE);
   if (writer == NULL)
