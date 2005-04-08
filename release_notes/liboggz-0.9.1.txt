@@ -184,8 +184,7 @@ which are useful for debugging and testing Ogg bitstreams:
 	from such a hexdump.
 
 	* oggzdiff: Hexdump the packets of two Ogg files and output
-	differences Oggz is Free Software, available under a BSD-style
-	license.
+	differences.
 
 	* oggzmerge: Merge Ogg files together, interleaving pages in order
 	of presentation time.
