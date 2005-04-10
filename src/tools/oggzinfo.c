@@ -494,7 +494,6 @@ main (int argc, char ** argv)
     
     oi_pass1 (oggz, &info);
 
-    oggz_seek_units (oggz, 0, SEEK_END);
     info.duration = oggz_tell_units (oggz);
     
     oi_pass2 (oggz, &info);
