@@ -164,7 +164,8 @@ oggzinfo_trackinfo_new (void)
 static long
 oi_bitrate (long bytes, ogg_int64_t ms)
 {
-  return (long) (((ogg_int64_t)bytes * 8 * 1000) / ms);
+  if (ms == 0) return 0;
+  else return (long) (((ogg_int64_t)bytes * 8 * 1000) / ms);
 }
 
 static void
