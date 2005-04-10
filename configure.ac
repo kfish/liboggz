@@ -145,7 +145,7 @@ AC_ARG_ENABLE(write,
 if test "x${ac_enable_write}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_WRITE, [1], [Build writing support])
     if test "x${ac_enable_read}" = xyes ; then
-      oggz_rw_programs="oggzrip oggzmerge"
+      oggz_rw_programs="oggzrip oggzmerge oggz-validate"
     fi
 else
     AC_DEFINE(OGGZ_CONFIG_WRITE, [0], [Do not build writing support])
