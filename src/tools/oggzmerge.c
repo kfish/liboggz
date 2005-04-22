@@ -65,6 +65,7 @@ typedef struct _OMITrack OMITrack;
 
 struct _OMData {
   OggzTable * inputs;
+  int verbose;
 };
 
 struct _OMInput {
@@ -118,6 +119,7 @@ omdata_new (void)
   omdata = (OMData *) malloc (sizeof (OMData));
 
   omdata->inputs = oggz_table_new ();
+  omdata->verbose = 0;
 
   return omdata;
 }
@@ -187,11 +189,14 @@ oggz_merge (OMData * omdata, FILE * outfile)
     min_i = -1;
     active = 1;
 
+    if (omdata->verbose)
+      printf ("------------------------------------------------------------\n");
+
     /* Reload all pages, and find the min (earliest) */
     for (i = 0; active && i < oggz_table_size (omdata->inputs); i++) {
       input = (OMInput *) oggz_table_nth (omdata->inputs, i, &key);
       if (input != NULL) {
-	if (input->og == NULL) {
+	while (input && input->og == NULL) {
 	  n = oggz_read (input->reader, READ_SIZE);
 	  if (n == 0) {
 	    oggz_table_remove (omdata->inputs, key);
@@ -205,14 +210,35 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	    active = 0;
 	  }
 	  units = oggz_tell_units (input->reader);
+
+	  if (omdata->verbose) {
+	    ot_fprint_time (stdout, (double)units/1000);
+	    printf (": Got index %d serialno %010d %lld units: ",
+		    i, ogg_page_serialno ((ogg_page *)input->og), units);
+	  }
+
 	  if (min_units == -1 || units == 0 ||
 	      (units > -1 && units < min_units)) {
 	    min_units = units;
 	    min_i = i;
+	    if (omdata->verbose)
+	      printf ("Min\n");
+	  } else {
+	    if (omdata->verbose)
+	      printf ("Moo\n");
+	  }
+	} else if (omdata->verbose) {
+	  if (input == NULL) {
+	    printf ("*** index %d NULL\n", i);
+	  } else {
+	    printf ("*** No page from index %d\n", i);
 	  }
 	}
       }
     }
+
+    if (omdata->verbose)
+      printf ("Min index %d\n", min_i);
 
     /* Write the earliest page */
     if (min_i != -1) {
@@ -253,12 +279,13 @@ main (int argc, char * argv[])
   omdata = omdata_new();
 
   while (1) {
-    char * optstring = "hvo:";
+    char * optstring = "hvVo:";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
       {"version", no_argument, 0, 'v'},
+      {"verbose", no_argument, 0, 'V'},
       {"output", required_argument, 0, 'o'},
       {0,0,0,0}
     };
@@ -283,6 +310,8 @@ main (int argc, char * argv[])
     case 'o': /* output */
       outfilename = optarg;
       break;
+    case 'V': /* verbose */
+      omdata->verbose = 1;
     default:
       break;
     }
