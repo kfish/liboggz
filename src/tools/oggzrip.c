@@ -93,7 +93,7 @@ usage (char * progname)
   printf ("                         Specify output filename\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
-  printf ("  -V                     Verbose operation\n");
+  printf ("  -V, --verbose          Verbose operation\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
