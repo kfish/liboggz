@@ -43,6 +43,9 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     oggz_table_insert (tracks, serialno, NULL);
   }
 
+  fwrite (og->header, 1, og->header_len, stdout);
+  fwrite (og->body, 1, og->body_len, stdout);
+
   return 0;
 }
 
