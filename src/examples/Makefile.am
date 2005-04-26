@@ -14,7 +14,7 @@ endif
 endif
 
 if OGGZ_CONFIG_READ
-oggz_read_programs = read-file read-io
+oggz_read_programs = read-file read-pages read-io
 endif
 
 if OGGZ_CONFIG_WRITE
@@ -30,6 +30,9 @@ identity_LDADD = $(OGGZ_LIBS)
 
 read_file_SOURCES = read-file.c
 read_file_LDADD = $(OGGZ_LIBS)
+
+read_pages_SOURCES = read-pages.c
+read_pages_LDADD = $(OGGZ_LIBS)
 
 read_io_SOURCES = read-io.c
 read_io_LDADD = $(OGGZ_LIBS)
