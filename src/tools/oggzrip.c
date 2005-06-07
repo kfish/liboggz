@@ -101,7 +101,7 @@ usage (char * progname)
 static ORData *
 ordata_new ()
 {
-  ORData *ordata = malloc (sizeof (ordata));
+  ORData *ordata = malloc (sizeof (ORData));
   assert (ordata != NULL);
   memset (ordata, 0, sizeof (ORData));
   

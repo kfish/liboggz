@@ -1,5 +1,10 @@
 2005-06-07  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* src/tools/oggzrip.c:
+	  fixes memory corruption detected by glibc on Fedora Core
+
+2005-06-07  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* include/oggz/Makefile.am:
 	  don't override includedir
 
