@@ -207,7 +207,7 @@ validate (char * filename)
   OGGZ * reader;
   OVData ovdata;
   unsigned char buf[1024];
-  long n, serialno;
+  long n, nout = 0, bytes_written = 0, serialno;
   int active = 1, i, nr_missing_eos = 0;
 
   current_filename = filename;
@@ -235,11 +235,18 @@ validate (char * filename)
       fprintf (stderr,
 	       "oggz-validate: maximum error count reached, bailing out ...\n");
       active = 0;
-    } else while (oggz_write_output (ovdata.writer, buf, n) > 0);
+    } else while ((nout = oggz_write_output (ovdata.writer, buf, n)) > 0) {
+      bytes_written += nout;
+    }
   }
 
   oggz_close (ovdata.writer);
   oggz_close (reader);
+
+  if (bytes_written == 0) {
+    log_error ();
+    fprintf (stderr, "File contains no Ogg packets\n");
+  }
 
   if (nr_errors <= MAX_ERRORS) {
     nr_missing_eos = oggz_table_size (ovdata.missing_eos);
