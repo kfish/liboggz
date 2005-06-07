@@ -45,6 +45,11 @@
 
 typedef ogg_int64_t timestamp_t;
 
+typedef struct _OVData {
+  OGGZ * writer;
+  OggzTable * missing_eos;
+} OVData;
+
 typedef struct {
   int error;
   char * description;
@@ -131,10 +136,27 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  OGGZ * writer = (OGGZ *)user_data;
+  OVData * ovdata = (OVData *)user_data;
   timestamp_t timestamp;
   int flush;
   int ret = 0, feed_err = 0, i;
+
+  if (op->b_o_s) {
+    oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1);
+  }
+
+  if (oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
+    ret = log_error ();
+    fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
+  }
+
+  if (op->e_o_s) {
+    if (oggz_table_remove (ovdata->missing_eos, serialno) == -1) {
+      ret = log_error ();
+      fprintf (stderr, "serialno %010ld: *** eos marked but no bos\n",
+	       serialno);
+    }
+  }
 
   timestamp = gp_to_time (oggz, serialno, op->granulepos);
   if (timestamp != -1.0) {
@@ -155,7 +177,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     flush = OGGZ_FLUSH_AFTER;
   }
 
-  if ((feed_err = oggz_write_feed (writer, op, serialno, flush, NULL)) != 0) {
+  if ((feed_err = oggz_write_feed (ovdata->writer, op, serialno, flush, NULL)) != 0) {
     ret = log_error ();
     if (timestamp == -1.0) {
       fprintf (stderr, "%ld", oggz_tell (oggz));
@@ -182,39 +204,53 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 static int
 validate (char * filename)
 {
-  OGGZ * reader, * writer;
+  OGGZ * reader;
+  OVData ovdata;
   unsigned char buf[1024];
-  long n;
-  int active = 1;
+  long n, serialno;
+  int active = 1, i, nr_missing_eos = 0;
 
   current_filename = filename;
   current_timestamp = 0.0;
   nr_errors = 0;
 
   /*printf ("oggz-validate: %s\n", filename);*/
+
+  ovdata.missing_eos = oggz_table_new ();
   
   if ((reader = oggz_open (filename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
     fprintf (stderr, "oggz-validate: unable to open file %s\n", filename);
     exit (1);
   }
 
-  if ((writer = oggz_new (OGGZ_WRITE|OGGZ_AUTO)) == NULL) {
+  if ((ovdata.writer = oggz_new (OGGZ_WRITE|OGGZ_AUTO)) == NULL) {
     fprintf (stderr, "oggz-validate: unable to create new writer\n");
     exit (1);
   }
 
-  oggz_set_read_callback (reader, -1, read_packet, writer);
+  oggz_set_read_callback (reader, -1, read_packet, &ovdata);
 
   while (active && (n = oggz_read (reader, 1024)) != 0) {
     if (nr_errors > MAX_ERRORS) {
       fprintf (stderr,
 	       "oggz-validate: maximum error count reached, bailing out ...\n");
       active = 0;
-    } else while (oggz_write_output (writer, buf, n) > 0);
+    } else while (oggz_write_output (ovdata.writer, buf, n) > 0);
   }
 
-  oggz_close (writer);
+  oggz_close (ovdata.writer);
   oggz_close (reader);
+
+  if (nr_errors <= MAX_ERRORS) {
+    nr_missing_eos = oggz_table_size (ovdata.missing_eos);
+    for (i = 0; i < nr_missing_eos; i++) {
+      log_error ();
+      oggz_table_nth (ovdata.missing_eos, i, &serialno);
+      fprintf (stderr, "serialno %010ld: missing *** eos\n", serialno);
+    }
+  }
+
+  oggz_table_delete (ovdata.missing_eos);
 
   return active ? 0 : -1;
 }
