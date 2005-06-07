@@ -1,3 +1,8 @@
+2005-06-07  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* include/oggz/Makefile.am:
+	  don't override includedir
+
 Fri Jan 21 17:38:33 EST 2005 Conrad Parker <conrad@annodex.net>
 
 	* added FLAC header parsing from Tobias Gehrig
