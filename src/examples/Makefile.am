@@ -9,7 +9,7 @@ OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
 if OGGZ_CONFIG_READ
 if OGGZ_CONFIG_WRITE
-oggz_rw_programs = identity rewrite-pages
+oggz_rw_programs = identity rewrite-pages fix-eos
 endif
 endif
 
@@ -30,6 +30,9 @@ identity_LDADD = $(OGGZ_LIBS)
 
 rewrite_pages_SOURCES = rewrite-pages.c
 rewrite_pages_LDADD = $(OGGZ_LIBS)
+
+frobnicate_eos_SOURCES = fix-eos.c
+frobnicate_eos_LDADD = $(OGGZ_LIBS)
 
 read_file_SOURCES = read-file.c
 read_file_LDADD = $(OGGZ_LIBS)
