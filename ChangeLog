@@ -1,3 +1,8 @@
+2005-06-09  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* src/tools/oggz-basetime.c: (filter_page), (read_page):
+	  Don't adjust granulepos of the three header packets' pages
+
 2005-06-07  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/tools/oggzrip.c:

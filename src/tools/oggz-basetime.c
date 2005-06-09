@@ -166,6 +166,7 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, OBData * ord)
   return 0;
 }
 
+
 static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
@@ -200,7 +201,10 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 #endif
   }
 
-  filter_page (oggz, og, serialno, ord);
+  /* header pages have a granulepos 0 and should not have it changed */
+  if (ogg_page_granulepos ((ogg_page *) og) != 0) {
+    filter_page (oggz, og, serialno, ord);
+  }
 
   ort->nr_packets += ogg_page_packets ((ogg_page *)og);
 
