@@ -31,8 +31,8 @@ identity_LDADD = $(OGGZ_LIBS)
 rewrite_pages_SOURCES = rewrite-pages.c
 rewrite_pages_LDADD = $(OGGZ_LIBS)
 
-frobnicate_eos_SOURCES = fix-eos.c
-frobnicate_eos_LDADD = $(OGGZ_LIBS)
+fix_eos_SOURCES = fix-eos.c
+fix_eos_LDADD = $(OGGZ_LIBS)
 
 read_file_SOURCES = read-file.c
 read_file_LDADD = $(OGGZ_LIBS)
