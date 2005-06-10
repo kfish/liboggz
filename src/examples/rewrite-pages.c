@@ -34,64 +34,15 @@
 #include <stdlib.h>
 #include <oggz/oggz.h>
 
-static  ogg_int64_t
-_le_64 (ogg_int64_t l)
-{
-  ogg_int64_t ret=l;
-  unsigned char *ucptr = (unsigned char *)&ret;
-#ifdef WORDS_BIGENDIAN
-  unsigned char temp;
-
-  temp = ucptr [0] ;
-  ucptr [0] = ucptr [7] ;
-  ucptr [7] = temp ;
-
-  temp = ucptr [1] ;
-  ucptr [1] = ucptr [6] ;
-  ucptr [6] = temp ;
-
-  temp = ucptr [2] ;
-  ucptr [2] = ucptr [5] ;
-  ucptr [5] = temp ;
-
-  temp = ucptr [3] ;
-  ucptr [3] = ucptr [4] ;
-  ucptr [4] = temp ;
-
-#endif
-  return (*(ogg_int64_t *)ucptr);
-}
-
 static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OggzTable * tracks = (OggzTable *)user_data;
-  ogg_int64_t granulepos;
 
   if (ogg_page_bos ((ogg_page *)og)) {
     oggz_table_insert (tracks, serialno, NULL);
   }
-  granulepos = ogg_page_granulepos ((ogg_page *)og);
-  if (granulepos > 0) {
-    ogg_int64_t new_granulepos;
-    ogg_int64_t iframe, pframe;
-    int granuleshift;
-    int mistake = 3;
 
-    granulepos -= mistake;
-    granuleshift = oggz_get_granuleshift (oggz, serialno);
-
-    iframe = granulepos >> granuleshift;
-    pframe = granulepos - (iframe << granuleshift);
-    iframe += mistake + 1;
-
-    new_granulepos = (iframe << granuleshift) + pframe;
-
-
-    *(ogg_int64_t *)(&og->header[6]) = _le_64(new_granulepos);
-  }
-
-  ogg_page_checksum_set ((ogg_page *)og);
   fwrite (og->header, 1, og->header_len, stdout);
   fwrite (og->body, 1, og->body_len, stdout);
 
