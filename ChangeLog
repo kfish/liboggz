@@ -1,5 +1,14 @@
 2005-06-13  Thomas Vander Stichele  <thomas at apestaart dot org>
 
+	* autogen.sh:
+	* m4/as-ac-expand.m4:
+	  add m4 dir and use it
+	  add an expand macro
+	* configure.ac:
+	  uniformize configure's output across the annodex stack
+
+2005-06-13  Thomas Vander Stichele  <thomas at apestaart dot org>
+
 	* doc/Makefile.am:
 	  the doxygen stamp file is a build marker and should not be installed
 

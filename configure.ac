@@ -23,6 +23,9 @@ AC_PROG_LIBTOOL
 AC_C_CONST
 AC_C_BIGENDIAN
 
+dnl Add parameters for aclocal
+AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
+
 # Checks for header files.
 AC_HEADER_STDC
 AC_CHECK_HEADERS([fcntl.h inttypes.h stdlib.h string.h unistd.h])
@@ -70,13 +73,13 @@ if test "x${ac_enable_valgrind}" = xyes ; then
   if test "x$HAVE_VALGRIND" = xyes ; then
     VALGRIND_ENVIRONMENT="valgrind -q --leak-check=yes --show-reachable=yes --num-callers=100"
     AC_SUBST(VALGRIND_ENVIRONMENT)
-    TESTS_INFO="'make check' test suite will be run under:
-  ${VALGRIND_ENVIRONMENT}"
+    TESTS_INFO="Test suite will be run under:
+    ${VALGRIND_ENVIRONMENT}"
   else
-    TESTS_INFO="'make check' to run test suite (Valgrind not found)"
+    TESTS_INFO="(Valgrind not found)"
   fi
 else
-  TESTS_INFO="'make check' to run test suite (Valgrind testing not enabled)"
+  TESTS_INFO="(Valgrind testing not enabled)"
 fi
 
 dnl Checks for libraries.
@@ -282,6 +285,11 @@ src/examples/Makefile
 oggz.pc
 ])
 
+AS_AC_EXPAND(LIBDIR, ${libdir})
+AS_AC_EXPAND(INCLUDEDIR, ${includedir})
+AS_AC_EXPAND(BINDIR, ${bindir})
+AS_AC_EXPAND(DOCDIR, ${datadir}/doc)
+
 AC_MSG_RESULT([
 ------------------------------------------------------------------------
   $PACKAGE $VERSION:  Automatic configuration OK.
@@ -298,12 +306,20 @@ AC_MSG_RESULT([
 
   Installation paths:
 
-    liboggz: ..................... ${prefix}/lib
-    Tools: ....................... ${prefix}/bin
-    C header files: .............. ${prefix}/include/oggz
-    Documentation: ............... ${prefix}/share/doc/$PACKAGE
+    liboggz: ..................... ${LIBDIR}
+    Tools: ....................... ${BINDIR}
+    C header files: .............. ${INCLUDEDIR}/oggz
+    Documentation: ............... ${DOCDIR}/$PACKAGE
 
-  ${TESTS_INFO}
+  Building:
+
+    Type 'make' to compile $PACKAGE.
+
+    Type 'make install' to install $PACKAGE.
+
+    Type 'make check' to test $PACKAGE using the unittests
+    contained in the src/tests directory.
+    ${TESTS_INFO}
 
   Example programs will be built but not installed.
 ------------------------------------------------------------------------
