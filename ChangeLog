@@ -1,3 +1,8 @@
+2005-06-13  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* doc/Makefile.am:
+	  the doxygen stamp file is a build marker and should not be installed
+
 2005-06-09  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* src/tools/oggz-basetime.c: (filter_page), (read_page):
