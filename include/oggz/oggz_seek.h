@@ -144,7 +144,7 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  *         [*** This line works around a bug in doxygen ***]
  *
  * The seeking semantics of the Ogg file format were outlined by Monty in
- * <a href="http://www.xiph.org/archives/theora-dev/200209/0040.html">a
+ * <a href="http://web.archive.org/web/20031201054855/http://www.xiph.org/archives/theora-dev/200209/0040.html"> a 
  * post to theora-dev</a> in September 2002. Quoting from that post, we
  * have the following assumptions:
  *
