@@ -38,6 +38,8 @@
 
 static FILE *out;
 
+static char * progname;
+
 static void clear_table(OggzTable *table) {
   int i, size = oggz_table_size(table);
   for(i = 0; i < size; i++) {
@@ -68,14 +70,15 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   long *data = (long *)oggz_table_lookup(tracks, serialno);
 
   if(data == NULL) {
-    fprintf(stderr, "Bailing out, internal consistency failure\n");
+    fprintf(stderr, "%s: Bailing out, internal consistency failure\n", progname);
     abort();
   }
 
   if(*data == pageno) {
     unsigned char header_type = og->header[5];
     if(!(header_type & 0x4)) {
-      fprintf(stderr, "Frobnicating final page for stream %ld\n", serialno);
+      fprintf(stderr, "%s: Setting EOS on final page of stream %ld\n",
+		      progname, serialno);
       header_type |= 0x4;
       og->header[5] = header_type;
 
@@ -96,14 +99,16 @@ main (int argc, char ** argv)
   OggzTable * tracks;
   long n;
 
+  progname = argv[0];
+
   if (argc < 3) {
-    printf ("usage: %s in.ogg out.ogg\n", argv[0]);
+    printf ("usage: %s in.ogg out.ogg\n", progname);
   }
 
   tracks = oggz_table_new ();
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
-    printf ("unable to open file %s\n", argv[1]);
+    printf ("%s: unable to open file %s\n", progname, argv[1]);
     exit (1);
   }
 
@@ -115,13 +120,13 @@ main (int argc, char ** argv)
 
   out = fopen(argv[2], "wb");
   if(!out) {
-    fprintf(stderr, "Failed to open output file \"%s\"\n", argv[2]);
+    fprintf(stderr, "%s: Failed to open output file \"%s\"\n", progname, argv[2]);
     exit(1);
   }
 
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
-    printf ("unable to open file %s\n", argv[1]);
+    printf ("%s: unable to open file %s\n", progname, argv[1]);
     exit (1);
   }
 
