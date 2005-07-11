@@ -9,6 +9,10 @@ EXTRA_DIST = Doxyfile.in \
 
 man_MANS = oggzdump.1 oggzdiff.1 oggzmerge.1 oggzrip.1 oggzinfo.1 oggz-validate.1
 
+# ensure doxygen-build.stamp is included,  or else the documentation will
+# not be built or distributed
+noinst_DATA = doxygen-build.stamp
+
 # do not delete - make dist needs it
 doc_DATA =
 
