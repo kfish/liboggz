@@ -83,13 +83,14 @@ manpage.1: manpage.sgml
 	<listitem>Packet out of order</listitem>
 	<listitem><para>Multiple bos packets</para></listitem>
 	<listitem><para>Multiple eos packets</para></listitem>
+	<listitem><para>Missing eos packets</para></listitem>
 	<listitem><para>Packet belongs to unknown serialno</para></listitem>
 	<listitem><para>Granulepos decreasing within track</para></lisitem>
       </itemizedlist>
     </para>
     <para>
       <command>&dhpackage;</command> exits with status 0 if all files
-      are valid, and with status 1 if one or more errors are found.
+      are valid Ogg files, and with status 1 if one or more errors are found.
     </para>
   </refsect1>
   
