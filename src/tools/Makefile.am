@@ -16,7 +16,8 @@ oggz_read_programs = oggzdump oggzinfo
 oggz_read_noinst_programs = oggzed
 
 if OGGZ_CONFIG_WRITE
-oggz_rw_programs = oggzmerge oggzrip oggz-validate oggz-basetime
+oggz_rw_programs = oggzmerge oggzrip oggz-validate
+oggz_rw_noinst_programs = oggz-basetime
 endif
 
 endif
@@ -25,7 +26,7 @@ noinst_HEADERS = oggz_tools.h
 
 # Programs to build
 bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
-noinst_PROGRAMS = $(oggz_read_noinst_programs)
+noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
 oggzinfo_SOURCES = oggzinfo.c oggz_tools.c
 oggzinfo_LDADD = $(OGGZ_LIBS) -lm
