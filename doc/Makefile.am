@@ -13,9 +13,6 @@ man_MANS = oggzdump.1 oggzdiff.1 oggzmerge.1 oggzrip.1 oggzinfo.1 oggz-validate.
 # not be built or distributed
 noinst_DATA = doxygen-build.stamp
 
-# do not delete - make dist needs it
-doc_DATA =
-
 html: oggzdump.1.html oggzdiff.1.html oggzmerge.1.html oggzrip.1.html oggzinfo.1.html oggz-validate.1.html
 
 if HAVE_DOCBOOKTOMAN
