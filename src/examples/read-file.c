@@ -47,12 +47,12 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   if (op->b_o_s) {
-    printf ("%010ld: [%ld] BOS %8s\n", serialno, op->granulepos, op->packet);
+    printf ("%010ld: [%lld] BOS %8s\n", serialno, op->granulepos, op->packet);
   }
 
   if (op->e_o_s) {
     got_an_eos = 1;
-    printf ("%010ld: [%ld] EOS\n", serialno, op->granulepos);
+    printf ("%010ld: [%lld] EOS\n", serialno, op->granulepos);
   }
 
   return 0;

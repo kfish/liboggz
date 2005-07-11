@@ -35,8 +35,11 @@
 #include <oggz/oggz.h>
 
 #define ID_WRITE_DIRECT
+/* define USE_FLUSH_NEXT */
 
+#ifdef USE_FLUSH_NEXT
 static int flush_next = 0;
+#endif
 
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
@@ -45,7 +48,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   int flush;
   int ret;
 
-#if 0
+#ifdef USE_FLUSH_NEXT
   flush = flush_next;
   if (op->granulepos == -1) {
     flush_next = 0;
@@ -72,8 +75,10 @@ main (int argc, char ** argv)
 {
   char * infilename, * outfilename;
   OGGZ * reader, * writer;
+#ifndef ID_WRITE_DIRECT
   FILE * outfile;
   unsigned char buf[1024];
+#endif
   long n;
 
   if (argc < 3) {

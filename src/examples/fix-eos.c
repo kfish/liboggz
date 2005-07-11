@@ -51,7 +51,7 @@ static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OggzTable * tracks = (OggzTable *)user_data;
-  long pageno = ogg_page_pageno(og);
+  long pageno = ogg_page_pageno((ogg_page *)og);
   long *data = (long *)oggz_table_lookup(tracks, serialno);
   if(data == NULL) {
     data = malloc(sizeof(long));
@@ -66,7 +66,7 @@ static int
 write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OggzTable * tracks = (OggzTable *)user_data;
-  long pageno = ogg_page_pageno(og);
+  long pageno = ogg_page_pageno((ogg_page *)og);
   long *data = (long *)oggz_table_lookup(tracks, serialno);
 
   if(data == NULL) {
@@ -82,7 +82,7 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       header_type |= 0x4;
       og->header[5] = header_type;
 
-      ogg_page_checksum_set(og);
+      ogg_page_checksum_set((ogg_page *)og);
     }
   }
 
