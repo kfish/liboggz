@@ -37,6 +37,10 @@
 #include <string.h>
 #include <oggz/oggz.h>
 
+#ifdef WIN32                                                                   
+#include <fcntl.h>                                                             
+#endif  
+
 static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
 {
