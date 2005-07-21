@@ -36,13 +36,19 @@
 #include <oggz/oggz.h>
 #include <ogg/ogg.h>
 
-static FILE *out;
-
-static char * progname;
-
 struct eos_fix {
-    int discarding;
-    int lastvalidpage;
+  /* Output file */
+  FILE *out; 
+
+  /* Stream serial -> struct eos_fix_stream mapping */
+  OggzTable * tracks;
+};
+
+/* We have one of these for each logical stream */
+struct eos_fix_stream {
+  long lastvalidpage; /* The pageno of the final useful page */
+  int discarding; /* Once we've processed the final useful page, we throw
+                     out any further non-useful streams */
 };
 
 static void clear_table(OggzTable *table) {
@@ -55,7 +61,8 @@ static void clear_table(OggzTable *table) {
 static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
-  OggzTable * tracks = (OggzTable *)user_data;
+  struct eos_fix *fixer = (struct eos_fix *)user_data;
+  OggzTable * tracks = fixer->tracks;
   long pageno = ogg_page_pageno((ogg_page *)og);
 
   /* Insert this if it's a page that completes one or more packets; each time
@@ -63,9 +70,9 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
    * page that contains the end of one or more packets.
    */
   if(ogg_page_packets((ogg_page *)og) != 0) {
-    struct eos_fix *data = (struct eos_fix *)oggz_table_lookup(tracks, serialno);
+    struct eos_fix_stream *data = (struct eos_fix_stream *)oggz_table_lookup(tracks, serialno);
     if(data == NULL) {
-      data = malloc(sizeof(struct eos_fix));
+      data = malloc(sizeof(struct eos_fix_stream));
     }
     data->lastvalidpage = pageno;
     data->discarding = 0;
@@ -78,20 +85,21 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 static int
 write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
-  OggzTable * tracks = (OggzTable *)user_data;
+  struct eos_fix *fixer = (struct eos_fix *)user_data;
+  OggzTable * tracks = fixer->tracks;
   long pageno = ogg_page_pageno((ogg_page *)og);
-  struct eos_fix *data = (struct eos_fix *)oggz_table_lookup(tracks, serialno);
+  struct eos_fix_stream *data = (struct eos_fix_stream *)oggz_table_lookup(tracks, serialno);
 
   if(data == NULL) {
-    fprintf(stderr, "%s: Bailing out, internal consistency failure\n", progname);
+    fprintf(stderr, "Bailing out, internal consistency failure\n");
     abort();
   }
 
   if(data->lastvalidpage == pageno) {
     unsigned char header_type = og->header[5];
     if(!(header_type & 0x4)) {
-      fprintf(stderr, "%s: Setting EOS on final page of stream %ld\n",
-		      progname, serialno);
+      fprintf(stderr, "Setting EOS on final page of stream %ld\n",
+		      serialno);
       header_type |= 0x4;
       og->header[5] = header_type;
 
@@ -125,14 +133,14 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     }
     
     /* Write out this page, but no following ones */
-    fwrite (og->header, 1, og->header_len, out);
-    fwrite (og->body, 1, og->body_len, out);
+    fwrite (og->header, 1, og->header_len, fixer->out);
+    fwrite (og->body, 1, og->body_len, fixer->out);
     data->discarding = 1;
   }
 
   if(!data->discarding) {
-    fwrite (og->header, 1, og->header_len, out);
-    fwrite (og->body, 1, og->body_len, out);
+    fwrite (og->header, 1, og->header_len, fixer->out);
+    fwrite (og->body, 1, og->body_len, fixer->out);
   }
 
   return 0;
@@ -142,50 +150,49 @@ int
 main (int argc, char ** argv)
 {
   OGGZ * oggz;
-  OggzTable * tracks;
+  struct eos_fix fixer;
   long n;
-
-  progname = argv[0];
+  char *progname = argv[0];
 
   if (argc < 3) {
     printf ("usage: %s in.ogg out.ogg\n", progname);
   }
 
-  tracks = oggz_table_new ();
+  fixer.tracks = oggz_table_new ();
+  fixer.out = NULL;
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
     printf ("%s: unable to open file %s\n", progname, argv[1]);
     exit (1);
   }
 
-  oggz_set_read_page (oggz, -1, read_page, tracks);
+  oggz_set_read_page (oggz, -1, read_page, &fixer);
 
   while ((n = oggz_read (oggz, 1024)) > 0);
 
   oggz_close (oggz);
 
-  out = fopen(argv[2], "wb");
-  if(!out) {
+  fixer.out = fopen(argv[2], "wb");
+  if(!fixer.out) {
     fprintf(stderr, "%s: Failed to open output file \"%s\"\n", progname, argv[2]);
     exit(1);
   }
 
-
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
     printf ("%s: unable to open file %s\n", progname, argv[1]);
     exit (1);
   }
 
-  oggz_set_read_page (oggz, -1, write_page, tracks);
+  oggz_set_read_page (oggz, -1, write_page, &fixer);
 
   while ((n = oggz_read (oggz, 1024)) > 0);
 
   oggz_close (oggz);
 
-  clear_table(tracks);
-  oggz_table_delete (tracks);
+  clear_table(fixer.tracks);
+  oggz_table_delete (fixer.tracks);
 
-  fclose(out);
+  fclose(fixer.out);
 
   exit (0);
 }
