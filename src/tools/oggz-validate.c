@@ -134,6 +134,20 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 }
 
 static int
+read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
+  int ret = 0;
+
+  if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
+    ret = log_error ();
+    fprintf (stderr, "serialno %010ld: granulepos %lld on page with no completed packets, must be -1\n", serialno, gpos);
+  }
+
+  return ret;
+}
+
+static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   OVData * ovdata = (OVData *)user_data;
@@ -229,6 +243,7 @@ validate (char * filename)
   }
 
   oggz_set_read_callback (reader, -1, read_packet, &ovdata);
+  oggz_set_read_page (reader, -1, read_page, NULL);
 
   while (active && (n = oggz_read (reader, 1024)) != 0) {
     if (nr_errors > MAX_ERRORS) {
