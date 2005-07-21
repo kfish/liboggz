@@ -40,6 +40,11 @@ static FILE *out;
 
 static char * progname;
 
+struct eos_fix {
+    int discarding;
+    int lastvalidpage;
+};
+
 static void clear_table(OggzTable *table) {
   int i, size = oggz_table_size(table);
   for(i = 0; i < size; i++) {
@@ -52,12 +57,20 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OggzTable * tracks = (OggzTable *)user_data;
   long pageno = ogg_page_pageno((ogg_page *)og);
-  long *data = (long *)oggz_table_lookup(tracks, serialno);
-  if(data == NULL) {
-    data = malloc(sizeof(long));
+
+  /* Insert this if it's a page that completes one or more packets; each time
+   * we call this it gets overwritten, the end result is that we mark the last
+   * page that contains the end of one or more packets.
+   */
+  if(ogg_page_packets((ogg_page *)og) != 0) {
+    struct eos_fix *data = (struct eos_fix *)oggz_table_lookup(tracks, serialno);
+    if(data == NULL) {
+      data = malloc(sizeof(struct eos_fix));
+    }
+    data->lastvalidpage = pageno;
+    data->discarding = 0;
+    oggz_table_insert (tracks, serialno, data);
   }
-  *data = pageno;
-  oggz_table_insert (tracks, serialno, data);
 
   return 0;
 }
@@ -67,14 +80,14 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OggzTable * tracks = (OggzTable *)user_data;
   long pageno = ogg_page_pageno((ogg_page *)og);
-  long *data = (long *)oggz_table_lookup(tracks, serialno);
+  struct eos_fix *data = (struct eos_fix *)oggz_table_lookup(tracks, serialno);
 
   if(data == NULL) {
     fprintf(stderr, "%s: Bailing out, internal consistency failure\n", progname);
     abort();
   }
 
-  if(*data == pageno) {
+  if(data->lastvalidpage == pageno) {
     unsigned char header_type = og->header[5];
     if(!(header_type & 0x4)) {
       fprintf(stderr, "%s: Setting EOS on final page of stream %ld\n",
@@ -84,10 +97,43 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
       ogg_page_checksum_set((ogg_page *)og);
     }
+
+    /* Now we want to discard any remaining partial packets at the end of this
+     * page. Unfortunately, neither libogg nor liboggz have helpful
+     * functions for this, so do it all in a manual way...
+     *
+     * We need to do this because libogg (correctly) doesn't tag the last
+     * complete packet on an EOS page with EOS if there's an incomplete
+     * packet following it (so you get complaints from oggz-validate).
+     */
+    {
+      int i, segments, discard = 0;
+      segments = og->header[26];
+      for(i=segments-1; i >= 0; i--) {
+        if(og->header[i+27] < 255)
+            break;
+        else
+            discard += 255;
+      }
+      if(i != segments-1) {
+        fprintf(stderr, "Discarding %d useless segments of %d, retaining %d\n", segments-1-i, segments, i+1);
+        og->header[26] = i+1;
+        ((ogg_page *)og)->header_len -= segments-1-i;
+        ((ogg_page *)og)->body_len -= discard;
+        ogg_page_checksum_set((ogg_page *)og);
+      }
+    }
+    
+    /* Write out this page, but no following ones */
+    fwrite (og->header, 1, og->header_len, out);
+    fwrite (og->body, 1, og->body_len, out);
+    data->discarding = 1;
   }
 
-  fwrite (og->header, 1, og->header_len, out);
-  fwrite (og->body, 1, og->body_len, out);
+  if(!data->discarding) {
+    fwrite (og->header, 1, og->header_len, out);
+    fwrite (og->body, 1, og->body_len, out);
+  }
 
   return 0;
 }
