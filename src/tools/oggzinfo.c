@@ -47,6 +47,8 @@
 #  define PRId64 "I64d"
 #endif
 
+#define READ_BLOCKSIZE 1024000
+
 static void
 usage (char * progname)
 {
@@ -350,7 +352,7 @@ oi_pass1 (OGGZ * oggz, OI_Info * info)
   oggz_set_read_page (oggz, -1, read_page_pass1, info);
   oggz_set_read_callback (oggz, -1, read_packet_pass1, info);
 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
   oggzinfo_apply (oit_calc_average, info);
 
@@ -366,7 +368,7 @@ oi_pass2 (OGGZ * oggz, OI_Info * info)
   oggz_set_read_page (oggz, -1, read_page_pass2, info);
   oggz_set_read_callback (oggz, -1, read_packet_pass2, info);
 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
   oggzinfo_apply (oit_calc_stddev, info);
 
