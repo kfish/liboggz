@@ -1,5 +1,6 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
+if HAVE_DOCBOOKTOMAN
 EXTRA_DIST = Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
@@ -8,6 +9,16 @@ EXTRA_DIST = Doxyfile.in \
 	oggzdump.1 oggzdiff.1 oggzmerge.1 oggzrip.1 oggzinfo.1 oggz-validate.1
 
 man_MANS = oggzdump.1 oggzdiff.1 oggzmerge.1 oggzrip.1 oggzinfo.1 oggz-validate.1
+
+else
+EXTRA_DIST = Doxyfile.in \
+	forcefeed.fig forcefeed.eps forcefeed.png \
+	hungry.fig hungry.eps hungry.png \
+	oggzdump.1.sgml oggzdiff.1.sgml oggzmerge.1.sgml \
+	oggzrip.1.sgml oggzinfo.1.sgml oggz-validate.1.sgml
+man_MANS =
+endif
+
 
 # ensure doxygen-build.stamp is included,  or else the documentation will
 # not be built or distributed
