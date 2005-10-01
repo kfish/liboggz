@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <getopt.h>
 #include <errno.h>
 
@@ -48,6 +49,8 @@ typedef ogg_int64_t timestamp_t;
 typedef struct _OVData {
   OGGZ * writer;
   OggzTable * missing_eos;
+  int theora_count;
+  int audio_count;
 } OVData;
 
 typedef struct {
@@ -136,8 +139,23 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
+  OVData * ovdata = (OVData *)user_data;
   ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
+  const char * content_type;
   int ret = 0;
+
+  if (ogg_page_bos ((ogg_page *)og)) {
+    content_type = ot_page_identify (og, NULL);
+    if (!strcmp (content_type, "Theora")) {
+      ovdata->theora_count++;
+      if (ovdata->audio_count > 0) {
+        log_error ();
+        fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
+      }
+    } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
+      ovdata->audio_count++;
+    }
+  }
 
   if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
     ret = log_error ();
@@ -231,6 +249,8 @@ validate (char * filename)
   /*printf ("oggz-validate: %s\n", filename);*/
 
   ovdata.missing_eos = oggz_table_new ();
+  ovdata.theora_count = 0;
+  ovdata.audio_count = 0;
   
   if ((reader = oggz_open (filename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
     fprintf (stderr, "oggz-validate: unable to open file %s\n", filename);
@@ -243,7 +263,7 @@ validate (char * filename)
   }
 
   oggz_set_read_callback (reader, -1, read_packet, &ovdata);
-  oggz_set_read_page (reader, -1, read_page, NULL);
+  oggz_set_read_page (reader, -1, read_page, &ovdata);
 
   while (active && (n = oggz_read (reader, 1024)) != 0) {
     if (nr_errors > MAX_ERRORS) {
