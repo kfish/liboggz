@@ -12,7 +12,7 @@ OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
 if OGGZ_CONFIG_READ
-oggz_read_programs = oggzdump oggzinfo
+oggz_read_programs = oggzdump oggzinfo oggz-scan
 oggz_read_noinst_programs = oggzed
 
 if OGGZ_CONFIG_WRITE
@@ -48,3 +48,6 @@ oggz_validate_LDADD = $(OGGZ_LIBS)
 
 oggz_basetime_SOURCES = oggz-basetime.c oggz_tools.c
 oggz_basetime_LDADD = $(OGGZ_LIBS)
+
+oggz_scan_SOURCES = oggz-scan.c oggz_tools.c
+oggz_scan_LDADD = $(OGGZ_LIBS)
