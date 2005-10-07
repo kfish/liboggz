@@ -61,17 +61,16 @@ manpage.1: manpage.sgml
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>&dhpackage;</command>
-      <group><arg choice="opt">-c</arg><arg choice="opt">--cmml</arg></group>
-      <group>
-        <arg choice="opt">-w</arg>
-        <arg choice="opt">--web</arg>
-        <arg choice="opt">--html</arg>
-      </group>
 
       <group><arg choice="opt">-k</arg><arg choice="opt">--keyframe</arg></group>
       <group>
         <arg choice="opt">-o <parameter>filename</parameter></arg>
         <arg choice="opt">--output <parameter>filename</parameter></arg>
+      </group>
+
+      <group>
+        <arg choice="opt">-f <parameter>format</parameter></arg>
+        <arg choice="opt">--format <parameter>format</parameter></arg>
       </group>
 
       <arg choice="plain">filename</arg>
@@ -110,14 +109,10 @@ manpage.1: manpage.sgml
         </varlistentry>
 
         <varlistentry>
-          <term>-c, --cmml</term>
-          <listitem><para>Format the output as CMML.</para></listitem>
-        </varlistentry>
-
+          <term>-f <parameter>format</parameter>, --format <parameter>format</parameter></term>
+          <listitem><para>Write output in the specified
+              <parameter>format</parameter>. Supported formats are plain, cmml, html. (Default: plain)</para></listitem>
         <varlistentry>
-          <term>-w, --web, --html</term>
-          <listitem><para>Format the output as HTML.</para></listitem>
-        </varlistentry>
 
       </variablelist>
     </refsect2>
