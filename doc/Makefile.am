@@ -1,11 +1,5 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
-EXTRA_DIST = Doxyfile.in \
-	forcefeed.fig forcefeed.eps forcefeed.png \
-	hungry.fig hungry.eps hungry.png \
-	oggzdiff.1.sgml oggzdump.1.sgml oggzinfo.1.sgml oggzmerge.1.sgml \
-	oggzrip.1.sgml oggz-scan.1.sgml oggz-validate.1.sgml
-
 if HAVE_DOCBOOKTOMAN
 man_MANS = oggzdiff.1 oggzdump.1 oggzinfo.1 oggzmerge.1 \
 	oggzrip.1 oggz-scan.1 oggz-validate.1
@@ -15,6 +9,12 @@ check:
 	@echo "Error: Unable to build man pages, docbook-to-man required"
 	@false
 endif
+
+EXTRA_DIST = $(man_MANS) Doxyfile.in \
+	forcefeed.fig forcefeed.eps forcefeed.png \
+	hungry.fig hungry.eps hungry.png \
+	oggzdiff.1.sgml oggzdump.1.sgml oggzinfo.1.sgml oggzmerge.1.sgml \
+	oggzrip.1.sgml oggz-scan.1.sgml oggz-validate.1.sgml
 
 # ensure doxygen-build.stamp is included,  or else the documentation will
 # not be built or distributed
