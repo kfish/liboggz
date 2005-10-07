@@ -80,14 +80,16 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename\n", progname);
-  printf ("Scans a ogg file and outputs specific characteristic landmarks.\n");
-  printf ("E.g. -k calculates shot boundaries from theora keyframes.\n");
-  printf ("\nOptions\n");
+  printf ("Scan an Ogg file and output characteristic landmarks.\n");
+  printf ("\nOutput options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
-  printf ("  -c, --cmml             Outputs results as cmml\n");
-  printf ("  -w, --web, --html      Outputs results as html page\n");
-  printf ("  -k, --keyframe         Outputs shots using theora keyframes\n");
+  printf ("  -f format, --format format\n");
+  printf ("                         Specify output format. Supported formats are plain,\n");
+  printf ("                         cmml, and html. (Default: plain)\n");
+  printf ("\nFeature options\n");
+  printf ("  -k, --keyframe         Display timestamps of unforced theora keyframes\n");
+  printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
   printf ("\n");
@@ -213,14 +215,12 @@ main (int argc, char ** argv)
   }
 
   while (1) {
-    char * optstring = "cwkhvo:";
+    char * optstring = "f:khvo:";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"output",   required_argument, 0, 'o'},
-      {"cmml",     no_argument, 0, 'c'},
-      {"web",      no_argument, 0, 'w'},
-      {"html",     no_argument, 0, 'w'},
+      {"format",   required_argument, 0, 'f'},
       {"keyframe", no_argument, 0, 'k'},
       {"help",     no_argument, 0, 'h'},
       {"version",  no_argument, 0, 'v'},
@@ -238,8 +238,17 @@ main (int argc, char ** argv)
     }
 
     switch (i) {
-    case 'c': /* cmml */
-      output_cmml = 1;
+    case 'f': /* format */
+      if (!strcmp (optarg, "cmml")) {
+        output_cmml = 1;
+	output_html = 0;
+      } else if (!strcmp (optarg, "html")) {
+        output_cmml = 0;
+	output_html = 1;
+      } else {
+        output_cmml = 0;
+	output_html = 0;
+      }
       break;
     case 'w': /* html */
       output_html = 1;
