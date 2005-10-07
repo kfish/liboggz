@@ -3,11 +3,12 @@ docdir=$(prefix)/share/doc/@PACKAGE@
 EXTRA_DIST = Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
-	oggzdump.1.sgml oggzdiff.1.sgml oggzmerge.1.sgml \
-	oggzrip.1.sgml oggzinfo.1.sgml oggz-validate.1.sgml
+	oggzdiff.1.sgml oggzdump.1.sgml oggzinfo.1.sgml oggzmerge.1.sgml \
+	oggzrip.1.sgml oggz-scan.1.sgml oggz-validate.1.sgml
 
 if HAVE_DOCBOOKTOMAN
-man_MANS = oggzdump.1 oggzdiff.1 oggzmerge.1 oggzrip.1 oggzinfo.1 oggz-validate.1
+man_MANS = oggzdiff.1 oggzdump.1 oggzinfo.1 oggzmerge.1 \
+	oggzrip.1 oggz-scan.1 oggz-validate.1
 else
 man_MANS =
 check:
@@ -19,7 +20,8 @@ endif
 # not be built or distributed
 noinst_DATA = doxygen-build.stamp
 
-html: oggzdump.1.html oggzdiff.1.html oggzmerge.1.html oggzrip.1.html oggzinfo.1.html oggz-validate.1.html
+html: oggzdiff.1.html oggzdump.1.html oggzinfo.1.html oggzmerge.1.html \
+	oggzrip.1.html oggz-scan.1.html oggz-validate.1.html
 
 if HAVE_DOCBOOKTOMAN
 %.1: %.1.sgml
