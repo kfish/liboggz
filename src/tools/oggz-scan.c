@@ -180,7 +180,8 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
       }
       osdata->clipcount++;
       if (!osdata->html && !osdata->cmml) {
-        fprintf(outfile, "%lf\n", time_offset);
+	ot_fprint_time (outfile, time_offset);
+	fputc ('\n', outfile);
       }
     }
   }
