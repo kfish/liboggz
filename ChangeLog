@@ -1,3 +1,9 @@
+2005-11-17  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* configure.ac:
+	* doc/Makefile.am:
+	  Work also with docbook2man as installed on Fedora
+
 2005-06-13  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* autogen.sh:

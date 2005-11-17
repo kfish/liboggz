@@ -25,7 +25,7 @@ html: oggzdiff.1.html oggzdump.1.html oggzinfo.1.html oggzmerge.1.html \
 
 if HAVE_DOCBOOKTOMAN
 %.1: %.1.sgml
-	docbook-to-man $< > $@
+	$(DOCBOOKTOMAN) $< > $@
 else
 %.1: %.1.sgml
 endif
