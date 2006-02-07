@@ -289,9 +289,14 @@ validate (char * filename)
 
   /*printf ("oggz-validate: %s\n", filename);*/
 
-  if ((reader = oggz_open (filename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
+  if (!strncmp (filename, "-", 2)) {
+    if ((reader = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO)) == NULL) {
+      fprintf (stderr, "oggz-validate: unable to open stdin\n");
+      return -1;
+    }
+  } else if ((reader = oggz_open (filename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
     fprintf (stderr, "oggz-validate: unable to open file %s\n", filename);
-    exit (1);
+    return -1;
   }
 
   ovdata_init (&ovdata);
@@ -396,7 +401,8 @@ main (int argc, char ** argv)
 
   for (; i < argc; i++) {
     filename = argv[i];
-    validate (filename);
+    if (validate (filename) == -1)
+      exit_status = 1;
   }
 
  exit_out:
