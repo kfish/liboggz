@@ -73,13 +73,10 @@ static int exit_status = 0;
 static int nr_errors = 0;
 
 static void
-usage (char * progname)
+list_errors (void)
 {
   int i = 0;
 
-  printf ("Usage: %s [options] filename ...\n", progname);
-  printf ("Validate the Ogg framing of one or more files\n");
-  printf ("\n%s detects the following errors in Ogg framing:\n", progname);
   printf ("  File contains no Ogg packets\n");
   printf ("  Packets out of order\n");
   for (i = 0; errors[i].error; i++) {
@@ -89,8 +86,20 @@ usage (char * progname)
   printf ("  Missing eos packets\n");
   printf ("  Granulepos on page with no completed packets\n");
   printf ("  Theora video bos page after audio bos page\n");
+}
+static void
+usage (char * progname)
+{
+
+  printf ("Usage: %s [options] filename ...\n", progname);
+  printf ("Validate the Ogg framing of one or more files\n");
+  printf ("\n%s detects the following errors in Ogg framing:\n", progname);
+
+  list_errors ();
+
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
+  printf ("  -E, --help-errors      List known types of error and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
   printf ("\n");
   printf ("Exit status is 0 if all input files are valid, 1 otherwise.\n\n");
@@ -351,11 +360,12 @@ main (int argc, char ** argv)
   }
 
   while (1) {
-    char * optstring = "hv";
+    char * optstring = "hvE";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"help", no_argument, 0, 'h'},
+      {"help-errors", no_argument, 0, 'E'},
       {"version", no_argument, 0, 'v'},
       {0,0,0,0}
     };
@@ -380,6 +390,9 @@ main (int argc, char ** argv)
     case 'v': /* version */
       show_version = 1;
       break;
+    case 'E': /* list errors */
+      show_help = 2;
+      break;
     default:
       break;
     }
@@ -389,8 +402,10 @@ main (int argc, char ** argv)
     printf ("%s version " VERSION "\n", progname);
   }
 
-  if (show_help) {
+  if (show_help == 1) {
     usage (progname);
+  } else if (show_help == 2) {
+    list_errors ();
   }
 
   if (show_version || show_help) {
