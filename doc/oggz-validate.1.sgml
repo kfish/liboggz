@@ -80,12 +80,16 @@ manpage.1: manpage.sgml
     <para><command>&dhpackage;</command> detects the following errors
       in Ogg framing:
       <itemizedlist>
-	<listitem>Packet out of order</listitem>
-	<listitem><para>Multiple bos packets</para></listitem>
-	<listitem><para>Multiple eos packets</para></listitem>
-	<listitem><para>Missing eos packets</para></listitem>
-	<listitem><para>Packet belongs to unknown serialno</para></listitem>
-	<listitem><para>Granulepos decreasing within track</para></lisitem>
+<listitem><para>File contains no Ogg packets</para></listitem>
+<listitem><para>Packets out of order</para></listitem>
+<listitem><para>Packet belongs to unknown serialno</para></listitem>
+<listitem><para>Granulepos decreasing within track</para></listitem>
+<listitem><para>Multiple bos packets</para></listitem>
+<listitem><para>Multiple eos packets</para></listitem>
+<listitem><para>eos marked but no bos</para></listitem>
+<listitem><para>Missing eos packets</para></listitem>
+<listitem><para>Granulepos on page with no completed packets</para></listitem>
+<listitem><para>Theora video bos page after audio bos page</para></listitem>
       </itemizedlist>
     </para>
     <para>

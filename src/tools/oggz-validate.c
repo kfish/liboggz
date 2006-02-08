@@ -59,10 +59,10 @@ typedef struct {
 } error_text;
 
 static error_text errors[] = {
-  {-5, "Multiple bos packets"},
-  {-6, "Multiple eos packets"},
   {-20, "Packet belongs to unknown serialno"},
   {-24, "Granulepos decreasing within track"},
+  {-5, "Multiple bos packets"},
+  {-6, "Multiple eos packets"},
   {0, NULL}
 };
 
@@ -80,10 +80,15 @@ usage (char * progname)
   printf ("Usage: %s [options] filename ...\n", progname);
   printf ("Validate the Ogg framing of one or more files\n");
   printf ("\n%s detects the following errors in Ogg framing:\n", progname);
-  printf ("  Packet out of order\n");
+  printf ("  File contains no Ogg packets\n");
+  printf ("  Packets out of order\n");
   for (i = 0; errors[i].error; i++) {
     printf ("  %s\n", errors[i].description);
   }
+  printf ("  eos marked but no bos\n");
+  printf ("  Missing eos packets\n");
+  printf ("  Granulepos on page with no completed packets\n");
+  printf ("  Theora video bos page after audio bos page\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
