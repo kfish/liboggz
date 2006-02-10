@@ -123,12 +123,14 @@ enum OggzError {
   OGGZ_ERR_NOSEEK                       = -13,
 
   /** Reading was stopped by an OggzReadCallback returning OGGZ_STOP_OK
-   * before any input bytes were consumed */
-  OGGZ_ERR_READ_STOP_OK                 = -14,
+   * or writing was stopped by an  OggzWriteHungry callback returning
+   * OGGZ_STOP_OK */
+  OGGZ_ERR_STOP_OK                      = -14,
 
   /** Reading was stopped by an OggzReadCallback returning OGGZ_STOP_ERR
-   * before any input bytes were consumed */
-  OGGZ_ERR_READ_STOP_ERR                = -15,
+   * or writing was stopped by an OggzWriteHungry callback returning
+   * OGGZ_STOP_ERR */
+  OGGZ_ERR_STOP_ERR                     = -15,
 
   /** no data available from IO, try again */
   OGGZ_ERR_IO_AGAIN                     = -16,

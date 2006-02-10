@@ -223,6 +223,8 @@ OGGZ * oggz_write_init (OGGZ * oggz);
 int oggz_write_flush (OGGZ * oggz);
 OGGZ * oggz_write_close (OGGZ * oggz);
 
+int oggz_map_return_value_to_error (int cb_ret);
+
 int oggz_get_bos (OGGZ * oggz, long serialno);
 ogg_int64_t oggz_get_unit (OGGZ * oggz, long serialno, ogg_int64_t granulepos);
 

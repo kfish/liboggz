@@ -534,35 +534,35 @@ oggz_page_writeout (OGGZ * oggz, long n)
   return h + b;
 }
 
-static oggz_writer_packet_t *
-oggz_dequeue_packet (OGGZ * oggz)
+static int
+oggz_dequeue_packet (OGGZ * oggz, oggz_writer_packet_t ** next_zpacket)
 {
   OggzWriter * writer = &oggz->x.writer;
-  oggz_writer_packet_t * next_zpacket;
+  int ret = 0;
 
   if (writer->next_zpacket != NULL) {
 #ifdef DEBUG
     printf ("oggz_dequeue_packet: queue EMPTY\n");
 #endif
-    next_zpacket = writer->next_zpacket;
+    *next_zpacket = writer->next_zpacket;
     writer->next_zpacket = NULL;
   } else {
-    next_zpacket = oggz_vector_pop (writer->packet_queue);
+    *next_zpacket = oggz_vector_pop (writer->packet_queue);
 
 #ifdef DEBUG
     printf ("oggz_dequeue_packet: dequeued packet, queue size %d\n",
 	    oggz_vector_size (writer->packet_queue));
 #endif
 
-    if (next_zpacket == NULL) {
+    if (*next_zpacket == NULL) {
       if (writer->hungry) {
-	writer->hungry (oggz, 1, writer->hungry_user_data);
-	next_zpacket = oggz_vector_pop (writer->packet_queue);
+	ret = writer->hungry (oggz, 1, writer->hungry_user_data);
+	*next_zpacket = oggz_vector_pop (writer->packet_queue);
       }
     }
   }
 
-  return next_zpacket;
+  return ret;
 }
 
 static long
@@ -570,7 +570,7 @@ oggz_writer_make_packet (OGGZ * oggz)
 {
   OggzWriter * writer = &oggz->x.writer;
   oggz_writer_packet_t * zpacket, * next_zpacket;
-  int cb_ret = 0, ret = 0;
+  int cb_ret = 0;
 
 #ifdef DEBUG
   printf ("oggz_writer_make_packet: IN\n");
@@ -591,12 +591,12 @@ oggz_writer_make_packet (OGGZ * oggz)
 
   if (cb_ret == 0) {
     /* dequeue and init the next packet */
-    if ((next_zpacket = oggz_dequeue_packet (oggz)) == NULL) {
+    cb_ret = oggz_dequeue_packet (oggz, &next_zpacket);
+    if (next_zpacket == NULL) {
 #ifdef DEBUG
       printf ("oggz_writer_make_packet: packet queue empty\n");
 #endif
       /*writer->eos = 1;*/
-      ret = 0;
     } else {
       if ((writer->current_stream != NULL) &&
 	  (next_zpacket->flush & OGGZ_FLUSH_BEFORE)) {
@@ -610,13 +610,10 @@ oggz_writer_make_packet (OGGZ * oggz)
       } else {
 	oggz_packet_init (oggz, next_zpacket);
       }
-      ret = 1;
     }
-  } else {
-    ret = 0;
   }
 
-  return ret;
+  return cb_ret;
 }
 
 long
@@ -624,7 +621,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 {
   OggzWriter * writer = &oggz->x.writer;
   long bytes, bytes_written = 1, remaining = n, nwritten = 0;
-  int active = 1;
+  int active = 1, cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -635,11 +632,16 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   if (writer->writing) return OGGZ_ERR_RECURSIVE_WRITE;
   writer->writing = 1;
 
+  if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
+    oggz->cb_next = 0;
+    return oggz_map_return_value_to_error (cb_ret);
+  }
+
   while (active && remaining > 0) {
     bytes = MIN (remaining, 1024);
 
     while (writer->state == OGGZ_MAKING_PACKETS) {
-      if (!oggz_writer_make_packet (oggz)) {
+      if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
 	active = 0;
 	break;
       }
@@ -653,7 +655,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 
       if (bytes_written == -1) {
 	active = 0;
-	return OGGZ_ERR_SYSTEM; /* XXX: catch next */
+        cb_ret = OGGZ_ERR_SYSTEM; /* XXX: catch next */
       } else if (bytes_written == 0) {
 	if (!oggz_page_init (oggz)) {
 	  writer->state = OGGZ_MAKING_PACKETS;
@@ -669,6 +671,12 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 
   writer->writing = 0;
 
+  if (nwritten == 0) {
+    return oggz_map_return_value_to_error (cb_ret);
+  } else {
+    oggz->cb_next = cb_ret;
+  }
+
   return nwritten;
 }
 
@@ -677,7 +685,7 @@ oggz_write (OGGZ * oggz, long n)
 {
   OggzWriter * writer = &oggz->x.writer;
   long bytes, bytes_written = 1, remaining = n, nwritten = 0;
-  int active = 1;
+  int active = 1, cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
@@ -692,6 +700,11 @@ oggz_write (OGGZ * oggz, long n)
   printf ("oggz_write: IN\n");
 #endif
 
+  if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
+    oggz->cb_next = 0;
+    return oggz_map_return_value_to_error (cb_ret);
+  }
+
   while (active && remaining > 0) {
     bytes = MIN (remaining, 1024);
 
@@ -701,7 +714,7 @@ oggz_write (OGGZ * oggz, long n)
 #endif
 
     while (writer->state == OGGZ_MAKING_PACKETS) {
-      if (!oggz_writer_make_packet (oggz)) {
+      if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
 	active = 0;
 #ifdef DEBUG
 	printf ("oggz_write: no packets\n");
@@ -738,6 +751,12 @@ oggz_write (OGGZ * oggz, long n)
 #endif
 
   writer->writing = 0;
+
+  if (nwritten == 0) {
+    return oggz_map_return_value_to_error (cb_ret);
+  } else {
+    oggz->cb_next = cb_ret;
+  }
 
   return nwritten;
 }

@@ -47,7 +47,18 @@
  * code should distinguish between these two too :-) Hence, don't use this
  * (unreleased) name in new code.
  */
-#define OGGZ_ERR_USER_STOPPED OGGZ_ERR_READ_STOP_OK
+#define OGGZ_ERR_USER_STOPPED OGGZ_ERR_STOP_OK
+
+/**
+ * DEPRECATED CONSTANTS.
+ * OGGZ_ERR_READ_STOP_OK, OGGZ_ERR_READ_STOP_ERR were introduced to allow
+ * the user to differentiate between a cancelled oggz_read_*() returning
+ * due to error or an ok condition.
+ * From 0.9.4 similar functionality was added for oggz_write_*(), hence these
+ * constants were renamed appropriately.
+ */
+#define OGGZ_ERR_READ_STOP_OK  OGGZ_ERR_STOP_OK
+#define OGGZ_ERR_READ_STOP_ERR OGGZ_ERR_STOP_ERR
 
 /**
  * DEPRECATED FUNCTION

@@ -514,3 +514,19 @@ oggz_set_order (OGGZ * oggz, long serialno,
   return 0;
 }
 
+/* Map callback return values to error return values */
+int
+oggz_map_return_value_to_error (int cb_ret)
+{
+  switch (cb_ret) {
+  case OGGZ_CONTINUE:
+    return OGGZ_ERR_OK;
+  case OGGZ_STOP_OK:
+    return OGGZ_ERR_STOP_OK;
+  case OGGZ_STOP_ERR:
+    return OGGZ_ERR_STOP_ERR;
+  default:
+    return OGGZ_ERR_STOP_ERR;
+  }
+}
+

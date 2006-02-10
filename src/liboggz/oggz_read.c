@@ -369,23 +369,6 @@ oggz_read_sync (OGGZ * oggz)
   return cb_ret;
 }
 
-/* Map callback return values to error return values for oggz_read_*() */
-static int
-map_return_value_to_error (int cb_ret)
-{
-  switch (cb_ret) {
-  case OGGZ_CONTINUE:
-  case OGGZ_READ_EMPTY:
-    return OGGZ_CONTINUE;
-  case OGGZ_STOP_OK:
-    return OGGZ_ERR_READ_STOP_OK;
-  case OGGZ_STOP_ERR:
-    return OGGZ_ERR_READ_STOP_ERR;
-  default:
-    return OGGZ_ERR_READ_STOP_ERR;
-  }
-}
-
 long
 oggz_read (OGGZ * oggz, long n)
 {
@@ -402,7 +385,7 @@ oggz_read (OGGZ * oggz, long n)
 
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
-    return map_return_value_to_error (cb_ret);
+    return oggz_map_return_value_to_error (cb_ret);
   }
 
   reader = &oggz->x.reader;
@@ -455,7 +438,11 @@ oggz_read (OGGZ * oggz, long n)
     default: break;
     }
 
-    return map_return_value_to_error (cb_ret);
+    if (cb_ret == OGGZ_READ_EMPTY) {
+      return 0;
+    } else {
+      return oggz_map_return_value_to_error (cb_ret);
+    }
 
   } else {
     if (cb_ret == OGGZ_READ_EMPTY) cb_ret = OGGZ_CONTINUE;
@@ -482,7 +469,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
-    return map_return_value_to_error (cb_ret);
+    return oggz_map_return_value_to_error (cb_ret);
   }
 
   reader = &oggz->x.reader;
@@ -516,9 +503,9 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   if (nread == 0) {
     /* Don't return 0 unless it's actually an EOF condition */
     if (cb_ret == OGGZ_READ_EMPTY) {
-      return OGGZ_ERR_READ_STOP_OK;
+      return OGGZ_ERR_STOP_OK;
     } else {
-      return map_return_value_to_error (cb_ret);
+      return oggz_map_return_value_to_error (cb_ret);
     }
   } else {
     if (cb_ret == OGGZ_READ_EMPTY) cb_ret = OGGZ_CONTINUE;
