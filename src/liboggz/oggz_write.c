@@ -201,7 +201,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   ogg_packet * new_op;
   unsigned char * new_buf;
   int b_o_s, e_o_s, bos_auto;
-  int strict;
+  int strict, prefix, suffix;
 
 #ifdef DEBUG
   printf ("oggz_write_feed: IN\n");
@@ -221,8 +221,10 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   printf ("oggz_write_feed: (%010ld) FLUSH: %d\n", serialno, flush);
 #endif
 
-  /* Cache strict */
+  /* Cache strict, prefix, suffix */
   strict = !(oggz->flags & OGGZ_NONSTRICT);
+  prefix = (oggz->flags & OGGZ_PREFIX);
+  suffix = (oggz->flags & OGGZ_SUFFIX);
 
   /* Set bos, eos to canonical values */
   bos_auto = (op->b_o_s == -1) ? 1 : 0;
@@ -237,7 +239,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 	return OGGZ_ERR_BOS;
     }
 
-    if (b_o_s || !strict) {
+    if (b_o_s || !strict || suffix) {
       stream = oggz_add_stream (oggz, serialno);
     } else {
       return OGGZ_ERR_BAD_SERIALNO;
@@ -245,23 +247,24 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   } else {
     if (bos_auto) b_o_s = 0;
 
-    if (strict && stream->e_o_s)
+    if (!suffix && strict && stream->e_o_s)
       return OGGZ_ERR_EOS;
   }
 
   /* Check packet against mapping restrictions */
   if (strict) {
     if (op->bytes < 0) return OGGZ_ERR_BAD_BYTES;
-    if (b_o_s != stream->b_o_s) return OGGZ_ERR_BAD_B_O_S;
+    if (!suffix && b_o_s != stream->b_o_s) return OGGZ_ERR_BAD_B_O_S;
 
     if (op->granulepos != -1 && op->granulepos < stream->granulepos)
       return OGGZ_ERR_BAD_GRANULEPOS;
 
     /* Allow packetno == -1 to indicate oggz should fill it in; otherwise:
      * if op is the first packet in the stream, initialize the stream's
-     * packetno to the given one, otherwise check it for strictness */
+     * packetno to the given one, otherwise check it for strictness.
+     * For stream suffixes, believe the packetno value */
     if (op->packetno != -1) {
-      if (b_o_s) {
+      if (b_o_s || suffix) {
 	stream->packetno = op->packetno;
       } else if (op->packetno <= stream->packetno) {
 	return OGGZ_ERR_BAD_PACKETNO;

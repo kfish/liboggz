@@ -103,6 +103,29 @@ manpage.1: manpage.sgml
     <para>
       <command>&dhpackage;</command> accepts the following options:
     </para>
+
+    <refsect2>
+      <title>Error suppression options</title>
+      <variablelist>
+	
+	<varlistentry>
+	  <term>-p, --prefix</term>
+	  <listitem><para>Treat input as the prefix of a stream; suppress warnings about missing end-of-stream markers</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-s, --suffix</term>
+	  <listitem><para>Treat input as the suffix of a stream; suppress warnings about missing beginning-of-stream markers on the first chain</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-P, --partial</term>
+	  <listitem><para>Treat input as a the middle portion of a stream. Equivalent to both --prefix and --suffix</para></listitem>
+	</varlistentry>
+
+	
+      </variablelist>
+    </refsect2>
             
     <refsect2>
       <title>Miscellaneous options</title>

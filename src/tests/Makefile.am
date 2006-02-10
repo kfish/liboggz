@@ -16,7 +16,7 @@ test: check
 if OGGZ_CONFIG_WRITE
 write_tests = write-bad-guard write-unmarked-guard write-recursive \
 	write-bad-bytes write-bad-bos write-dup-bos write-bad-eos \
-	write-bad-granulepos write-bad-packetno
+	write-bad-granulepos write-bad-packetno write-prefix write-suffix
 endif
 
 if OGGZ_CONFIG_READ
@@ -66,6 +66,11 @@ write_bad_granulepos_LDADD = $(OGGZ_LIBS)
 
 write_bad_packetno_SOURCES = write-bad-packetno.c
 write_bad_packetno_LDADD = $(OGGZ_LIBS)
+
+write_prefix_SOURCES = write-suffix.c
+write_prefix_LDADD = $(OGGZ_LIBS)
+write_suffix_SOURCES = write-suffix.c
+write_suffix_LDADD = $(OGGZ_LIBS)
 
 read_generated_SOURCES = read-generated.c
 read_generated_LDADD = $(OGGZ_LIBS)

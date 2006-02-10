@@ -60,7 +60,18 @@ enum OggzFlags {
    * \a flags = OGGZ_READ | OGGZ_AUTO will allow seeking on Speex,
    * Vorbis, FLAC, Theora, CMML and all Annodex streams in units of
    * milliseconds, once all bos pages have been delivered. */
-  OGGZ_AUTO         = 0x20
+  OGGZ_AUTO         = 0x20,
+
+  /**
+   * Prefix
+   */
+  OGGZ_PREFIX       = 0x40,
+
+  /**
+   * Suffix
+   */
+  OGGZ_SUFFIX       = 0x80
+
 };
 
 enum OggzStopCtl {

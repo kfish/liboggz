@@ -71,6 +71,7 @@ static char * current_filename = NULL;
 static timestamp_t current_timestamp = 0;
 static int exit_status = 0;
 static int nr_errors = 0;
+static int prefix = 0, suffix = 0;
 
 static void
 list_errors (void)
@@ -96,6 +97,15 @@ usage (char * progname)
   printf ("\n%s detects the following errors in Ogg framing:\n", progname);
 
   list_errors ();
+
+  printf ("\nError suppression options\n");
+  printf ("  -p, --prefix           Treat input as the prefix of a stream; suppress\n");
+  printf ("                         warnings about missing end-of-stream markers\n");
+  printf ("  -s, --suffix           Treat input as the suffix of a stream; suppress\n");
+  printf ("                         warnings about missing beginning-of-stream markers\n");
+  printf ("                         on the first chain\n");
+  printf ("  -P, --partial          Treat input as a the middle portion of a stream;\n");
+  printf ("                         equivalent to both --prefix and --suffix\n");
 
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
@@ -182,9 +192,15 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 static void
 ovdata_init (OVData * ovdata)
 {
+  int flags;
+
   current_timestamp = 0;
 
-  if ((ovdata->writer = oggz_new (OGGZ_WRITE|OGGZ_AUTO)) == NULL) {
+  flags = OGGZ_WRITE|OGGZ_AUTO;
+  if (prefix) flags |= OGGZ_PREFIX;
+  if (suffix) flags |= OGGZ_SUFFIX;
+
+  if ((ovdata->writer = oggz_new (flags)) == NULL) {
     fprintf (stderr, "oggz-validate: unable to create new writer\n");
     exit (1);
   }
@@ -202,7 +218,7 @@ ovdata_clear (OVData * ovdata)
 
   oggz_close (ovdata->writer);
 
-  if (nr_errors <= MAX_ERRORS) {
+  if (!prefix && nr_errors <= MAX_ERRORS) {
     nr_missing_eos = oggz_table_size (ovdata->missing_eos);
     for (i = 0; i < nr_missing_eos; i++) {
       log_error ();
@@ -226,12 +242,12 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1);
   }
 
-  if (oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
+  if (!suffix && oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
     ret = log_error ();
     fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
   }
 
-  if (op->e_o_s) {
+  if (!suffix && op->e_o_s) {
     if (oggz_table_remove (ovdata->missing_eos, serialno) == -1) {
       ret = log_error ();
       fprintf (stderr, "serialno %010ld: *** eos marked but no bos\n",
@@ -283,6 +299,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (op->e_o_s && oggz_table_size (ovdata->missing_eos) == 0) {
     ovdata_clear (ovdata);
     ovdata_init (ovdata);
+    suffix = 0;
   }
 
   return ret;
@@ -346,6 +363,11 @@ main (int argc, char ** argv)
   int show_version = 0;
   int show_help = 0;
 
+  /* Cache the --prefix, --suffix options and reset before validating
+   * each input file */
+  int opt_prefix = 0;
+  int opt_suffix = 0;
+
   char * progname;
   char * filename;
   int i = 1;
@@ -360,10 +382,13 @@ main (int argc, char ** argv)
   }
 
   while (1) {
-    char * optstring = "hvE";
+    char * optstring = "psPhvE";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
+      {"prefix", no_argument, 0, 'p'},
+      {"suffix", no_argument, 0, 's'},
+      {"partial", no_argument, 0, 'P'},
       {"help", no_argument, 0, 'h'},
       {"help-errors", no_argument, 0, 'E'},
       {"version", no_argument, 0, 'v'},
@@ -375,7 +400,6 @@ main (int argc, char ** argv)
     i = getopt (argc, argv, optstring);
 #endif
     if (i == -1) {
-      i = 1;
       break;
     }
     if (i == ':') {
@@ -384,6 +408,16 @@ main (int argc, char ** argv)
     }
 
     switch (i) {
+    case 'p': /* prefix */
+      opt_prefix = 1;
+      break;
+    case 's': /* suffix */
+      opt_suffix = 1;
+      break;
+    case 'P': /* partial */
+      opt_prefix = 1;
+      opt_suffix = 1;
+      break;
     case 'h': /* help */
       show_help = 1;
       break;
@@ -419,8 +453,10 @@ main (int argc, char ** argv)
 
   if (argc-i > 2) multifile = 1;
 
-  for (; i < argc; i++) {
+  for (i = optind; i < argc; i++) {
     filename = argv[i];
+    prefix = opt_prefix;
+    suffix = opt_suffix;
     if (validate (filename) == -1)
       exit_status = 1;
   }
