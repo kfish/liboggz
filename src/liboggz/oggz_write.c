@@ -59,6 +59,8 @@
 /* Define to 0 or 1 */
 #define ALWAYS_FLUSH 0
 
+#define OGGZ_WRITE_EMPTY (-707)
+
 /* #define ZPACKET_CMP */
 
 #ifdef ZPACKET_CMP
@@ -616,6 +618,8 @@ oggz_writer_make_packet (OGGZ * oggz)
     }
   }
 
+  if (cb_ret == 0 && next_zpacket == NULL) return OGGZ_WRITE_EMPTY;
+
   return cb_ret;
 }
 
@@ -675,6 +679,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   writer->writing = 0;
 
   if (nwritten == 0) {
+    if (cb_ret == OGGZ_WRITE_EMPTY) cb_ret = 0;
     return oggz_map_return_value_to_error (cb_ret);
   } else {
     oggz->cb_next = cb_ret;
@@ -756,6 +761,7 @@ oggz_write (OGGZ * oggz, long n)
   writer->writing = 0;
 
   if (nwritten == 0) {
+    if (cb_ret == OGGZ_WRITE_EMPTY) cb_ret = 0;
     return oggz_map_return_value_to_error (cb_ret);
   } else {
     oggz->cb_next = cb_ret;
