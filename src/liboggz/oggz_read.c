@@ -285,7 +285,9 @@ oggz_read_sync (OGGZ * oggz)
       result = ogg_stream_packetout(os, op);
 
       if(result == -1) {
-	/* hole in the data. */
+#ifdef DEBUG
+	printf ("oggz_read_sync: hole in the data\n");
+#endif
 	return -7;
       }
 
@@ -367,6 +369,23 @@ oggz_read_sync (OGGZ * oggz)
   return cb_ret;
 }
 
+/* Map callback return values to error return values for oggz_read_*() */
+static int
+map_return_value_to_error (int cb_ret)
+{
+  switch (cb_ret) {
+  case OGGZ_CONTINUE:
+  case OGGZ_READ_EMPTY:
+    return OGGZ_CONTINUE;
+  case OGGZ_STOP_OK:
+    return OGGZ_ERR_READ_STOP_OK;
+  case OGGZ_STOP_ERR:
+    return OGGZ_ERR_READ_STOP_ERR;
+  default:
+    return OGGZ_ERR_READ_STOP_ERR;
+  }
+}
+
 long
 oggz_read (OGGZ * oggz, long n)
 {
@@ -379,6 +398,11 @@ oggz_read (OGGZ * oggz, long n)
 
   if (oggz->flags & OGGZ_WRITE) {
     return OGGZ_ERR_INVALID;
+  }
+
+  if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
+    oggz->cb_next = 0;
+    return map_return_value_to_error (cb_ret);
   }
 
   reader = &oggz->x.reader;
@@ -431,15 +455,11 @@ oggz_read (OGGZ * oggz, long n)
     default: break;
     }
 
-    switch (cb_ret) {
-    case OGGZ_CONTINUE: case OGGZ_READ_EMPTY: 
-#ifdef DEBUG
-      printf ("oggz_read: nread==0, cb_ret==%d, returning 0\n", cb_ret);
-#endif
-      return 0; break;
-    case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
-    case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
-    }
+    return map_return_value_to_error (cb_ret);
+
+  } else {
+    if (cb_ret == OGGZ_READ_EMPTY) cb_ret = OGGZ_CONTINUE;
+    oggz->cb_next = cb_ret;
   }
 
   return nread;
@@ -460,6 +480,11 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
     return OGGZ_ERR_INVALID;
   }
 
+  if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
+    oggz->cb_next = 0;
+    return map_return_value_to_error (cb_ret);
+  }
+
   reader = &oggz->x.reader;
 
   cb_ret = oggz_read_sync (oggz);
@@ -472,7 +497,8 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   }
 #endif
 
-  while (cb_ret != -1 && cb_ret != 1 && /* !oggz->eos && */ remaining > 0) {
+  while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK  &&
+	 /* !oggz->eos && */ remaining > 0) {
     bytes = MIN (remaining, 4096);
     buffer = ogg_sync_buffer (&reader->ogg_sync, bytes);
     memcpy (buffer, buf, bytes);
@@ -487,19 +513,16 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   if (cb_ret == OGGZ_STOP_ERR) oggz_purge (oggz);
 
-  /* Don't return 0 unless it's actually an EOF condition */
   if (nread == 0) {
-    switch (cb_ret) {
-    case OGGZ_CONTINUE: return 0; break;
-    case OGGZ_READ_EMPTY:
-#ifdef DEBUG
-      printf ("oggz_read_input: OUT EMPTY\n");
-#endif
+    /* Don't return 0 unless it's actually an EOF condition */
+    if (cb_ret == OGGZ_READ_EMPTY) {
       return OGGZ_ERR_READ_STOP_OK;
-      break;
-    case OGGZ_STOP_ERR: return OGGZ_ERR_READ_STOP_ERR; break;
-    case OGGZ_STOP_OK: default: return OGGZ_ERR_READ_STOP_OK; break;
+    } else {
+      return map_return_value_to_error (cb_ret);
     }
+  } else {
+    if (cb_ret == OGGZ_READ_EMPTY) cb_ret = OGGZ_CONTINUE;
+    oggz->cb_next = cb_ret;
   }
 
   return nread;

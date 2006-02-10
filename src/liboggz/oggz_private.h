@@ -198,6 +198,8 @@ struct _OGGZ {
   off_t offset; /* offset of current page start */
   off_t offset_data_begin; /* offset of unit 0 page start */
 
+  int cb_next;
+
   OggzVector * streams;
   int all_at_eos; /* all streams are at eos */
 

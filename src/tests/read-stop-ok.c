@@ -131,7 +131,7 @@ main (int argc, char * argv[])
 {
   OGGZ * reader, * writer;
   unsigned char buf[READ_SIZE];
-  long n, remaining;
+  long n, remaining, err;
 
   INFO ("Testing ability to pause while reading (OGGZ_STOP_OK)");
 
@@ -153,10 +153,18 @@ main (int argc, char * argv[])
   while ((remaining = oggz_write_output (writer, buf, READ_SIZE)) > 0) {
     n = oggz_read_input (reader, buf, remaining);
 
-    if (n < remaining)
+    if (n == OGGZ_ERR_READ_STOP_OK) {
       INFO ("+ Interrupted read detected");
+    } else {
+      remaining -= n;
 
-    remaining -= n;
+      err = oggz_read_input (reader, buf+n, remaining);
+      if (err == OGGZ_ERR_READ_STOP_OK) {
+	INFO ("+ Interrupted read detected");
+      } else {
+	FAIL ("Interrupted read not reported");
+      }
+    }
 
     n = oggz_read_input (reader, buf+n, remaining);
     remaining -= n;

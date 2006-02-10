@@ -84,6 +84,8 @@ oggz_new (int flags)
   oggz->offset = 0;
   oggz->offset_data_begin = 0;
 
+  oggz->cb_next = 0;
+
   oggz->streams = oggz_vector_new ();
   oggz->all_at_eos = 0;
 
