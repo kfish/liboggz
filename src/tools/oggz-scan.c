@@ -110,7 +110,7 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     }
   }
 
-  return 0;
+  return OGGZ_CONTINUE;
 }
 
 /* FIXME: on Mac OS X, off_t is 64-bits.  Obviously we want a nicer
@@ -138,7 +138,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   /* don't do anything on bos page */
   if (op->b_o_s) {
-    return 0;
+    return OGGZ_CONTINUE;
   }
 
   /* calculate the keyframes if requested */
@@ -159,7 +159,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
       /* if the keyframe is on the granuleshift position, ignore it */
       if (osdata->pktssincekey >= osdata->granuleshift) {
         osdata->pktssincekey=0;
-        return 0;
+        return OGGZ_CONTINUE;
       }
       osdata->pktssincekey=0;
 
@@ -190,7 +190,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   fprintf (outfile, "%ld bytes pktno=%" PRId64 "\n", op->bytes, op->packetno);
 #endif
 
-  return 0;
+  return OGGZ_CONTINUE;
 }
 
 int
@@ -338,8 +338,9 @@ main (int argc, char ** argv)
   if (output_cmml) {
     fprintf(outfile, CMML_HEAD, infilename, infilename);
   }
- 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+
+  oggz_run_set_blocksize (oggz, 1024*1024);
+  oggz_run (oggz);
 
   /* finish output */
   if (output_html) {
