@@ -185,6 +185,11 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   fprintf (stderr, "--------\n");
 #endif
 
+  /* If this is the first data page of any track, use its timestamp
+   * as the delta by which to shift all tracks. Hence this page will
+   * get shifted to timestamp 0, and all other pages in the stream will
+   * be shifted relatively.
+   */
   if (ord->base_units == -1 && ort->nr_packets >= 3) {
     ord->base_units = oggz_tell_units (oggz);
 #ifdef DEBUG
@@ -192,6 +197,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 #endif
   }
 
+  /* If this is the first data page of a track, calculate the delta
+   * by which to shift all pages of this track */
   if (ord->base_units != -1 && ort->nr_packets >= 3 && ort->delta == -1) {
     oggz_get_granulerate (oggz, serialno, &gr_n, &gr_d);
     ort->delta = (ord->base_units * gr_n) / (gr_d);
@@ -220,14 +227,28 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 int
+usage (char * progname)
+{
+  printf ("usage: %s filename\n", progname);
+  printf ("Shift timestamps on all pages such that the stream starts at 0.\n");
+}
+
+int
 main (int argc, char ** argv)
 {
+  char * progname = argv[0];
   OGGZ * oggz;
   OBData * ord;
   long n;
 
   if (argc < 2) {
-    printf ("usage: %s filename\n", argv[0]);
+    usage (progname);
+    return (1);
+  }
+
+  if (!strcmp (argv[1], "-h") || !strcmp (argv[1], "--help")) {
+    usage (progname);
+    return (0);
   }
 
   ord = or_data_new ();
@@ -239,7 +260,7 @@ main (int argc, char ** argv)
 
   oggz_set_read_page (oggz, -1, read_page, ord);
 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  oggz_run (oggz);
 
   oggz_close (oggz);
 
