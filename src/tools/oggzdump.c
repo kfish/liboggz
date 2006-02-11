@@ -657,6 +657,7 @@ main (int argc, char ** argv)
       }
     }
 
+    oggz_run_set_blocksize (oggz, 1024*1024);
     oggz_run (oggz);
 
     oggz_close (oggz);

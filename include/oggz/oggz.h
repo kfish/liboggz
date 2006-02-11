@@ -477,6 +477,17 @@ OGGZ * oggz_open_stdio (FILE * file, int flags);
 int oggz_flush (OGGZ * oggz);
 
 /**
+ * Set the blocksize to use internally for oggz_run()
+ * \param oggz An OGGZ handle previously opened for either reading or writing
+ * \param blocksize The blocksize to use within oggz_run()
+ * \retval 0 Success
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Invalid blocksize (\a run_blocksize <= 0)
+ */
+int oggz_run_set_blocksize (OGGZ * oggz, long blocksize);
+
+
+/**
  * Run an OGGZ until completion, or error
  * \param oggz An OGGZ handle previously opened for either reading or writing
  * \retval 0 Success

@@ -88,6 +88,7 @@ oggz_new (int flags)
   oggz->offset = 0;
   oggz->offset_data_begin = 0;
 
+  oggz->run_blocksize = 1024;
   oggz->cb_next = 0;
 
   oggz->streams = oggz_vector_new ();
@@ -246,12 +247,24 @@ oggz_run (OGGZ * oggz)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
-    while ((n = oggz_write (oggz, 1024)) > 0);
+    while ((n = oggz_write (oggz, oggz->run_blocksize)) > 0);
   } else if (OGGZ_CONFIG_READ) {
-    while ((n = oggz_read (oggz, 1024)) > 0);
+    while ((n = oggz_read (oggz, oggz->run_blocksize)) > 0);
   }
 
   return n;
+}
+
+int
+oggz_run_set_blocksize (OGGZ * oggz, long blocksize)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (blocksize <= 0) return OGGZ_ERR_INVALID;
+
+  oggz->run_blocksize = blocksize;
+
+  return 0;
 }
 
 /******** oggz_stream management ********/
