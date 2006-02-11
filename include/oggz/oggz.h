@@ -477,6 +477,29 @@ OGGZ * oggz_open_stdio (FILE * file, int flags);
 int oggz_flush (OGGZ * oggz);
 
 /**
+ * Run an OGGZ until completion, or error.
+ * This is a convenience function which repeatedly calls oggz_read() or
+ * oggz_write() as appropriate.
+ * For an OGGZ opened for reading, an OggzReadPacket or OggzReadPage callback
+ * should have been set before calling this function.
+ * For an OGGZ opened for writing, either an OggzHungry callback should have
+ * been set before calling this function, or you can use this function to
+ * write out all unwritten Ogg pages which are pending.
+ * \param oggz An OGGZ handle previously opened for either reading or writing
+ * \retval 0 Success
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \retval OGGZ_ERR_SYSTEM System error; check errno for details
+ * \retval OGGZ_ERR_STOP_OK Operation was stopped by a user callback
+ * returning OGGZ_STOP_OK
+ * \retval OGGZ_ERR_STOP_ERR Operation was stopped by a user callback
+ * returning OGGZ_STOP_ERR
+ * \retval OGGZ_ERR_RECURSIVE_WRITE Attempt to initiate writing from
+ * within an OggzHungry callback
+ */
+long oggz_run (OGGZ * oggz);
+
+/**
  * Set the blocksize to use internally for oggz_run()
  * \param oggz An OGGZ handle previously opened for either reading or writing
  * \param blocksize The blocksize to use within oggz_run()
@@ -485,19 +508,6 @@ int oggz_flush (OGGZ * oggz);
  * \retval OGGZ_ERR_INVALID Invalid blocksize (\a run_blocksize <= 0)
  */
 int oggz_run_set_blocksize (OGGZ * oggz, long blocksize);
-
-
-/**
- * Run an OGGZ until completion, or error
- * \param oggz An OGGZ handle previously opened for either reading or writing
- * \retval 0 Success
- * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
- * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
- * \retval OGGZ_ERR_SYSTEM System error; check errno for details
- * \retval OGGZ_ERR_RECURSIVE_WRITE Attempt to initiate writing from
- * within an OggzHungry callback
- */
-long oggz_run (OGGZ * oggz);
 
 /**
  * Close an OGGZ handle

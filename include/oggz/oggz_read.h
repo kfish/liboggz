@@ -144,10 +144,10 @@ int oggz_set_read_page (OGGZ * oggz, long serialno,
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
  * \retval OGGZ_ERR_SYSTEM System error; check errno for details
- * \retval OGGZ_ERR_USER_STOPPED Reading was stopped by a user callback
- * returning OGGZ_STOP_OK or OGGZ_STOP_ERR before any input bytes were
- * consumed. This will occur when a packet is read from a previously
- * buffered page of input data, and stopping is immediately requested.
+ * \retval OGGZ_ERR_STOP_OK Reading was stopped by a user callback
+ * returning OGGZ_STOP_OK
+ * \retval OGGZ_ERR_STOP_ERR Reading was stopped by a user callback
+ * returning OGGZ_STOP_ERR
  */
 long oggz_read (OGGZ * oggz, long n);
 
@@ -159,10 +159,10 @@ long oggz_read (OGGZ * oggz, long n);
  * \retval ">  0" The number of bytes successfully ingested.
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
- * \retval OGGZ_ERR_USER_STOPPED Reading was stopped by a user callback
- * returning OGGZ_STOP_OK or OGGZ_STOP_ERR before any input bytes were
- * consumed. This will occur when a packet is read from a previously
- * buffered page of input data, and stopping is immediately requested.
+ * \retval OGGZ_ERR_STOP_OK Reading was stopped by a user callback
+ * returning OGGZ_STOP_OK
+ * \retval OGGZ_ERR_STOP_ERR Reading was stopped by a user callback
+ * returning OGGZ_STOP_ERR
  */
 long oggz_read_input (OGGZ * oggz, unsigned char * buf, long n);
 

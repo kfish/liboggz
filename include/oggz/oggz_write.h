@@ -196,6 +196,10 @@ int oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
  * within an OggzHungry callback
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \retval OGGZ_ERR_STOP_OK Writing was stopped by an OggzHungry callback
+ * returning OGGZ_STOP_OK
+ * \retval OGGZ_ERR_STOP_ERR Reading was stopped by an OggzHungry callback
+ * returning OGGZ_STOP_ERR
  */
 long oggz_write_output (OGGZ * oggz, unsigned char * buf, long n);
 
@@ -211,6 +215,10 @@ long oggz_write_output (OGGZ * oggz, unsigned char * buf, long n);
  * within an OggzHungry callback
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \retval OGGZ_ERR_STOP_OK Writing was stopped by an OggzHungry callback
+ * returning OGGZ_STOP_OK
+ * \retval OGGZ_ERR_STOP_ERR Reading was stopped by an OggzHungry callback
+ * returning OGGZ_STOP_ERR
  */
 long oggz_write (OGGZ * oggz, long n);
 
