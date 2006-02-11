@@ -657,7 +657,7 @@ main (int argc, char ** argv)
       }
     }
 
-    while ((n = oggz_read (oggz, 1024)) > 0);
+    oggz_run (oggz);
 
     oggz_close (oggz);
   }

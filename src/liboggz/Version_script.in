@@ -16,6 +16,8 @@
 		oggz_get_bos;
 		oggz_get_eos;
 
+		oggz_run;
+
 		oggz_set_read_callback;
 		oggz_set_read_page;
 		oggz_read;

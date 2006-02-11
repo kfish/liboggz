@@ -53,6 +53,10 @@
 #include "oggz_private.h"
 #include "oggz_vector.h"
 
+/* Definitions for oggz_run() */
+long oggz_read (OGGZ * oggz, long n);
+long oggz_write (OGGZ * oggz, long n);
+
 /*#define DEBUG*/
 
 static int
@@ -232,6 +236,22 @@ oggz_tell_units (OGGZ * oggz)
   } else {
     return OGGZ_ERR_DISABLED;
   }
+}
+
+long
+oggz_run (OGGZ * oggz)
+{
+  long n = OGGZ_ERR_DISABLED;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
+    while ((n = oggz_write (oggz, 1024)) > 0);
+  } else if (OGGZ_CONFIG_READ) {
+    while ((n = oggz_read (oggz, 1024)) > 0);
+  }
+
+  return n;
 }
 
 /******** oggz_stream management ********/

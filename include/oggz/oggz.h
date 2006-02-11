@@ -477,6 +477,18 @@ OGGZ * oggz_open_stdio (FILE * file, int flags);
 int oggz_flush (OGGZ * oggz);
 
 /**
+ * Run an OGGZ until completion, or error
+ * \param oggz An OGGZ handle previously opened for either reading or writing
+ * \retval 0 Success
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \retval OGGZ_ERR_SYSTEM System error; check errno for details
+ * \retval OGGZ_ERR_RECURSIVE_WRITE Attempt to initiate writing from
+ * within an OggzHungry callback
+ */
+long oggz_run (OGGZ * oggz);
+
+/**
  * Close an OGGZ handle
  * \param oggz An OGGZ handle
  * \retval 0 Success
