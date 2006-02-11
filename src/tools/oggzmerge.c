@@ -185,6 +185,12 @@ oggz_merge (OMData * omdata, FILE * outfile)
   const ogg_page * og;
   int active;
 
+  /* For theora+vorbis, ensure theora bos is first */
+  int careful_for_theora = 0;
+
+  if (oggz_table_size (omdata->inputs) == 2)
+    careful_for_theora = 1;
+
   while ((ninputs = oggz_table_size (omdata->inputs)) > 0) {
     min_units = -1;
     min_i = -1;
@@ -208,7 +214,22 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	if (input && input->og) {
 	  if (ogg_page_bos ((ogg_page *)input->og)) {
 	    min_i = i;
-	    active = 0;
+
+	    if (careful_for_theora) {
+	      const char * codec_name;
+	      int is_vorbis;
+
+	      codec_name = ot_page_identify (input->og, NULL);
+	      is_vorbis = !strcmp (codec_name, "Vorbis");
+
+	      if (i == 0 && is_vorbis)
+		careful_for_theora = 0;
+	      else
+		active = 0;
+
+	    } else {
+	      active = 0;
+	    }
 	  }
 	  units = oggz_tell_units (input->reader);
 
