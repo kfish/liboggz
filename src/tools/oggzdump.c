@@ -321,18 +321,14 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 static int
-ignore_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
-{
-  return -1;
-}
-
-static int
 read_new_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  oggz_set_read_callback (oggz, serialno, ignore_packet, NULL);
-  read_packet (oggz, op, serialno, user_data);
-
-  return -1;
+  if (op->b_o_s) {
+    read_packet (oggz, op, serialno, user_data);
+    return OGGZ_CONTINUE;
+  } else {
+    return OGGZ_STOP_OK;
+  }
 }
 
 static void
