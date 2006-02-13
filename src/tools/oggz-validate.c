@@ -66,6 +66,7 @@ static error_text errors[] = {
   {0, NULL}
 };
 
+static int max_errors = MAX_ERRORS;
 static int multifile = 0;
 static char * current_filename = NULL;
 static timestamp_t current_timestamp = 0;
@@ -98,7 +99,10 @@ usage (char * progname)
 
   list_errors ();
 
-  printf ("\nError suppression options\n");
+  printf ("\nError reporting options\n");
+  printf ("  -M num, --max-errors num\n");
+  printf ("                         Exit after the specified number of errors.\n");
+  printf ("                         A value of 0 specifies no maximum. Default: %d\n", MAX_ERRORS);
   printf ("  -p, --prefix           Treat input as the prefix of a stream; suppress\n");
   printf ("                         warnings about missing end-of-stream markers\n");
   printf ("  -s, --suffix           Treat input as the suffix of a stream; suppress\n");
@@ -126,7 +130,7 @@ log_error (void)
   exit_status = 1;
 
   nr_errors++;
-  if (nr_errors > MAX_ERRORS)
+  if (max_errors && nr_errors > max_errors)
     return OGGZ_STOP_ERR;
 
   return OGGZ_STOP_OK;
@@ -218,7 +222,7 @@ ovdata_clear (OVData * ovdata)
 
   oggz_close (ovdata->writer);
 
-  if (!prefix && nr_errors <= MAX_ERRORS) {
+  if (!prefix && (max_errors == 0 || nr_errors <= max_errors)) {
     nr_missing_eos = oggz_table_size (ovdata->missing_eos);
     for (i = 0; i < nr_missing_eos; i++) {
       log_error ();
@@ -336,7 +340,7 @@ validate (char * filename)
   oggz_set_read_page (reader, -1, read_page, &ovdata);
 
   while (active && (n = oggz_read (reader, 1024)) != 0) {
-    if (nr_errors > MAX_ERRORS) {
+    if (max_errors && nr_errors > max_errors) {
       fprintf (stderr,
 	       "oggz-validate: maximum error count reached, bailing out ...\n");
       active = 0;
@@ -382,10 +386,11 @@ main (int argc, char ** argv)
   }
 
   while (1) {
-    char * optstring = "psPhvE";
+    char * optstring = "M:psPhvE";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
+      {"max-errors", required_argument, 0, 'M'},
       {"prefix", no_argument, 0, 'p'},
       {"suffix", no_argument, 0, 's'},
       {"partial", no_argument, 0, 'P'},
@@ -408,6 +413,9 @@ main (int argc, char ** argv)
     }
 
     switch (i) {
+    case 'M': /* max-errors */
+      max_errors = atoi (optarg);
+      break;
     case 'p': /* prefix */
       opt_prefix = 1;
       break;
@@ -444,6 +452,11 @@ main (int argc, char ** argv)
 
   if (show_version || show_help) {
     goto exit_out;
+  }
+
+  if (max_errors < 0) {
+    printf ("%s: Error: [-M num, --max-errors num] option must be non-negative\n", progname);
+    goto exit_err;
   }
 
   if (optind >= argc) {

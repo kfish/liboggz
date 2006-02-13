@@ -61,6 +61,22 @@ manpage.1: manpage.sgml
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>&dhpackage; </command>
+
+      <group>
+	<arg choice="opt">-M <parameter>num</parameter></arg>
+	<arg choice="opt">--max-errors <parameter>num</parameter></arg>
+      </group>
+
+      <group>
+	<arg choice="opt">-p</arg><arg choice="opt">--prefix</arg>
+      </group>
+      <group>
+	<arg choice="opt">-s</arg><arg choice="opt">--suffix</arg>
+      </group>
+      <group>
+	<arg choice="opt">-P</arg><arg choice="opt">--partial</arg>
+      </group>
+
       <arg choice="plain" rep="repeat">filename</arg>
     </cmdsynopsis>
 
@@ -105,8 +121,13 @@ manpage.1: manpage.sgml
     </para>
 
     <refsect2>
-      <title>Error suppression options</title>
+      <title>Error reporting options</title>
       <variablelist>
+
+	<varlistentry>
+	  <term>-M <parameter>num</parameter>, --max-errors <parameter>num</parameter></term>
+	  <listitem><para>Exit after the specified number of errors. A value of 0 specifies no maximum.</para></listitem>
+	</varlistentry>
 	
 	<varlistentry>
 	  <term>-p, --prefix</term>
