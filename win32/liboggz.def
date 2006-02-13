@@ -69,3 +69,9 @@ oggz_set_granulerate			@50
 oggz_get_granulerate			@51
 oggz_set_granuleshift			@52
 oggz_get_granuleshift			@53
+
+;
+;oggz_run functions
+;
+oggz_run				@60
+oggz_run_set_blocksize			@61
