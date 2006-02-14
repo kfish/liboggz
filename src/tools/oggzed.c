@@ -119,7 +119,7 @@ gp_metric (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
       }
 
       units = (1000 * granulepos * rates[i].rate_multiplier);
-      printf ("%ld\t(%ld * %f)\n", units,
+      printf ("%lld\t(%ld * %f)\n", units,
 	      (long)granulepos, rates[i].rate_multiplier);
       return units;
     }
@@ -236,7 +236,7 @@ main (int argc, char ** argv)
   oggz_set_read_callback (oggz, -1, read_packet, NULL);
   while ((n = oggz_read (oggz, 1024)) > 0);
 
-  printf ("Last unit: %ld\n",
+  printf ("Last unit: %lld\n",
 	  gp_metric (oggz, current_serialno, current_granule, NULL));
 
   oggz_seek (oggz, 10000, SEEK_SET);

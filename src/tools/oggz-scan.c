@@ -206,7 +206,6 @@ main (int argc, char ** argv)
   OGGZ * oggz;
   char * infilename = NULL, * outfilename = NULL;
   int i;
-  long n;
 
   progname = argv[0];
 

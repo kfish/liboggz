@@ -34,6 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <oggz/oggz.h>
 
 #include "oggz_tools.h"
@@ -231,6 +232,8 @@ usage (char * progname)
 {
   printf ("usage: %s filename\n", progname);
   printf ("Shift timestamps on all pages such that the stream starts at 0.\n");
+
+  return 0;
 }
 
 int
@@ -239,7 +242,6 @@ main (int argc, char ** argv)
   char * progname = argv[0];
   OGGZ * oggz;
   OBData * ord;
-  long n;
 
   if (argc < 2) {
     usage (progname);
