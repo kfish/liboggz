@@ -253,6 +253,31 @@ auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
+/**
+ * Recognizer for OggPCM2:
+ * http://wiki.xiph.org/index.php/OggPCM2
+ */
+static int
+auto_oggpcm2 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+  ogg_int64_t granule_rate;
+
+  if (op->bytes < 27) return 0;
+
+  if (strncmp ((char *)header, "PCM     ", 8)) return 0;
+  if (!op->b_o_s) return 0;
+
+  granule_rate = (ogg_int64_t) INT32_BE_AT(&header[16]);
+#ifdef DEBUG
+  printf ("Got OggPCM2 rate %d\n", (int)granule_rate);
+#endif
+
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  return 1;
+}
+
 static int
 auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
@@ -355,6 +380,7 @@ static const OggzReadPacket auto_readers[] = {
   auto_cmml,
   auto_fishead,
   auto_fisbone,
+  auto_oggpcm2,
   NULL
 };
 
