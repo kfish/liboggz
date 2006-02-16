@@ -175,6 +175,22 @@ ot_speex_info (unsigned char * data, long len)
 }
 
 static char *
+ot_oggpcm2_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  if (len < 28) return NULL;
+
+  buf = malloc (60);
+
+  snprintf (buf, 60,
+	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
+	    INT32_BE_AT(&data[16]), (int)data[21]);
+
+  return buf;
+}
+
+static char *
 ot_skeleton_info (unsigned char * data, long len)
 {
   char * buf;
@@ -195,6 +211,7 @@ static const OTCodecIdent codec_ident[] = {
   {"\200theora", 7, "Theora", ot_theora_info},
   {"\001vorbis", 7, "Vorbis", ot_vorbis_info},
   {"Speex", 5, "Speex", ot_speex_info},
+  {"PCM     ", 8, "PCM", ot_oggpcm2_info},
   {"CMML\0\0\0\0", 8, "CMML", NULL},
   {"Annodex", 8, "Annodex", NULL},
   {"fishead", 8, "Skeleton", ot_skeleton_info},

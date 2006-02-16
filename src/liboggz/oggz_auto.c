@@ -263,7 +263,7 @@ auto_oggpcm2 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   unsigned char * header = op->packet;
   ogg_int64_t granule_rate;
 
-  if (op->bytes < 27) return 0;
+  if (op->bytes < 28) return 0;
 
   if (strncmp ((char *)header, "PCM     ", 8)) return 0;
   if (!op->b_o_s) return 0;

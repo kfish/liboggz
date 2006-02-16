@@ -381,12 +381,10 @@ This was the Theora header for theora-alpha2:
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 | Sampling rate [Hz]                                            | 16-19
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Number of significant bits                                    | 20-23
+| Num. sig. bits| Num. channels | Max. num. frames per packet   | 20-23
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| Num. channels | Max. num. frames per packet   | Number of ... | 24-27
+| Number of extra header packets                                | 24-27
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| extra header packets                          |               | 28-31
-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 
  */
 
