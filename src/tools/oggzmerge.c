@@ -217,10 +217,10 @@ oggz_merge (OMData * omdata, FILE * outfile)
 
 	    if (careful_for_theora) {
 	      const char * codec_name;
-	      int is_vorbis;
+	      int is_vorbis = 0;
 
-	      codec_name = ot_page_identify (input->og, NULL);
-	      is_vorbis = !strcmp (codec_name, "Vorbis");
+	      if ((codec_name = ot_page_identify (input->og, NULL)) != NULL)
+		is_vorbis = !strcmp (codec_name, "Vorbis");
 
 	      if (i == 0 && is_vorbis)
 		careful_for_theora = 0;

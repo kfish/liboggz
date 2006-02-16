@@ -308,11 +308,13 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if (ogg_page_bos ((ogg_page *)og)) {
     ident = ot_page_identify (og, NULL);
-    n = oggz_table_size (oddata->content_types_table);
-    for (i = 0; i < n; i++) {
-      char * c = oggz_table_nth (oddata->content_types_table, i, NULL);
-      if (strcasecmp (c, ident) == 0) {
-	oggz_set_read_callback (oggz, serialno, oddata->read_packet, oddata);
+    if (ident) {
+      n = oggz_table_size (oddata->content_types_table);
+      for (i = 0; i < n; i++) {
+	char * c = oggz_table_nth (oddata->content_types_table, i, NULL);
+	if (strcasecmp (c, ident) == 0) {
+	  oggz_set_read_callback (oggz, serialno, oddata->read_packet, oddata);
+	}
       }
     }
   }

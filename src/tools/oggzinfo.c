@@ -196,7 +196,11 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 static void
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
-  printf ("\n%s: serialno %010ld\n", oit->codec_name, serialno);
+  if (oit->codec_name) {
+    printf ("\n%s: serialno %010ld\n", oit->codec_name, serialno);
+  } else {
+    printf ("\n???: serialno %010ld\n", serialno);
+  }
   printf ("\t%ld packets in %ld pages, %.1f packets/page\n",
 	  oit->packets.count, oit->pages.count,
 	  (double)oit->packets.count / (double)oit->pages.count);
