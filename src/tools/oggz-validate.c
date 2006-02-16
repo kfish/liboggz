@@ -174,14 +174,17 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if (ogg_page_bos ((ogg_page *)og)) {
     content_type = ot_page_identify (og, NULL);
-    if (!strcmp (content_type, "Theora")) {
-      ovdata->theora_count++;
-      if (ovdata->audio_count > 0) {
-        log_error ();
-        fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
+
+    if (content_type) {
+      if (!strcmp (content_type, "Theora")) {
+	ovdata->theora_count++;
+	if (ovdata->audio_count > 0) {
+	  log_error ();
+	  fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
+	}
+      } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
+	ovdata->audio_count++;
       }
-    } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
-      ovdata->audio_count++;
     }
   }
 
