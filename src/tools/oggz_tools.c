@@ -310,12 +310,7 @@ ot_fprint_time (FILE * stream, double seconds)
   min = (int) ((seconds - ((double)hrs * 3600.0)) / 60.0);
   sec = seconds - ((double)hrs * 3600.0)- ((double)min * 60.0);
 
-  /* XXX: %02.3f workaround */
-  if (sec < 10.0) {
-    return fprintf (stream, "%s%02d:%02d:0%2.3f", sign, hrs, min, sec);
-  } else {
-    return fprintf (stream, "%s%02d:%02d:%02.3f", sign, hrs, min, sec);
-  }
+  return fprintf (stream, "%s%02d:%02d:%06.3f", sign, hrs, min, sec);
 }
 
 void
