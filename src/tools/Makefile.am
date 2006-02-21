@@ -13,7 +13,7 @@ OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
 if OGGZ_CONFIG_READ
 oggz_read_programs = oggzdump oggzinfo oggz-scan
-oggz_read_noinst_programs = oggzed
+oggz_read_noinst_programs =
 
 if OGGZ_CONFIG_WRITE
 oggz_rw_programs = oggzmerge oggzrip oggz-validate
@@ -30,9 +30,6 @@ noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
 oggzinfo_SOURCES = oggzinfo.c oggz_tools.c
 oggzinfo_LDADD = $(OGGZ_LIBS) -lm
-
-oggzed_SOURCES = oggzed.c
-oggzed_LDADD = $(OGGZ_LIBS)
 
 oggzdump_SOURCES = oggzdump.c oggz_tools.c
 oggzdump_LDADD = $(OGGZ_LIBS)
