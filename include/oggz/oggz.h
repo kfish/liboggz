@@ -306,7 +306,7 @@ extern "C" {
  */
 
 /** \defgroup configuration Configuration
- * \section ./configure ./configure
+ * \section configure ./configure
  *
  * It is possible to customize the functionality of liboggz
  * by using various ./configure flags when

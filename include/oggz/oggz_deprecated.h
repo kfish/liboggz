@@ -41,7 +41,7 @@
  * DEPRECATED CONSTANT.
  * OGGZ_ERR_USER_STOPPED was introduced during development (post 0.8.3),
  * and is similar in functionality to and numerically equal to (ie. ABI
- * compatible with) OGGZ_ERR_READ_STOP_OK in <oggz/oggz_constants.h>.
+ * compatible with) OGGZ_ERR_STOP_OK in <oggz/oggz_constants.h>.
  * It was badly named, as the preferred functionality distinguishes between
  * a user's OggzReadCallback returning OGGZ_STOP_OK or OGGZ_STOP_ERR; your
  * code should distinguish between these two too :-) Hence, don't use this
@@ -50,14 +50,23 @@
 #define OGGZ_ERR_USER_STOPPED OGGZ_ERR_STOP_OK
 
 /**
- * DEPRECATED CONSTANTS.
+ * DEPRECATED CONSTANT.
  * OGGZ_ERR_READ_STOP_OK, OGGZ_ERR_READ_STOP_ERR were introduced to allow
  * the user to differentiate between a cancelled oggz_read_*() returning
  * due to error or an ok condition.
- * From 0.9.4 similar functionality was added for oggz_write_*(), hence these
- * constants were renamed appropriately.
+ * From 0.9.4 similar functionality was added for oggz_write_*(), hence this
+ * constant was renamed.
  */
 #define OGGZ_ERR_READ_STOP_OK  OGGZ_ERR_STOP_OK
+
+/**
+ * DEPRECATED CONSTANT.
+ * OGGZ_ERR_READ_STOP_OK, OGGZ_ERR_READ_STOP_ERR were introduced to allow
+ * the user to differentiate between a cancelled oggz_read_*() returning
+ * due to error or an ok condition.
+ * From 0.9.4 similar functionality was added for oggz_write_*(), hence this
+ * constant was renamed.
+ */
 #define OGGZ_ERR_READ_STOP_ERR OGGZ_ERR_STOP_ERR
 
 /**
