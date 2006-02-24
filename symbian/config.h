@@ -41,6 +41,9 @@
 
 #define OGGZ_CONFIG_WRITE 0
 
+/* Defined type of oggz_off_t */
+#define oggz_off_t off_t
+
 #ifdef __WINS__
 
 /* Disable some pointless warnings */

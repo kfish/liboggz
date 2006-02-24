@@ -95,3 +95,6 @@
 
 /* Define to `unsigned' if <sys/types.h> does not define. */
 #undef size_t
+
+/* Defined type of oggz_off_t */
+#define oggz_off_t off_t
