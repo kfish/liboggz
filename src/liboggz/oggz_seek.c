@@ -65,8 +65,6 @@
 
 #define CHUNKSIZE 4096
 
-#define oggz_off_t off_t
-
 /*
  * The typical usage is:
  *

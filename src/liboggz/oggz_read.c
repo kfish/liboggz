@@ -67,8 +67,6 @@
 
 #define OGGZ_READ_EMPTY (-404)
 
-#define oggz_off_t long
-
 OGGZ *
 oggz_read_init (OGGZ * oggz)
 {

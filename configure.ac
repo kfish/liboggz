@@ -163,6 +163,101 @@ if test "x${ac_enable_read}" = xno && test "x${ac_enable_write}" = xno ; then
 ])
 fi
 
+dnl Large file support
+dnl Adapted from: libsndfile by Erik de Castro Lopo
+dnl
+dnl Find an appropriate type for oggz_off_t
+dnl On systems supporting files larger than 2 Gig, oggz_off_t must be a
+dnl 64 bit value. Unfortunately there is more than one way of ensuring
+dnl this so need to do some pretty rigourous testing here.
+
+unset ac_cv_sizeof_off_t
+
+AC_CHECK_SIZEOF(off_t, 1)
+
+case "$host_os" in
+    mingw*)
+        TYPEOF_OGGZ_OFF_T="__int64"
+        OGGZ_OFF_MAX="0x7FFFFFFFFFFFFFFFLL"
+        SIZEOF_OGGZ_OFF_T=8
+        ;;
+    *)
+        if test "x$ac_cv_sizeof_off_t" = "x8" ; then
+            # If sizeof (off_t) is 8, no further checking is needed.
+            TYPEOF_OGGZ_OFF_T="off_t"
+            OGGZ_OFF_MAX="0x7FFFFFFFFFFFFFFFLL"
+            SIZEOF_OGGZ_OFF_T=8
+        else
+            # Check for common 64 bit file offset types.
+            AC_CHECK_SIZEOF(loff_t,1)       # Fake default value.
+            AC_CHECK_SIZEOF(off64_t,1)      # Fake default value.
+
+            TYPEOF_OGGZ_OFF_T="unknown"
+            if test "x$ac_cv_sizeof_loff_t" = "x8" ; then
+                TYPEOF_OGGZ_OFF_T="loff_t"
+                SIZEOF_OGGZ_OFF_T=8
+            elif test "x$ac_cv_sizeof_off64_t" = "x8" ; then
+                TYPEOF_OGGZ_OFF_T="off64_t"
+                SIZEOF_OGGZ_OFF_T=8
+            fi
+
+            # Save the old sizeof (off_t) value  and then unset it to see if it
+            # changes when Large File Support is enabled.
+
+            pre_largefile_sizeof_off_t=$ac_cv_sizeof_off_t
+            unset ac_cv_sizeof_off_t
+
+            AC_SYS_EXTRA_LARGEFILE
+
+            if test "x$ac_cv_sys_largefile_CFLAGS" = "xno" ; then
+                ac_cv_sys_largefile_CFLAGS=""
+            fi
+            if test "x$ac_cv_sys_largefile_LDFLAGS" = "xno" ; then
+                ac_cv_sys_largefile_LDFLAGS=""
+            fi
+            if test "x$ac_cv_sys_largefile_LIBS" = "xno" ; then
+                ac_cv_sys_largefile_LIBS=""
+            fi
+
+            AC_CHECK_SIZEOF(off_t,1)        # Fake default value.
+
+            if test "x$ac_cv_sizeof_off_t" = "x8" ; then
+                    OGGZ_OFF_MAX="0x7FFFFFFFFFFFFFFFLL"
+            elif test "x$ac_cv_sizeof_off_t" = "x$pre_largefile_sizeof_off_t" ; then
+                AC_MSG_WARN([[This machine does not seem to support 64 bit file offsets.]])
+                TYPEOF_OGGZ_OFF_T="off_t"
+                SIZEOF_OGGZ_OFF_T=$ac_cv_sizeof_off_t
+            elif test "x$TYPEOF_OGGZ_OFF_T" = "xunknown" ; then
+                echo
+                echo "*** The configure process has determined that this system is capable"
+                echo "*** of Large File Support but has not been able to find a type which"
+                echo "*** is an unambiguous 64 bit file offset."
+                echo "*** Please contact the author to help resolve this problem."
+                echo
+                AC_MSG_ERROR([[Bad file offset type.]])
+            fi
+        fi
+    ;;
+    esac
+
+if test $SIZEOF_OGGZ_OFF_T = 4 ; then
+    OGGZ_OFF_MAX="0x7FFFFFFF"
+fi
+
+AC_DEFINE_UNQUOTED([TYPEOF_OGGZ_OFF_T],${TYPEOF_OGGZ_OFF_T}, [Set to long if unknown.])
+AC_SUBST(TYPEOF_OGGZ_OFF_T)
+
+AC_DEFINE_UNQUOTED([SIZEOF_OGGZ_OFF_T],${SIZEOF_OGGZ_OFF_T}, [Set to sizeof (long) if unknown.])
+AC_SUBST(SIZEOF_OGGZ_OFF_T)
+
+AC_DEFINE_UNQUOTED([OGGZ_OFF_MAX],${OGGZ_OFF_MAX}, [Set to maximum allowed value of sf_count_t type.])
+AC_SUBST(OGGZ_OFF_MAX)
+
+AC_CHECK_TYPES(ssize_t)
+AC_CHECK_SIZEOF(ssize_t,4)
+
+AC_DEFINE_UNQUOTED([oggz_off_t], ${TYPEOF_OGGZ_OFF_T}, [Configured type of oggz_off_t])
+
 
 dnl
 dnl Detect Ogg
