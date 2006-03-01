@@ -26,6 +26,9 @@
    and to 0 otherwise. */
 #undef HAVE_REALLOC
 
+/* Define to 1 if the system has the type `ssize_t'. */
+#define HAVE_SSIZE_T 1
+
 /* Define to 1 if you have the <stdint.h> header file. */
 #define HAVE_STDINT_H 1
 
@@ -48,13 +51,16 @@
 #undef HAVE_UNISTD_H
 
 /* Define to build experimental code */
-#undef OGGZ_CONFIG_EXPERIMENTAL
+/* #undef OGGZ_CONFIG_EXPERIMENTAL */
 
 /* Do not build reading support */
 #define OGGZ_CONFIG_READ 1
 
 /* Do not build writing support */
 #define OGGZ_CONFIG_WRITE 1
+
+/* Set to maximum allowed value of sf_count_t type. */
+#define OGGZ_OFF_MAX 0x7FFFFFFFFFFFFFFFLL
 
 /* Name of package */
 #define PACKAGE "liboggz"
@@ -74,15 +80,45 @@
 /* Define to the version of this package. */
 #define PACKAGE_VERSION ""
 
+/* The size of a `loff_t', as computed by sizeof. */
+/* #undef SIZEOF_LOFF_T */
+
+/* The size of a `off64_t', as computed by sizeof. */
+/* #undef SIZEOF_OFF64_T */
+
+/* The size of a `off_t', as computed by sizeof. */
+/* #define SIZEOF_OFF_T 8 */
+
+/* Set to sizeof (long) if unknown. */
+/* #define SIZEOF_OGGZ_OFF_T 8 */
+
+/* The size of a `ssize_t', as computed by sizeof. */
+/* #define SIZEOF_SSIZE_T 4 */
+
 /* Define to 1 if you have the ANSI C header files. */
 #define STDC_HEADERS 1
 
+/* Set to long if unknown. */
+#define TYPEOF_OGGZ_OFF_T off_t
+
 /* Version number of package */
-#define VERSION "0.9.0"
+#define VERSION "0.9.4"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
 /* #undef WORDS_BIGENDIAN */
+
+/* Number of bits in a file offset, on hosts where this is settable. */
+/* #undef _FILE_OFFSET_BITS */
+
+/* Define to make fseeko etc. visible, on some hosts. */
+/* #undef _LARGEFILE_SOURCE */
+
+/* Define for large files, on AIX-style hosts. */
+/* #undef _LARGE_FILES */
+
+/* Define to empty if `const' does not conform to ANSI C. */
+/* #undef const */
 
 /* Define to empty if `const' does not conform to ANSI C. */
 #undef const
