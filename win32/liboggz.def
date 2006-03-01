@@ -3,7 +3,7 @@ LIBRARY  liboggz.dll
 EXPORTS
 
 ;
-; Ogg file reading functions
+; Ogg file manipulation functions
 ;
 oggz_new				@1
 oggz_open				@2
@@ -12,66 +12,74 @@ oggz_flush				@4
 oggz_close				@5
 oggz_get_bos			@6
 oggz_get_eos			@7
-oggz_set_read_callback	@8
-oggz_set_read_page		@9
-oggz_read				@10
-oggz_read_input			@11
-oggz_purge				@12
-oggz_write_set_hungry_callback		@13
-oggz_write_feed			@14
-oggz_write				@15
-oggz_write_output		@16
-oggz_write_get_next_page_size		@17
 
-oggz_set_metric				@18
-oggz_set_metric_linear		@19
+;
+;oggz_run functions
+;
+
+oggz_run_set_blocksize	@8
+oggz_run				@9
+
+;
+; Ogg file reading functions
+;
+oggz_set_read_callback	@10
+oggz_set_read_page		@11
+oggz_read				@12
+oggz_read_input			@13
+oggz_purge				@14
+oggz_write_set_hungry_callback		@15
+oggz_write_feed			@16
+oggz_write				@17
+oggz_write_output		@18
+oggz_write_get_next_page_size		@19
+
+oggz_set_metric				@20
+oggz_set_metric_linear		@21
+
+;
+;oggz stream functions
+;
+oggz_set_granulerate		@22
+oggz_get_granulerate		@23
+oggz_set_granuleshift		@24
+oggz_get_granuleshift		@25
 
 ;
 ; Ogg file seeking functions
 ;
-oggz_tell				@20
-oggz_tell_units				@21
-oggz_seek				@22
-oggz_seek_units				@23
-oggz_set_data_start			@24
-oggz_serialno_new			@25
+oggz_tell					@26
+oggz_tell_units				@27
+oggz_seek					@28
+oggz_seek_units				@29
+oggz_set_data_start			@30
+oggz_serialno_new			@31
 
 ;
 ;oggz io functions
 ;
 
-oggz_io_set_read			@30
-oggz_io_get_read_user_handle		@31
-oggz_io_set_write			@32
-oggz_io_get_write_user_handle		@33
-oggz_io_set_seek			@34
-oggz_io_get_seek_user_handle		@35
-oggz_io_set_tell			@36
-oggz_io_get_tell_user_handle		@37
-oggz_io_set_flush			@38
-oggz_io_get_flush_user_handle		@39
+oggz_io_set_read			@32
+oggz_io_get_read_user_handle		@33
+oggz_io_set_write			@34
+oggz_io_get_write_user_handle		@35
+oggz_io_set_seek			@36
+oggz_io_get_seek_user_handle		@37
+oggz_io_set_tell			@38
+oggz_io_get_tell_user_handle		@39
+oggz_io_set_flush			@40
+oggz_io_get_flush_user_handle		@41
 
 ;
 ;oggz table functions.
 ;
-oggz_table_new				@40
-oggz_table_delete			@41
-oggz_table_insert			@42
-oggz_table_remove			@43
-oggz_table_lookup			@44
-oggz_table_size				@45
-oggz_table_nth				@46
+oggz_table_new				@42
+oggz_table_delete			@43
+oggz_table_insert			@44
+oggz_table_remove			@45
+oggz_table_lookup			@46
+oggz_table_size				@47
+oggz_table_nth				@48
 
-;
-;oggz stream functions
-;
-oggz_set_granulerate			@50
-oggz_get_granulerate			@51
-oggz_set_granuleshift			@52
-oggz_get_granuleshift			@53
-
-;
-;oggz_run functions
-;
-oggz_run				@60
-oggz_run_set_blocksize			@61
+oggz_run				@49
+oggz_run_set_blocksize			@50
