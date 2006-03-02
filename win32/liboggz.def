@@ -81,5 +81,3 @@ oggz_table_lookup			@46
 oggz_table_size				@47
 oggz_table_nth				@48
 
-oggz_run				@49
-oggz_run_set_blocksize			@50
