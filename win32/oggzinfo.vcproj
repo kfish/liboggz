@@ -29,9 +29,9 @@
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/oggzinfo.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -40,11 +40,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg.lib"
-				OutputFile=".\Release/oggzinfo.exe"
+				OutputFile="$(OutDir)/oggzinfo.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release;.\"
-				ProgramDatabaseFile=".\Release/oggzinfo.pdb"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -74,8 +74,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\oggzinfo_Win32_Debug"
-			IntermediateDirectory=".\oggzinfo_Win32_Debug"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -87,11 +87,11 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\oggzinfo___Win32_Debug/oggzinfo.pch"
-				AssemblerListingLocation=".\oggzinfo___Win32_Debug/"
-				ObjectFile=".\oggzinfo___Win32_Debug/"
-				ProgramDataBaseFileName=".\oggzinfo___Win32_Debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -101,12 +101,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg_d.lib"
-				OutputFile="oggzinfo.exe"
+				OutputFile="$(OutDir)/oggzinfo.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug;.\"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\oggzinfo___Win32_Debug/oggzinfo.pdb"
+				ProgramDatabaseFile="$(OutDir)/oggzinfo.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool

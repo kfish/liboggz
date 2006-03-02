@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\oggzdump_win32_Debug"
-			IntermediateDirectory=".\oggzdump_win32_Debug"
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -25,11 +25,11 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile="oggzdump.pch"
-				AssemblerListingLocation=".\oggzdump_win32_Debug/"
-				ObjectFile=".\oggzdump_win32_Debug/"
-				ProgramDataBaseFileName=".\oggzdump_win32_Debug/"
+				UsePrecompiledHeader="0"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -39,12 +39,12 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="liboggz.lib ogg_d.lib"
-				OutputFile="oggzdump_win32_Debug/oggzdump.exe"
+				OutputFile="$(OutDir)/oggzdump.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug;.\"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\oggzdump_win32_debug/oggzdump.pdb"
+				ProgramDatabaseFile="$(OutDir)/oggzdump.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -74,8 +74,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\oggzdump_Win32_Release"
-			IntermediateDirectory=".\oggzdump_Win32_Release"
+			OutputDirectory=".\Release"
+			IntermediateDirectory=".\Release"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -91,9 +91,9 @@
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/oggzdump.pch"
-				AssemblerListingLocation=".\Release/"
-				ObjectFile=".\Release/"
-				ProgramDataBaseFileName=".\Release/"
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -102,11 +102,11 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg.lib"
-				OutputFile="oggzdump.exe"
+				OutputFile="$(OutDir)/oggzdump.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release;.\"
-				ProgramDatabaseFile=".\Release/oggzdump.pdb"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool

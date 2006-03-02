@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="."
-			IntermediateDirectory="."
+			OutputDirectory=".\Release"
+			IntermediateDirectory=".\Release"
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -28,9 +28,9 @@
 				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				PrecompiledHeaderFile="./liboggz.pch"
-				AssemblerListingLocation="./"
-				ObjectFile="./"
-				ProgramDataBaseFileName="./"
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				CompileAs="0"/>
@@ -39,13 +39,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib ogg.lib"
-				OutputFile=".\liboggz.dll"
+				OutputFile="$(OutDir)/liboggz.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release"
 				ModuleDefinitionFile=".\liboggz.def"
-				ProgramDatabaseFile="./liboggz.pdb"
-				ImportLibrary="./liboggz.lib"
+				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
+				ImportLibrary="liboggz.lib"
 				TargetMachine="1"/>
 			<Tool
 				Name="VCMIDLTool"
@@ -56,7 +56,9 @@
 				TypeLibraryName="./liboggz.tlb"
 				HeaderFileName=""/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				Description="Copy libogg to output directory"
+				CommandLine="copy ..\..\libogg\win32\Dynamic_Release\ogg.dll .\Release"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -78,8 +80,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="."
-			IntermediateDirectory="."
+			OutputDirectory="Debug"
+			IntermediateDirectory="Debug"
 			ConfigurationType="2"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -91,10 +93,10 @@
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBOGGZ_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
-				PrecompiledHeaderFile="./liboggz.pch"
-				AssemblerListingLocation="./"
-				ObjectFile="./"
-				ProgramDataBaseFileName="./"
+				PrecompiledHeaderFile=""
+				AssemblerListingLocation=""
+				ObjectFile="$(IntDir)/"
+				ProgramDataBaseFileName="$(IntDir)/vc70.pdb"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -104,13 +106,13 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="odbc32.lib odbccp32.lib ogg_d.lib"
-				OutputFile=".\liboggz.dll"
+				OutputFile="$(OutDir)/liboggz.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
 				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug"
 				ModuleDefinitionFile=".\liboggz.def"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="./liboggz.pdb"
+				ProgramDatabaseFile="$(OutDir)/liboggz.pdb"
 				ImportLibrary="./liboggz.lib"
 				TargetMachine="1"/>
 			<Tool
@@ -122,7 +124,9 @@
 				TypeLibraryName="./liboggz.tlb"
 				HeaderFileName=""/>
 			<Tool
-				Name="VCPostBuildEventTool"/>
+				Name="VCPostBuildEventTool"
+				Description="Copy libogg to output directory"
+				CommandLine="copy ..\..\libogg\win32\Dynamic_Debug\ogg_d.dll .\Debug"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
