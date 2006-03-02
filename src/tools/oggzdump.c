@@ -51,6 +51,10 @@
 
 /*#define DEBUG*/
 
+#ifdef WIN32                                                                   
+#define strcasecmp _stricmp
+#endif  
+
 #undef MIN
 #define MIN(a,b) (((a)<(b))?(a):(b))
 

@@ -38,7 +38,9 @@
 #include <oggz/oggz.h>
 
 #ifdef WIN32                                                                   
-#include <fcntl.h>                                                             
+#include <fcntl.h>    
+#include <io.h>
+#define snprintf _snprintf
 #endif  
 
 static  ogg_uint32_t

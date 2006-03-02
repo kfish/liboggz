@@ -48,6 +48,10 @@
 #include <oggz/oggz.h>
 #include "oggz_tools.h"
 
+#ifdef WIN32                                                                   
+#define strcasecmp _stricmp
+#endif  
+
 #define READ_SIZE 4096
 #define WRITE_SIZE 4096
 

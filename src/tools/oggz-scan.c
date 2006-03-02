@@ -50,6 +50,10 @@
 
 /* #define DEBUG */
 
+#ifdef WIN32                                                                   
+#define strcasecmp _stricmp
+#endif 
+
 typedef struct {
   OggzReadPacket read_packet;
   int clipcount;
