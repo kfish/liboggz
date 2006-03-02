@@ -12,8 +12,8 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\oggzdump___Win32_Debug"
-			IntermediateDirectory=".\oggzdump___Win32_Debug"
+			OutputDirectory=".\oggzdump_win32_Debug"
+			IntermediateDirectory=".\oggzdump_win32_Debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -24,12 +24,12 @@
 				AdditionalIncludeDirectories="..\..\libogg\include\,..\include,.\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
-				PrecompiledHeaderFile=".\oggzdump___Win32_Debug/oggzdump.pch"
-				AssemblerListingLocation=".\oggzdump___Win32_Debug/"
-				ObjectFile=".\oggzdump___Win32_Debug/"
-				ProgramDataBaseFileName=".\oggzdump___Win32_Debug/"
+				PrecompiledHeaderFile="oggzdump.pch"
+				AssemblerListingLocation=".\oggzdump_win32_Debug/"
+				ObjectFile=".\oggzdump_win32_Debug/"
+				ProgramDataBaseFileName=".\oggzdump_win32_Debug/"
 				WarningLevel="3"
 				SuppressStartupBanner="TRUE"
 				DebugInformationFormat="4"
@@ -38,13 +38,13 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib"
-				OutputFile="oggzdump.exe"
+				AdditionalDependencies="liboggz.lib ogg_d.lib"
+				OutputFile="oggzdump_win32_Debug/oggzdump.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\liboggz\lib\,.\"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug;.\"
 				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile=".\oggzdump___Win32_Debug/oggzdump.pdb"
+				ProgramDatabaseFile=".\oggzdump_win32_debug/oggzdump.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
 			<Tool
@@ -74,8 +74,8 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory=".\Release"
-			IntermediateDirectory=".\Release"
+			OutputDirectory=".\oggzdump_Win32_Release"
+			IntermediateDirectory=".\oggzdump_Win32_Release"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -87,7 +87,7 @@
 				AdditionalIncludeDirectories="..\..\libogg\include\,..\include,.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/oggzdump.pch"
@@ -101,11 +101,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib oggzdump.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg.lib"
 				OutputFile="oggzdump.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\liboggz\lib\,.\"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release;.\"
 				ProgramDatabaseFile=".\Release/oggzdump.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
@@ -160,6 +160,9 @@
 						AdditionalIncludeDirectories=""
 						PreprocessorDefinitions=""/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\tools\oggz_tools.c">
 			</File>
 			<File
 				RelativePath="..\src\tools\oggzdump.c">

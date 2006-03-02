@@ -42,7 +42,7 @@
 				OutputFile=".\liboggz.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\lib"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release"
 				ModuleDefinitionFile=".\liboggz.def"
 				ProgramDatabaseFile="./liboggz.pdb"
 				ImportLibrary="./liboggz.lib"
@@ -103,11 +103,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib ogg.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib ogg_d.lib"
 				OutputFile=".\liboggz.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\lib"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug"
 				ModuleDefinitionFile=".\liboggz.def"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile="./liboggz.pdb"
@@ -151,6 +151,9 @@
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
 				RelativePath="liboggz.def">
+			</File>
+			<File
+				RelativePath="..\src\liboggz\metric_internal.c">
 			</File>
 			<File
 				RelativePath="..\src\liboggz\oggz.c">
@@ -231,6 +234,12 @@
 						PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_MBCS;_USRDLL;LIBOGGZ_EXPORTS;$(NoInherit)"
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="..\src\liboggz\oggz_seek.c">
+			</File>
+			<File
+				RelativePath="..\src\liboggz\oggz_stream.c">
 			</File>
 			<File
 				RelativePath="..\src\liboggz\oggz_table.c">
@@ -324,10 +333,22 @@
 				RelativePath="..\src\liboggz\oggz_private.h">
 			</File>
 			<File
+				RelativePath="..\include\oggz\oggz_read.h">
+			</File>
+			<File
+				RelativePath="..\include\oggz\oggz_seek.h">
+			</File>
+			<File
+				RelativePath="..\src\liboggz\oggz_stream.h">
+			</File>
+			<File
 				RelativePath="..\include\oggz\oggz_table.h">
 			</File>
 			<File
 				RelativePath="..\src\liboggz\oggz_vector.h">
+			</File>
+			<File
+				RelativePath="..\include\oggz\oggz_write.h">
 			</File>
 		</Filter>
 		<Filter

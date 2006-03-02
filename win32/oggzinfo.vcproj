@@ -25,7 +25,7 @@
 				AdditionalIncludeDirectories="..\..\libogg\include\,..\include\,.\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
-				RuntimeLibrary="4"
+				RuntimeLibrary="0"
 				EnableFunctionLevelLinking="TRUE"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\Release/oggzinfo.pch"
@@ -39,11 +39,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib"
+				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg.lib"
 				OutputFile=".\Release/oggzinfo.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\lib\,.\"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release;.\"
 				ProgramDatabaseFile=".\Release/oggzinfo.pdb"
 				SubSystem="1"
 				TargetMachine="1"/>
@@ -74,8 +74,8 @@
 		</Configuration>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory=".\oggzinfo___Win32_Debug"
-			IntermediateDirectory=".\oggzinfo___Win32_Debug"
+			OutputDirectory=".\oggzinfo_Win32_Debug"
+			IntermediateDirectory=".\oggzinfo_Win32_Debug"
 			ConfigurationType="1"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
@@ -86,7 +86,7 @@
 				AdditionalIncludeDirectories="..\..\libogg\include\,..\include\,.\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
-				RuntimeLibrary="5"
+				RuntimeLibrary="1"
 				UsePrecompiledHeader="2"
 				PrecompiledHeaderFile=".\oggzinfo___Win32_Debug/oggzinfo.pch"
 				AssemblerListingLocation=".\oggzinfo___Win32_Debug/"
@@ -100,11 +100,11 @@
 				Name="VCCustomBuildTool"/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib"
-				OutputFile=".\oggzinfo___Win32_Debug/oggzinfo.exe"
+				AdditionalDependencies="odbc32.lib odbccp32.lib liboggz.lib ogg_d.lib"
+				OutputFile="oggzinfo.exe"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\lib\,.\"
+				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Debug;.\"
 				GenerateDebugInformation="TRUE"
 				ProgramDatabaseFile=".\oggzinfo___Win32_Debug/oggzinfo.pdb"
 				SubSystem="1"
@@ -141,6 +141,12 @@
 		<Filter
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
+			<File
+				RelativePath=".\attgetopt.c">
+			</File>
+			<File
+				RelativePath="..\src\tools\oggz_tools.c">
+			</File>
 			<File
 				RelativePath="..\src\tools\oggzinfo.c">
 				<FileConfiguration
