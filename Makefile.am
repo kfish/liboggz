@@ -34,7 +34,11 @@ EXTRA_DIST = oggz.pc.in README.win32 \
 	win32/oggzed.vcproj \
 	win32/oggzinfo.dsp \
 	win32/oggzinfo.vcproj \
-	win32/oggzmerge.dsp
+	win32/oggzmerge.dsp \
+	win32/oggzmerge.vcproj \
+	win32/oggzrip.vcproj \
+	win32/oggzscan.vcproj \
+	win32/oggzvalidate.vcproj
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = oggz.pc
