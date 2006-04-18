@@ -4,7 +4,10 @@ under windows and create:
 - liboggz.dll
 - oggzdump.exe
 - oggzinfo.exe
-- oggzed.exe
+- oggzmerge.exe
+- oggzrip.exe
+- oggzscan.exe
+- oggzvalidate.exe
 
 Building with the Makefile
 ==========================
@@ -24,9 +27,6 @@ Here's what you need to do:
 
 Visual Studio.NET 2003 Installation
 ===================================
-NOTE: For lack of platform, we were not able to keep the solution
-files up-to-date. Please use the Visual Studio Version 6 files
-instead or send us an updated version if you're using these.
 
 IMPORTANT: The solution files were built for VS.NET 2003 and can't be
 opened by VS.NET 2002. If you use VS.NET 2002 you should use the VS6
