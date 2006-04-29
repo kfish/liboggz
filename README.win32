@@ -48,6 +48,6 @@ your projects properties.
 
 Visual Studio Version 6 Installation
 ====================================
-
-There is also a Visual C++ V 6.0 workspace file in the Win32 directory
-in case you have not upgraded to Visual Studio.NET.
+NOTE: For lack of platform, we were not able to keep the Visual 
+Studio Version 6 project files up-to-date. Send us an updated version 
+if you're using these.
