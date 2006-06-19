@@ -47,13 +47,14 @@ typedef struct _OggzIO OggzIO;
 typedef struct _OggzReader OggzReader;
 typedef struct _OggzWriter OggzWriter;
 
-/* oggz_stream */
-#include "oggz_stream.h"
 
 typedef int (*OggzReadPacket) (OGGZ * oggz, ogg_packet * op, long serialno,
 			       void * user_data);
 typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og, long serialno,
 			     void * user_data);
+
+/* oggz_stream */
+#include "oggz_stream.h"
 
 typedef ogg_int64_t (*OggzMetric) (OGGZ * oggz, long serialno,
 				   ogg_int64_t granulepos,
@@ -235,7 +236,8 @@ int oggz_has_metrics (OGGZ * oggz);
 
 int oggz_purge (OGGZ * oggz);
 
-int oggz_auto (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data);
+int oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
+                void * user_data);
 
 /* oggz_io */
 size_t oggz_io_read (OGGZ * oggz, void * buf, size_t n);

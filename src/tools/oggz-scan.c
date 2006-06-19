@@ -108,7 +108,7 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   /* set scanning callback for keyframe calculation on theora pages only */
   if (osdata->keyframes && ogg_page_bos ((ogg_page *)og)) {
-    ident = ot_page_identify (og, NULL);
+    ident = ot_page_identify (oggz, og, NULL);
     if (ident && (strcasecmp ("theora", ident) == 0)) {
        oggz_set_read_callback (oggz, serialno, osdata->read_packet, osdata);
     }

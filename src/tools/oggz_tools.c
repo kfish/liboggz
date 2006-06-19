@@ -115,13 +115,6 @@ _le_64 (ogg_int64_t l)
 
 typedef char * (* OTCodecInfoFunc) (unsigned char * data, long n);
 
-typedef struct {
-  const char *bos_str;
-  int bos_str_len;
-  const char *content_type;
-  OTCodecInfoFunc info_func;
-} OTCodecIdent;
-
 static char *
 ot_theora_info (unsigned char * data, long len)
 {
@@ -209,44 +202,42 @@ ot_skeleton_info (unsigned char * data, long len)
   return buf;
 }
 
-static const OTCodecIdent codec_ident[] = {
-  {"\200theora", 7, "Theora", ot_theora_info},
-  {"\001vorbis", 7, "Vorbis", ot_vorbis_info},
-  {"Speex", 5, "Speex", ot_speex_info},
-  {"PCM     ", 8, "PCM", ot_oggpcm2_info},
-  {"CMML\0\0\0\0", 8, "CMML", NULL},
-  {"Annodex", 8, "Annodex", NULL},
-  {"fishead", 8, "Skeleton", ot_skeleton_info},
-  {NULL}
+static const OTCodecInfoFunc codec_ident[] = {
+  ot_theora_info, 
+  ot_vorbis_info,
+  ot_speex_info,
+  ot_oggpcm2_info,
+  NULL,             /* CMML */
+  NULL,             /* ANNODEX */
+  ot_skeleton_info,
+  NULL,             /* FLAC0 */
+  NULL,             /* FLAC */
+  NULL,             /* ANXDATA */
+  NULL              /* UNKOWN */
 };
 
 const char *
-ot_page_identify (const ogg_page * og, char ** info)
+ot_page_identify (OGGZ *oggz, const ogg_page * og, char ** info)
 {
   const char * ret = NULL;
-  int i;
+  int serial_no;
+  int content;
 
-  /* try to identify stream codec name by looking at the first bytes of the
-   * first packet */
-  for (i = 0;; i++) {
-    const OTCodecIdent *ident = &codec_ident[i];
-    
-    if (ident->bos_str == NULL) {
-      ret = NULL;
-      break;
-    }
+  /*
+   * identify stream content using oggz_stream_get_content, identify
+   * stream content name using oggz_stream_get_content_type
+   */
+  
+  serial_no = ogg_page_serialno(og);
+  
+  content = oggz_stream_get_content(oggz, serial_no);
+  ret = oggz_stream_get_content_type(oggz, serial_no);
 
-    if (og->body_len >= ident->bos_str_len &&
-	memcmp (og->body, ident->bos_str, ident->bos_str_len) == 0) {
-      ret = ident->content_type;
-      if (info) {
-	if (ident->info_func) {
-	  *info = ident->info_func (og->body, og->body_len);
-	} else {
-	  *info = NULL;
-	}
-      }
-      break;
+  if (info != NULL)
+  {
+    if (codec_ident[content] != NULL)
+    {
+      *info = codec_ident[content](og->body, og->body_len);
     }
   }
 

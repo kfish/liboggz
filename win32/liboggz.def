@@ -81,3 +81,8 @@ oggz_table_lookup			@46
 oggz_table_size				@47
 oggz_table_nth				@48
 
+;
+;oggz stream functions (determining content type)
+;
+oggz_stream_get_content                 @100
+oggz_stream_get_content_type            @101

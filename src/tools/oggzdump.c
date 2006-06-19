@@ -311,7 +311,7 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   int i, n;
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    ident = ot_page_identify (og, NULL);
+    ident = ot_page_identify (oggz, og, NULL);
     if (ident) {
       n = oggz_table_size (oddata->content_types_table);
       for (i = 0; i < n; i++) {

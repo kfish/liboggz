@@ -181,4 +181,28 @@ long oggz_read_input (OGGZ * oggz, unsigned char * buf, long n);
  */
 int oggz_purge (OGGZ * oggz);
 
+/**
+ * Determine the content type of the oggz stream referred to by \a serialno
+ *
+ * \param oggz An OGGZ handle
+ * \param serialno An ogg stream serialno
+ * \retval OGGZ_CONTENT_THEORA..OGGZ_CONTENT_UNKNOWN content successfully 
+ *          identified
+ * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not refer to an existing
+ *          stream
+ */
+OggzStreamContent oggz_stream_get_content (OGGZ * oggz, long serialno);
+
+/**
+ * Return human-readable string representation of content type of oggz stream
+ * referred to by \a serialno
+ *
+ * \param oggz An OGGZ handle
+ * \param serialno An ogg stream serialno
+ * \retval string the name of the content type
+ * \retval NULL \a oggz or \a serialno invalid
+ */
+const char * oggz_stream_get_content_type (OGGZ *oggz, long serialno);
+
 #endif /* __OGGZ_READ_H__ */

@@ -274,7 +274,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
   }
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    oit->codec_name = ot_page_identify (og, &oit->codec_info);
+    oit->codec_name = ot_page_identify (oggz, og, &oit->codec_info);
   }
 
   bytes = og->header_len + og->body_len;
@@ -337,7 +337,7 @@ read_packet_pass2 (OGGZ * oggz, ogg_packet * op, long serialno,
   OI_Info * info = (OI_Info *)user_data;
   OI_TrackInfo * oit;
   long deviation;
-
+  
   oit = oggz_table_lookup (info->tracks, serialno);
 
   /* Increment the packet length deviation squared total */

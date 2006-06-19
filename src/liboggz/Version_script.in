@@ -56,6 +56,9 @@
 		oggz_io_set_flush;
 		oggz_io_get_flush_user_handle;
 
+                oggz_stream_get_content;
+                oggz_stream_get_content_type;
+
 		oggz_table_new;
 		oggz_table_delete;
 		oggz_table_insert;

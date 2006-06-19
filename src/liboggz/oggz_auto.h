@@ -388,4 +388,6 @@ This was the Theora header for theora-alpha2:
 
  */
 
+int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno);
+
 #endif /* __OGGZ_AUTO_H__ */

@@ -219,7 +219,8 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	      const char * codec_name;
 	      int is_vorbis = 0;
 
-	      if ((codec_name = ot_page_identify (input->og, NULL)) != NULL)
+	      if ((codec_name = 
+                  ot_page_identify (input->reader, input->og, NULL)) != NULL)
 		is_vorbis = !strcmp (codec_name, "Vorbis");
 
 	      if (i == 0 && is_vorbis)

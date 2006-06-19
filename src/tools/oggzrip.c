@@ -166,7 +166,8 @@ filter_stream_p (const ORData *ordata, ORStream *stream,
 }
 
 static ORStream *
-orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
+orstream_new (OGGZ *oggz, const ORData *ordata, const ogg_page *og, 
+                long serialno)
 {
   const char * ident;
   
@@ -177,7 +178,7 @@ orstream_new (const ORData *ordata, const ogg_page *og, long serialno)
   stream->streamid = streamid_count++;
   stream->content_type = "unknown";
 
-  ident = ot_page_identify (og, NULL);
+  ident = ot_page_identify (oggz, og, NULL);
   if (ident != NULL) stream->content_type = ident;
    
   if (ordata->verbose)
@@ -233,7 +234,7 @@ read_page (OGGZ *oggz, const ogg_page *og, long serialno, void *user_data)
   ORStream *stream = oggz_table_lookup (ordata->streams, serialno);
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    stream = orstream_new (ordata, og, serialno);
+    stream = orstream_new (oggz, ordata, og, serialno);
     stream = oggz_table_insert (ordata->streams, serialno, stream);
     assert (stream != NULL);
 

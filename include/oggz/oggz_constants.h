@@ -97,6 +97,23 @@ enum OggzFlushOpts {
 };
 
 /**
+ * Definition of stream content types
+ */
+typedef enum OggzStreamContent {
+  OGGZ_CONTENT_THEORA = 0,
+  OGGZ_CONTENT_VORBIS,
+  OGGZ_CONTENT_SPEEX,
+  OGGZ_CONTENT_PCM,
+  OGGZ_CONTENT_CMML,
+  OGGZ_CONTENT_ANX2,
+  OGGZ_CONTENT_SKELETON,
+  OGGZ_CONTENT_FLAC0,
+  OGGZ_CONTENT_FLAC,
+  OGGZ_CONTENT_ANXDATA,
+  OGGZ_CONTENT_UNKNOWN
+} OggzStreamContent;
+
+/**
  * Definitions of error return values
  */
 enum OggzError {

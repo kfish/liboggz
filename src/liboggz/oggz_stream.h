@@ -33,11 +33,14 @@
 #ifndef __OGGZ_STREAM_H__
 #define __OGGZ_STREAM_H__
 
-enum {
-  OGGZ_CONTENT_UNKNOWN = 0,
-  OGGZ_CONTENT_SKELETON = 1,
-  OGGZ_CONTENT_FLAC0 = 13
-};
+typedef struct {
+  const char      *bos_str;
+  int             bos_str_len;
+  const char      *content_type;
+  OggzReadPacket  reader;
+} oggz_auto_contenttype_t;
+
+extern const oggz_auto_contenttype_t oggz_auto_codec_ident[];
 
 typedef struct _oggz_stream_t oggz_stream_t;
 
@@ -46,6 +49,7 @@ oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
 
 int oggz_stream_has_metric (OGGZ * oggz, long serialno);
 int oggz_stream_set_content (OGGZ * oggz, long serialno, int content);
-int oggz_stream_get_content (OGGZ * oggz, long serialno);
+OggzStreamContent oggz_stream_get_content (OGGZ * oggz, long serialno);
+const char * oggz_stream_get_content_type (OGGZ *oggz, long serialno);
 
 #endif /* __OGGZ_STREAM_H__ */

@@ -293,8 +293,23 @@ oggz_read_sync (OGGZ * oggz)
 	/* got a packet.  process it */
 	granulepos = op->granulepos;
 
-	if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
-	  oggz_auto (oggz, op, serialno, NULL);
+        /*
+         * need to call oggz_auto to process Anx v2 streams which were headed
+         * with AnxData packets.  This enables the AnxData-provided granulerate
+         * to be overridden by the stream's rate if present
+         */
+	if 
+        (
+          (
+            !stream->metric 
+            || 
+            (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_SKELETON)
+          ) 
+          && 
+          (oggz->flags & OGGZ_AUTO)
+        ) 
+        {
+	  oggz_auto_get_granulerate (oggz, op, serialno, NULL);
 	}
 
 	/* set unit on last packet of page */
@@ -332,7 +347,18 @@ oggz_read_sync (OGGZ * oggz)
 	/* error -- could not add stream */
 	return -7;
       }
+
+      /* identify stream type */
+      oggz_auto_identify(oggz, &og, serialno);
     }
+    else if (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_ANXDATA)
+    {
+      /*
+       * re-identify ANXDATA streams as these are now content streams
+       */
+      oggz_auto_identify(oggz, &og, serialno);
+    }
+    
     os = &stream->ogg_stream;
 
     {

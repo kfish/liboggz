@@ -73,9 +73,6 @@ auto_speex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   if (op->bytes < 68) return 0;
 
-  if (strncmp ((char *)header, "Speex   ", 8)) return 0;
-  if (!op->b_o_s) return 0;
-
   granule_rate = (ogg_int64_t) INT32_LE_AT(&header[36]);
 #ifdef DEBUG
   printf ("Got speex rate %d\n", (int)granule_rate);
@@ -93,10 +90,6 @@ auto_vorbis (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   ogg_int64_t granule_rate = 0;
 
   if (op->bytes < 30) return 0;
-
-  if (header[0] != 0x01) return 0;
-  if (strncmp ((char *)&header[1], "vorbis", 6)) return 0;
-  if (!op->b_o_s) return 0;
 
   granule_rate = (ogg_int64_t) INT32_LE_AT(&header[12]);
 #ifdef DEBUG
@@ -128,10 +121,6 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   int keyframe_shift;
 
   if (op->bytes < 41) return 0;
-
-  if (header[0] != 0x80) return 0;
-  if (strncmp ((char *)&header[1], "theora", 6)) return 0;
-  if (!op->b_o_s) return 0;
 
   fps_numerator = INT32_BE_AT(&header[22]);
   fps_denominator = INT32_BE_AT(&header[26]);
@@ -167,13 +156,6 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 static int
 auto_annodex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  unsigned char * header = op->packet;
-
-  if (op->bytes < 8) return 0;
-
-  if (strncmp ((char *)header, "Annodex", 8)) return 0;
-  if (!op->b_o_s) return 0;
-
   /* Apply a zero metric */
   oggz_set_granulerate (oggz, serialno, 0, 1);
 
@@ -187,9 +169,6 @@ auto_anxdata (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
 
   if (op->bytes < 28) return 0;
-
-  if (strncmp ((char *)header, "AnxData", 8)) return 0;
-  if (!op->b_o_s) return 0;
 
   granule_rate_numerator = INT64_LE_AT(&header[8]);
   granule_rate_denominator = INT64_LE_AT(&header[16]);
@@ -209,24 +188,15 @@ static int
 auto_flac0 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
-  int content;
   ogg_int64_t granule_rate = 0;
 
-  if (op->b_o_s) {
-    if (op->bytes < 4) return 0;
-    if (strncmp ((char *)header, "fLaC", 4)) return 0;
-    oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_FLAC0);
-  } else {
-    content = oggz_stream_get_content (oggz, serialno);
-    if (content != OGGZ_CONTENT_FLAC0) return 0;
-
-    granule_rate = (ogg_int64_t) (header[14] << 12) | (header[15] << 4) | ((header[16] >> 4)&0xf);
+  granule_rate = (ogg_int64_t) (header[14] << 12) | (header[15] << 4) | 
+            ((header[16] >> 4)&0xf);
 #ifdef DEBUG
     printf ("Got flac rate %d\n", (int)granule_rate);
 #endif
     
-    oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
-  }
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
   return 1;
 }
@@ -239,11 +209,8 @@ auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   if (op->bytes < 51) return 0;
 
-  if (header[0] != 0x7f) return 0;
-  if (strncmp ((char *)&header[1], "FLAC", 4)) return 0;
-  if (!op->b_o_s) return 0;
-
-  granule_rate = (ogg_int64_t) (header[27] << 12) | (header[28] << 4) | ((header[29] >> 4)&0xf);
+  granule_rate = (ogg_int64_t) (header[27] << 12) | (header[28] << 4) | 
+            ((header[29] >> 4)&0xf);
 #ifdef DEBUG
   printf ("Got flac rate %d\n", (int)granule_rate);
 #endif
@@ -265,9 +232,6 @@ auto_oggpcm2 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   if (op->bytes < 28) return 0;
 
-  if (strncmp ((char *)header, "PCM     ", 8)) return 0;
-  if (!op->b_o_s) return 0;
-
   granule_rate = (ogg_int64_t) INT32_BE_AT(&header[16]);
 #ifdef DEBUG
   printf ("Got OggPCM2 rate %d\n", (int)granule_rate);
@@ -286,9 +250,6 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   int granuleshift;
 
   if (op->bytes < 28) return 0;
-
-  if (strncmp ((char *)header, "CMML", 4)) return 0;
-  if (!op->b_o_s) return 0;
 
   granule_rate_numerator = INT64_LE_AT(&header[12]);
   granule_rate_denominator = INT64_LE_AT(&header[20]);
@@ -311,40 +272,14 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 }
 
 static int
-auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
-{
-  unsigned char * header = op->packet;
-  int content;
-  
-  if (op->b_o_s) {
-    if (op->bytes < 8) return 0;
-    if (strncmp ((char *)header, "fishead", 8)) return 0;
-    oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_SKELETON);
-  } else if (op->e_o_s) {
-    content =  oggz_stream_get_content (oggz, serialno);
-    if (content != OGGZ_CONTENT_SKELETON) return 0;
-
-    /* Finished processing the skeleton; apply a zero metric */
-    oggz_set_granulerate (oggz, serialno, 0, 1);
-  }
-
-  return 1;
-}
-
-static int
 auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-  int content;
   unsigned char * header = op->packet;
   long fisbone_serialno; /* The serialno referred to in this fisbone */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
   int granuleshift;
 
   if (op->bytes < 48) return 0;
-
-  if (strncmp ((char *)header, "fisbone", 7)) return 0;
-  content =  oggz_stream_get_content (oggz, serialno);
-  if (content != OGGZ_CONTENT_SKELETON) return 0;
 
   fisbone_serialno = (long) INT32_LE_AT(&header[12]);
 
@@ -369,32 +304,68 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
-static const OggzReadPacket auto_readers[] = {
-  auto_speex,
-  auto_vorbis,
-  auto_theora,
-  auto_annodex,
-  auto_anxdata,
-  auto_flac0,
-  auto_flac,
-  auto_cmml,
-  auto_fishead,
-  auto_fisbone,
-  auto_oggpcm2,
-  NULL
-};
+static int
+auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  if (!op->b_o_s)
+  {
+    return auto_fisbone(oggz, op, serialno, user_data);
+  }
+  
+  oggz_set_granulerate (oggz, serialno, 0, 1);
+  
+  return 1;
+}
+
+const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
+  {"\200theora", 7, "Theora", auto_theora},
+  {"\001vorbis", 7, "Vorbis", auto_vorbis},
+  {"Speex", 5, "Speex", auto_speex},
+  {"PCM     ", 8, "PCM", auto_oggpcm2},
+  {"CMML\0\0\0\0", 8, "CMML", auto_cmml},
+  {"Annodex", 8, "Annodex", auto_annodex},
+  {"fishead", 7, "Skeleton", auto_fishead},
+  {"fLaC", 4, "Flac0", auto_flac0},
+  {"\177FLAC", 4, "Flac", auto_flac},
+  {"AnxData", 7, "AnxData", auto_anxdata},
+  {"", 0, "Unknown"}
+}; 
+
+int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
+
+  int i;
+  
+  for (i = 0; i < OGGZ_CONTENT_UNKNOWN; i++)
+  {
+    const oggz_auto_contenttype_t *codec = oggz_auto_codec_ident + i;
+    
+    if (og->body_len >= codec->bos_str_len &&
+              memcmp (og->body, codec->bos_str, codec->bos_str_len) == 0) {
+      
+      oggz_stream_set_content (oggz, serialno, i);
+      
+      return 1;
+    }
+  }
+                      
+  oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_UNKNOWN);
+  return 0;
+}
 
 int
-oggz_auto (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
+                void * user_data)
 {
   OggzReadPacket read_packet;
-  int i = 0;
+  int content = 0;
+  int will_run_function;
 
-  for (read_packet = auto_readers[0]; read_packet;
-       read_packet = auto_readers[++i]) {
-    if (read_packet (oggz, op, serialno, user_data)) return 0;
+  content = oggz_stream_get_content(oggz, serialno);
+  if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN) {
+    return 0;
   }
 
+  oggz_auto_codec_ident[content].reader(oggz, op, serialno, user_data);
   return 0;
 }
 

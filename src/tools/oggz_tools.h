@@ -36,7 +36,7 @@
 #include "config.h"
 
 const char *
-ot_page_identify (const ogg_page * og, char ** info);
+ot_page_identify (OGGZ *oggz, const ogg_page * og, char ** info);
 
 /*
  * Print a number of bytes to 3 significant figures

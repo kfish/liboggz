@@ -173,7 +173,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   int ret = 0;
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    content_type = ot_page_identify (og, NULL);
+    content_type = ot_page_identify (oggz, og, NULL);
 
     if (content_type) {
       if (!strcmp (content_type, "Theora")) {
