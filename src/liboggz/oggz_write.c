@@ -163,6 +163,9 @@ oggz_write_close (OGGZ * oggz)
 
   oggz_write_flush (oggz);
 
+  oggz_writer_packet_free (writer->current_zpacket);
+  oggz_writer_packet_free (writer->next_zpacket);
+
   oggz_vector_foreach (writer->packet_queue,
 		       (OggzFunc)oggz_writer_packet_free);
   oggz_vector_delete (writer->packet_queue);

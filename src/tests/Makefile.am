@@ -67,7 +67,7 @@ write_bad_granulepos_LDADD = $(OGGZ_LIBS)
 write_bad_packetno_SOURCES = write-bad-packetno.c
 write_bad_packetno_LDADD = $(OGGZ_LIBS)
 
-write_prefix_SOURCES = write-suffix.c
+write_prefix_SOURCES = write-prefix.c
 write_prefix_LDADD = $(OGGZ_LIBS)
 write_suffix_SOURCES = write-suffix.c
 write_suffix_LDADD = $(OGGZ_LIBS)

@@ -55,7 +55,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
 
   switch (packetno) {
   case 0:
-    INFO ("Feeding stream suffix");
+    INFO ("Feeding stream prefix");
     op.b_o_s = 1;
     op.e_o_s = 0;
     serialno = serialno1;
@@ -84,7 +84,7 @@ hungry (OGGZ * oggz, int empty, void * user_data)
   
   err = oggz_write_feed (oggz, &op, serialno, 0, NULL);
   if (err != 0) {
-    printf ("Error %d\n", err);
+    printf ("Error %ld\n", err);
     FAIL ("Could not feed OGGZ");
 #if 0
     switch (err) {
