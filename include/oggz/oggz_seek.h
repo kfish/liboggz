@@ -106,6 +106,17 @@ ogg_int64_t oggz_tell_units (OGGZ * oggz);
 ogg_int64_t oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence);
 
 /**
+ * Provide the exact stored granulepos (from the page header) if relevant to
+ * the current packet, or a constructed granulepos if the stored granulepos
+ * does not belong to this packet, or -1 if this codec does not have support
+ * for granulepos interpolation
+ * \param oggz An OGGZ handle
+ * \returns the granulepos of the \a current packet (if available)
+ */
+ogg_int64_t
+oggz_tell_granulepos (OGGZ * oggz);
+
+/**
  * Query the file offset in bytes corresponding to the data read.
  * \param oggz An OGGZ handle
  * \returns The current offset of oggz.

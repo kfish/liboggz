@@ -290,21 +290,16 @@ oggz_read_sync (OGGZ * oggz)
       }
 
       if(result > 0){
+        int content;
+        
 	/* got a packet.  process it */
 	granulepos = op->granulepos;
 
-        /*
-         * need to call oggz_auto to process Anx v2 streams which were headed
-         * with AnxData packets.  This enables the AnxData-provided granulerate
-         * to be overridden by the stream's rate if present
-         */
+        content = oggz_stream_get_content(oggz, serialno);
+        
 	if 
         (
-          (
-            !stream->metric 
-            || 
-            (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_SKELETON)
-          ) 
+          (!stream->metric || (content == OGGZ_CONTENT_SKELETON)) 
           && 
           (oggz->flags & OGGZ_AUTO)
         ) 
@@ -312,6 +307,15 @@ oggz_read_sync (OGGZ * oggz)
 	  oggz_auto_get_granulerate (oggz, op, serialno, NULL);
 	}
 
+        /* attempt to determine granulepos for this packet */
+        if (oggz->flags & OGGZ_AUTO) {
+          reader->current_granulepos = oggz_auto_calculate_granulepos (content, 
+                    granulepos, stream, op); 
+        } else {
+          reader->current_granulepos = granulepos;
+        }
+        stream->last_granulepos = reader->current_granulepos;
+        
 	/* set unit on last packet of page */
 	if ((oggz->metric || stream->metric) && granulepos != -1) {
 	  reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
@@ -365,6 +369,7 @@ oggz_read_sync (OGGZ * oggz)
       ogg_int64_t granulepos;
 
       granulepos = ogg_page_granulepos (&og);
+      stream->page_granulepos = granulepos;
 
       if ((oggz->metric || stream->metric) && granulepos != -1) {
 	reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);

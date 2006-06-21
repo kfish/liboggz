@@ -39,6 +39,7 @@
 		oggz_get_granuleshift;
 
 		oggz_tell;
+                oggz_tell_granulepos;
 		oggz_tell_units;
 		oggz_seek;
 		oggz_seek_units;

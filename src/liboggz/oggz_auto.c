@@ -42,11 +42,8 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <oggz/oggz.h>
-#include "oggz_auto.h"
+#include "oggz_private.h"
 #include "oggz_byteorder.h"
-#include "oggz_macros.h"
-#include "oggz_stream.h"
 
 /*#define DEBUG*/
 
@@ -317,18 +314,93 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
+static ogg_int64_t 
+auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+  
+  /*
+   * on the first (b_o_s) packet, set calculate_data to be the number
+   * of speex frames per packet
+   */
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = malloc(sizeof(int));
+    *(int *)stream->calculate_data = 
+        (*(int *)(op->packet + 64)) * (*(int *)(op->packet + 56));
+  }
+  
+  if (now > -1)
+    return now;
+
+  /*
+   * the first data packet has smaller-than-usual granulepos to account
+   * for the fact that several of the output samples from the beginning
+   * of this packet need to be thrown away.  We calculate the granulepos
+   * by taking the mod of the page's granulepos with respect to the increment
+   * between packets.
+   */
+  if (stream->last_granulepos == 0) {
+    return stream->page_granulepos % *(int *)(stream->calculate_data);
+  }
+  
+  return stream->last_granulepos + *(int *)(stream->calculate_data);
+}
+  
+static ogg_int64_t 
+auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+
+  long keyframe_no;
+  int keyframe_shift;
+  unsigned char first_byte;
+  
+  if (now > (ogg_int64_t)(-1))
+    return now;
+
+  first_byte = op->packet[0];
+
+  if (first_byte & 0x80)
+  {
+    /* header packet */
+    return (ogg_int64_t)0;
+  }
+  
+  if (first_byte & 0x40)
+  {
+    /* inter-coded packet */
+    return stream->last_granulepos + 1;
+  }
+
+  /* intra-coded packet */
+  if (stream->last_granulepos == 0)
+  {
+    /* first intra-coded packet */
+    return (ogg_int64_t)0;
+  }
+
+  keyframe_shift = stream->granuleshift; 
+  /*
+   * retrieve last keyframe number
+   */
+  keyframe_no = (int)(stream->last_granulepos >> keyframe_shift);
+  /*
+   * add frames since last keyframe number
+   */
+  keyframe_no += (stream->last_granulepos & ((1 << keyframe_shift) - 1)) + 1;
+  return ((ogg_int64_t)keyframe_no) << keyframe_shift;
+  
+
+}
+
 const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
-  {"\200theora", 7, "Theora", auto_theora},
-  {"\001vorbis", 7, "Vorbis", auto_vorbis},
-  {"Speex", 5, "Speex", auto_speex},
-  {"PCM     ", 8, "PCM", auto_oggpcm2},
-  {"CMML\0\0\0\0", 8, "CMML", auto_cmml},
-  {"Annodex", 8, "Annodex", auto_annodex},
-  {"fishead", 7, "Skeleton", auto_fishead},
-  {"fLaC", 4, "Flac0", auto_flac0},
-  {"\177FLAC", 4, "Flac", auto_flac},
-  {"AnxData", 7, "AnxData", auto_anxdata},
-  {"", 0, "Unknown"}
+  {"\200theora", 7, "Theora", auto_theora, auto_calc_theora},
+  {"\001vorbis", 7, "Vorbis", auto_vorbis, NULL},
+  {"Speex", 5, "Speex", auto_speex, auto_calc_speex},
+  {"PCM     ", 8, "PCM", auto_oggpcm2, NULL},
+  {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL},
+  {"Annodex", 8, "Annodex", auto_annodex, NULL},
+  {"fishead", 7, "Skeleton", auto_fishead, NULL},
+  {"fLaC", 4, "Flac0", auto_flac0, NULL},
+  {"\177FLAC", 4, "Flac", auto_flac, NULL},
+  {"AnxData", 7, "AnxData", auto_anxdata, NULL},
+  {"", 0, "Unknown", NULL}
 }; 
 
 int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
@@ -354,8 +426,7 @@ int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
 
 int
 oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
-                void * user_data)
-{
+                void * user_data) {
   OggzReadPacket read_packet;
   int content = 0;
   int will_run_function;
@@ -367,6 +438,17 @@ oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno,
 
   oggz_auto_codec_ident[content].reader(oggz, op, serialno, user_data);
   return 0;
+}
+
+ogg_int64_t 
+oggz_auto_calculate_granulepos(int content, ogg_int64_t now, 
+                oggz_stream_t *stream, ogg_packet *op) {
+  if (oggz_auto_codec_ident[content].calculator != NULL) {
+    return oggz_auto_codec_ident[content].calculator(now, stream, op);
+  } else {
+    return now;
+  }
+  
 }
 
 #endif /* OGGZ_CONFIG_READ */

@@ -173,6 +173,9 @@ oggz_stream_clear (void * data)
   if (stream->metric_internal)
     oggz_free (stream->metric_user_data);
 
+  if (stream->calculate_data != NULL)
+    oggz_free (stream->calculate_data);
+  
   oggz_free (stream);
 
   return 0;
@@ -234,6 +237,22 @@ oggz_tell_units (OGGZ * oggz)
 
   if (OGGZ_CONFIG_READ) {
     return reader->current_unit;
+  } else {
+    return OGGZ_ERR_DISABLED;
+  }
+}
+
+ogg_int64_t
+oggz_tell_granulepos (OGGZ * oggz)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+  
+  if (oggz->flags & OGGZ_WRITE) {
+    return OGGZ_ERR_INVALID;
+  }
+
+  if (OGGZ_CONFIG_READ) {
+    return oggz->x.reader.current_granulepos;
   } else {
     return OGGZ_ERR_DISABLED;
   }
@@ -319,6 +338,8 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   stream->read_page = NULL;
   stream->read_page_user_data = NULL;
 
+  stream->calculate_data = NULL;
+  
   oggz_vector_insert_p (oggz->streams, stream);
 
   return stream;

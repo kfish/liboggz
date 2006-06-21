@@ -33,16 +33,19 @@
 #ifndef __OGGZ_STREAM_H__
 #define __OGGZ_STREAM_H__
 
+typedef struct _oggz_stream_t oggz_stream_t;
+
 typedef struct {
   const char      *bos_str;
   int             bos_str_len;
   const char      *content_type;
   OggzReadPacket  reader;
+  ogg_int64_t     (*calculator)(ogg_int64_t now, oggz_stream_t *stream, 
+                  ogg_packet *op);
 } oggz_auto_contenttype_t;
 
 extern const oggz_auto_contenttype_t oggz_auto_codec_ident[];
 
-typedef struct _oggz_stream_t oggz_stream_t;
 
 oggz_stream_t * oggz_get_stream (OGGZ * oggz, long serialno);
 oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
