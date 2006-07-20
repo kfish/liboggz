@@ -41,7 +41,11 @@ fi
 #
 
 automake_version="none"
-if automake-1.7 --version >/dev/null 2>&1; then
+if automake-1.9 --version >/dev/null 2>&1; then
+  automake_version="-1.9"
+elif automake-1.8 --version >/dev/null 2>&1; then
+  automake_version="-1.8"
+elif automake-1.7 --version >/dev/null 2>&1; then
   automake_version="-1.7"
 elif automake-1.6 --version >/dev/null 2>&1; then
   automake_version="-1.6"
@@ -74,6 +78,8 @@ if test "$automake_version_major" -lt "5"; then
   exit 1
 fi
 
+AUTOMAKE="automake${automake_version}"
+ACLOCAL="aclocal${automake_version}"
 
 #
 # do we need pkg-config?
