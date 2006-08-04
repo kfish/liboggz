@@ -60,7 +60,7 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
-#define OGGZ_AUTO_MULT 1000
+#define OGGZ_AUTO_MULT 1000Ull
 
 static int
 auto_speex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
@@ -314,6 +314,15 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   return 1;
 }
 
+/*
+ * The first two speex packets are header and comment packets (granulepos = 0)
+ * The next packet is a data packet, and has a smaller-than-usual granulepos 
+ * (see below).
+ * Each other packet has a granulepos increment mandated by values in the 
+ * header packet.  See:
+ *         http://www.speex.org/manual2/node7.html#SECTION00073000000000000000
+ * for details on the header packet
+ */
 static ogg_int64_t 
 auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   
@@ -343,7 +352,15 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   
   return stream->last_granulepos + *(int *)(stream->calculate_data);
 }
-  
+
+/*
+ * Header packets are marked by a set MSB in the first byte.  Inter packets
+ * are marked by a set 2MSB in the first byte.  Intra packets (keyframes)
+ * are any that are left over ;-)
+ * 
+ * (see http://www.theora.org/doc/Theora_I_spec.pdf for the theora 
+ * specification)
+ */
 static ogg_int64_t 
 auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
@@ -389,9 +406,316 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
 }
 
+/*
+ * Vorbis packets can be short or long, and each packet overlaps the previous
+ * and next packets.  The granulepos of a packet is always the last sample
+ * that is completely decoded at the end of decoding that packet - i.e. the
+ * last packet before the first overlapping packet.  If the sizes of packets
+ * are 's' and 'l', then the increment will depend on the previous and next
+ * packet types:
+ *  v                             prev<<1 | next
+ * lll:           l/2             3
+ * lls:           3l/4 - s/4      2
+ * lsl:           s/2
+ * lss:           s/2
+ * sll:           l/4 + s/4       1
+ * sls:           l/2             0
+ * ssl:           s/2
+ * sss:           s/2
+ *
+ * The previous and next packet types can be inferred from the current packet
+ * (additional information is not required)
+ *
+ * The two blocksizes can be determined from the first header packet, by reading
+ * byte 28.  1 << (packet[28] >> 4) == long_size.  
+ * 1 << (packet[28] & 0xF) == short_size.
+ * 
+ * (see http://xiph.org/vorbis/doc/Vorbis_I_spec.html for specification)
+ */
+
+typedef struct {
+  int nln_increments[4];
+  int nsn_increment;
+  int short_size;
+  int long_size;
+  int encountered_first_data_packet;
+  int last_was_long;
+  int log2_num_modes;
+  int mode_sizes[1];
+} auto_calc_vorbis_info_t;
+        
+
+static ogg_int64_t 
+auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+
+  auto_calc_vorbis_info_t *info;
+  
+  if (stream->calculate_data == NULL) {
+    /*
+     * on the first (b_o_s) packet, determine the long and short sizes,
+     * and then calculate l/2, l/4 - s/4, 3 * l/4 - s/4, l/2 - s/2 and s/2
+     */
+    int short_size;
+    int long_size;
+  
+    long_size = 1 << (op->packet[28] >> 4);
+    short_size = 1 << (op->packet[28] & 0xF);
+
+    stream->calculate_data = malloc(sizeof(auto_calc_vorbis_info_t));
+    info = (auto_calc_vorbis_info_t *)stream->calculate_data;
+    info->nln_increments[3] = long_size >> 1;
+    info->nln_increments[2] = 3 * (long_size >> 2) - (short_size >> 2);
+    info->nln_increments[1] = (long_size >> 2) + (short_size >> 2);
+    info->nln_increments[0] = info->nln_increments[3];
+    info->short_size = short_size;
+    info->long_size = long_size;
+    info->nsn_increment = short_size >> 1;
+    info->encountered_first_data_packet = 0;
+
+    /* this is a header packet */
+    return 0;
+  }
+
+  /*
+   * marker for header packets
+   */
+  if (op->packet[0] & 0x1) {
+    /*
+     * the code pages, a whole bunch of other fairly useless stuff, AND,
+     * RIGHT AT THE END (of a bunch of variable-length compressed rubbish that
+     * basically has only one actual set of values that everyone uses BUT YOU 
+     * CAN'T BE SURE OF THAT, OH NO YOU CAN'T) is the only piece of data that's
+     * actually useful to us - the packet modes (because it's inconceivable to
+     * think people might want _just that_ and nothing else, you know, for 
+     * seeking and stuff).
+     *
+     * Fortunately, because of the mandate that non-used bits must be zero
+     * at the end of the packet, we might be able to sneakily work backwards
+     * and find out the information we need (namely a mapping of modes to
+     * packet sizes)
+     */
+    if (op->packet[0] == 5) {
+      unsigned char *current_pos = &op->packet[op->bytes - 1];
+      int offset;
+      int size;
+      int size_check;
+      int *mode_size_ptr;
+      int i;
+      
+      /* 
+       * This is the format of the mode data at the end of the packet for all
+       * Vorbis Version 1 :
+       * 
+       * [ 6:number_of_modes ]
+       * [ 1:size | 16:window_type(0) | 16:transform_type(0) | 8:mapping ]
+       * [ 1:size | 16:window_type(0) | 16:transform_type(0) | 8:mapping ]
+       * [ 1:size | 16:window_type(0) | 16:transform_type(0) | 8:mapping ]
+       * [ 1:framing(1) ]
+       *
+       * e.g.:
+       *
+       *              <-
+       * 0 0 0 0 0 1 0 0
+       * 0 0 1 0 0 0 0 0
+       * 0 0 1 0 0 0 0 0
+       * 0 0 1|0 0 0 0 0 
+       * 0 0 0 0|0|0 0 0
+       * 0 0 0 0 0 0 0 0
+       * 0 0 0 0|0 0 0 0
+       * 0 0 0 0 0 0 0 0
+       * 0 0 0 0|0 0 0 0
+       * 0 0 0|1|0 0 0 0 |
+       * 0 0 0 0 0 0 0 0 V
+       * 0 0 0|0 0 0 0 0
+       * 0 0 0 0 0 0 0 0
+       * 0 0 1|0 0 0 0 0 
+       * 0 0|1|0 0 0 0 0 
+       * 
+       *  
+       * i.e. each entry is an important bit, 32 bits of 0, 8 bits of blah, a 
+       * bit of 1.
+       * Let's find our last 1 bit first.
+       *
+       */
+
+      size = 0;
+
+      offset = 8;
+      while (!((1 << --offset) & *current_pos)) {
+        if (offset == 0) {
+          offset = 8;
+          current_pos -= 1;
+        }
+      }
+
+      while (1)
+      {
+        
+        /*
+         * from current_pos-5:(offset+1) to current_pos-1:(offset+1) should
+         * be zero
+         */
+        offset = (offset + 7) % 8;
+        if (offset == 7)
+          current_pos -= 1;
+        
+        if 
+        (
+          ((current_pos[-5] & ~((1 << (offset + 1)) - 1)) != 0)
+          ||
+          current_pos[-4] != 0 
+          || 
+          current_pos[-3] != 0 
+          || 
+          current_pos[-2] != 0
+          ||
+          ((current_pos[-1] & ((1 << (offset + 1)) - 1)) != 0)
+        )
+        {
+          break;
+        }
+        
+        size += 1;
+        
+        current_pos -= 5;
+        
+      } 
+
+      if (offset > 4) {
+        size_check = (current_pos[0] >> (offset - 5)) & 0x3F;
+      } else {
+        /* mask part of byte from current_pos */
+        size_check = (current_pos[0] & ((1 << (offset + 1)) - 1));
+        /* shift to appropriate position */
+        size_check <<= (5 - offset);
+        /* or in part of byte from current_pos - 1 */
+        size_check |= (current_pos[-1] & ~((1 << (offset + 3)) - 1)) >> 
+                (offset + 3);
+      }
+      
+      size_check += 1;
+      if (size_check != size)
+      {
+        printf("WARNING: size parsing failed for VORBIS mode packets\n");
+      }
+
+      /*
+       * store mode size information in our info struct
+       */
+      stream->calculate_data = realloc(stream->calculate_data,
+              sizeof(auto_calc_vorbis_info_t) + (size - 1) * sizeof(int));
+      info = (auto_calc_vorbis_info_t *)(stream->calculate_data);
+      
+      i = -1;
+      while ((1 << (++i)) < size);
+      info->log2_num_modes = i;
+
+      mode_size_ptr = info->mode_sizes;
+
+      for(i = 0; i < size; i++)
+      {
+        offset = (offset + 1) % 8;
+        if (offset == 0)
+          current_pos += 1;
+        *mode_size_ptr++ = (current_pos[0] >> offset) & 0x1;
+        current_pos += 5;
+      }
+      
+    }
+    
+    return 0;
+  }
+
+  info = (auto_calc_vorbis_info_t *)stream->calculate_data;
+
+  if (now > -1)
+  {
+    info->encountered_first_data_packet = 1;
+    //return now;
+  }
+ 
+  { 
+    /*
+     * we're in a data packet!  First we need to get the mode of the packet,
+     * and from the mode, the size
+     */
+    int mode;
+    int size;
+    int prev_bit;
+    int next_bit;
+    int result;
+
+    mode = (op->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
+    size = info->mode_sizes[mode];
+  
+    /*
+     * the first packet is always 0
+     */
+    if (!info->encountered_first_data_packet) {
+      info->encountered_first_data_packet = 1;
+      info->last_was_long = size;
+      return 0;
+    }
+ 
+    /*
+     * the second pos is an increment of half the current packetsize only
+     */
+    if (stream->last_granulepos == 0) {
+      info->last_was_long = size;
+      return (size ? info->long_size : info->short_size) / 2;
+    }
+  
+    /*
+     * if it's a short packet, then we can just use nsn_increment
+     *
+    if (size == 0)
+    {
+      return stream->last_granulepos + info->nsn_increment;
+    }
+     * actually, this is not how the decoder behaves.  It always decodes
+     * no further than the middle of the current packet, regardless of the
+     * number of additional samples that could be fully decoded.
+     */
+
+    result = stream->last_granulepos + 
+      (
+        (info->last_was_long ? info->long_size  : info->short_size) 
+        + 
+        (size ? info->long_size : info->short_size)
+      ) / 4;
+    info->last_was_long = size;
+    return result;
+    
+    /*
+     * I'll keep this around for now - it might come in handy if the 
+     * specification and the vorbis code ever match
+     *
+    prev_bit = info->log2_num_modes + 1;
+    next_bit = prev_bit + 1;
+
+    prev_bit = (op->packet[0] >> prev_bit) & 0x1;
+
+    if (next_bit == 8)
+    {
+      next_bit = op->packet[1] & 0x1;
+    }
+    else
+    {
+      next_bit = (op->packet[0] >> next_bit) & 0x1;
+    }
+
+    return stream->last_granulepos + 
+            info->nln_increments[(prev_bit << 1) | next_bit];
+     */
+  }
+  
+  
+  return now;
+  
+}
 const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"\200theora", 7, "Theora", auto_theora, auto_calc_theora},
-  {"\001vorbis", 7, "Vorbis", auto_vorbis, NULL},
+  {"\001vorbis", 7, "Vorbis", auto_vorbis, auto_calc_vorbis},
   {"Speex", 5, "Speex", auto_speex, auto_calc_speex},
   {"PCM     ", 8, "PCM", auto_oggpcm2, NULL},
   {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL},
@@ -429,7 +753,6 @@ oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno,
                 void * user_data) {
   OggzReadPacket read_packet;
   int content = 0;
-  int will_run_function;
 
   content = oggz_stream_get_content(oggz, serialno);
   if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN) {

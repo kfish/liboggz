@@ -296,7 +296,10 @@ oggz_read_sync (OGGZ * oggz)
 	granulepos = op->granulepos;
 
         content = oggz_stream_get_content(oggz, serialno);
-        
+  
+  /*
+   * if we have no metrics for this stream yet, then generate them
+   */      
 	if 
         (
           (!stream->metric || (content == OGGZ_CONTENT_SKELETON)) 
@@ -317,8 +320,9 @@ oggz_read_sync (OGGZ * oggz)
         stream->last_granulepos = reader->current_granulepos;
         
 	/* set unit on last packet of page */
-	if ((oggz->metric || stream->metric) && granulepos != -1) {
-	  reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
+	if ((oggz->metric || stream->metric) && reader->current_granulepos != -1) {
+	  reader->current_unit = oggz_get_unit (oggz, serialno, 
+                                          reader->current_granulepos);
 	}
 
 	if (stream->read_packet) {
@@ -372,9 +376,9 @@ oggz_read_sync (OGGZ * oggz)
       stream->page_granulepos = granulepos;
 
       if ((oggz->metric || stream->metric) && granulepos != -1) {
-	reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
+	      reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
       } else if (granulepos == 0) {
-	reader->current_unit = 0;
+	      reader->current_unit = 0;
       }
     }
 

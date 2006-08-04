@@ -245,6 +245,16 @@ int oggz_purge (OGGZ * oggz);
 int oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
                 void * user_data);
 
+int
+oggz_set_granulerate (OGGZ * oggz, long serialno, 
+                                    ogg_int64_t granule_rate_numerator,
+                                    ogg_int64_t granule_rate_denominator);
+
+int
+oggz_get_granulerate (OGGZ * oggz, long serialno,
+                                    ogg_int64_t * granulerate_n,
+                                    ogg_int64_t * granulerate_d);
+
 /* oggz_io */
 size_t oggz_io_read (OGGZ * oggz, void * buf, size_t n);
 size_t oggz_io_write (OGGZ * oggz, void * buf, size_t n);
