@@ -28,7 +28,7 @@ noinst_HEADERS = oggz_tools.h
 bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
 noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
-oggzinfo_SOURCES = oggzinfo.c oggz_tools.c
+oggzinfo_SOURCES = oggzinfo.c oggz_tools.c skeleton.c
 oggzinfo_LDADD = $(OGGZ_LIBS) -lm
 
 oggzdump_SOURCES = oggzdump.c oggz_tools.c

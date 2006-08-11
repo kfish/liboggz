@@ -32,6 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <limits.h> /* LONG_MAX */
 #include <math.h>
 
@@ -40,6 +41,8 @@
 
 #include <oggz/oggz.h>
 #include "oggz_tools.h"
+
+#include "skeleton.h"
 
 #ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
@@ -112,12 +115,17 @@ struct _OI_TrackInfo {
   OI_Stats packets;
   const char * codec_name;
   char * codec_info;
+  int has_fishead;
+  int has_fisbone;
+  fishead_packet fhInfo;
+  fisbone_packet fbInfo;
 };
 
 static int show_length = 0;
 static int show_bitrate = 0;
 static int show_page_stats = 0;
 static int show_packet_stats = 0;
+static int show_extra_skeleton_info = 0;
 
 static void
 oggzinfo_apply (OI_TrackFunc func, OI_Info * info)
@@ -160,6 +168,9 @@ oggzinfo_trackinfo_new (void)
   oit->codec_name = NULL;
   oit->codec_info = NULL;
 
+  oit->has_fishead = 0;
+  oit->has_fisbone = 0;
+
   return oit;
 }
 
@@ -190,6 +201,42 @@ oi_stats_print (OI_Info * info, OI_Stats * stats, char * label)
 	  stats->length_min, stats->length_max, stats->length_stddev);
   */
 #endif
+}
+
+static void
+ot_fishead_print(OI_TrackInfo *oit) {
+  if (oit->has_fishead) {
+    /*
+    printf("\tPresentation Time: %.2f\n", (double)oit->fhInfo.ptime_n/oit->fhInfo.ptime_d);
+    printf("\tBase Time: %.2f\n", (double)oit->fhInfo.btime_n/oit->fhInfo.btime_d);
+    */
+    printf("\tSkeleton version: %d.%d\n", oit->fhInfo.version_major, oit->fhInfo.version_minor);
+    /*printf("\tUTC: %s\n", oit->fhInfo.UTC);*/
+  }
+}
+
+static void
+ot_fisbone_print(OI_TrackInfo *oit) {
+
+  char *messages, *token;
+  
+  if (oit->has_fisbone) {
+    printf("\n\tExtra information from Ogg Skeleton\n");
+    printf("\tserialno: %010d\n", oit->fbInfo.serial_no);
+    printf("\tNumber of header packets: %d\n", oit->fbInfo.nr_header_packet);
+    printf("\tGranule rate: %.2f\n", (double)oit->fbInfo.granule_rate_n/oit->fbInfo.granule_rate_d);
+    printf("\tStart granule: %" PRId64 "\n", oit->fbInfo.start_granule);
+    printf("\tPreroll: %d\n", oit->fbInfo.preroll);
+    messages = token = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
+    strcpy(messages, oit->fbInfo.message_header_fields);
+    printf("\tMessage Header Fields:\n");
+    while (1) {
+      token = strsep(&messages, "\n\r");
+      printf("\t %s\n", token);
+      if (messages == NULL)
+	break;
+    }
+  }
 }
 
 /* oggzinfo_trackinfo_print() */
@@ -228,7 +275,15 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
   if (show_packet_stats) {
     oi_stats_print (info, &oit->packets, "Packet");
   }
-}
+
+  if (show_extra_skeleton_info && oit->has_fishead) {
+    ot_fishead_print(oit);
+  }
+  if (show_extra_skeleton_info && oit->has_fisbone) {
+    ot_fisbone_print(oit);
+  }
+
+ }
 
 static void
 oi_stats_average (OI_Stats * stats)
@@ -327,6 +382,17 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
   if (op->bytes > oit->packets.length_max)
     oit->packets.length_max = op->bytes;
 
+  if (!op->e_o_s && !memcmp(op->packet, FISBONE_IDENTIFIER, 8)) {
+    fisbone_packet fp = fisbone_from_ogg(op);
+    oit = oggz_table_lookup (info->tracks, fp.serial_no);
+    oit->has_fisbone = 1;
+    oit->fbInfo = fp;
+  } else if (!op->e_o_s && !memcmp(op->packet, FISHEAD_IDENTIFIER, 8)) {
+    fishead_packet fp = fishead_from_ogg(op);
+    oit->has_fishead = 1;
+    oit->fhInfo = fp;    
+  }
+
   return 0;
 }
 
@@ -408,7 +474,7 @@ main (int argc, char ** argv)
   }
 
   while (1) {
-    char * optstring = "hvlbgpa";
+    char * optstring = "hvlbgpka";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
@@ -418,6 +484,7 @@ main (int argc, char ** argv)
       {"bitrate", no_argument, 0, 'b'},
       {"page-stats", no_argument, 0, 'g'},
       {"packet-stats", no_argument, 0, 'p'},
+      {"skeleton", no_argument, 0, 'k'},
       {"all", no_argument, 0, 'a'},
       {0,0,0,0}
     };
@@ -451,6 +518,9 @@ main (int argc, char ** argv)
     case 'p': /* packet stats */
       show_packet_stats = 1;
       break;
+    case 'k': /* extra skeleton info */
+      show_extra_skeleton_info = 1;
+      break;
     case 'a':
       show_all = 1;
       break;
@@ -481,6 +551,7 @@ main (int argc, char ** argv)
     show_bitrate = 1;
     show_page_stats = 1;
     show_packet_stats = 1;
+    show_extra_skeleton_info = 1;
   }
 
   if (argc > optind+1) {
