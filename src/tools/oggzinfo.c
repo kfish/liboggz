@@ -62,6 +62,7 @@ usage (char * progname)
   printf ("  -b, --bitrate          Display bitrate information\n");
   printf ("  -g, --page-stats       Display Ogg page statistics\n");
   printf ("  -p, --packet-stats     Display Ogg packet statistics\n");
+  printf ("  -k, --skeleton         Display Extra data from OggSkeleton bitstream\n");
   printf ("  -a, --all              Display all information\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");

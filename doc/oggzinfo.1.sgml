@@ -65,6 +65,7 @@ manpage.1: manpage.sgml
       <group><arg choice="opt">-b</arg><arg choice="opt">--bitrate</arg></group>
       <group><arg choice="opt">-g</arg><arg choice="opt">--page-stats</arg></group>
       <group><arg choice="opt">-p</arg><arg choice="opt">--packet-stats</arg></group>
+      <group><arg choice="opt">-k</arg><arg choice="opt">--skeleton</arg></group>
       <group><arg choice="opt">-a</arg><arg choice="opt">--all</arg></group>
       <arg choice="plain" rep="repeat">filename</arg>
     </cmdsynopsis>
@@ -114,7 +115,12 @@ manpage.1: manpage.sgml
 	  <term>-p, --packet-stats</term>
 	  <listitem><para>Display Ogg packet statistics.</para></listitem>
 	</varlistentry>
-
+  
+	<varlistentry>
+	  <term>-k, --skeleton</term>
+	  <listitem><para>Display Extra data from OggSkeleton bitstream.</para></listitem>
+	</varlistentry>
+	
 	<varlistentry>
 	  <term>-a, --all</term>
 	  <listitem><para>Display all information.</para></listitem>
