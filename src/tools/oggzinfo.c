@@ -232,10 +232,11 @@ ot_fisbone_print(OI_TrackInfo *oit) {
     printf("\tMessage Header Fields:\n");
     while (1) {
       token = strsep(&messages, "\n\r");
-      printf("\t %s\n", token);
+      printf("\t %s", token);
       if (messages == NULL)
 	break;
     }
+    printf("\n");
   }
 }
 
