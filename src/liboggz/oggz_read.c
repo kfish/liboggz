@@ -60,8 +60,8 @@
 #include "oggz_compat.h"
 #include "oggz_private.h"
 
-/*#define DEBUG*/
-/*#define DEBUG_VERBOSE*/
+/* #define DEBUG */
+/* #define DEBUG_VERBOSE */
 
 #define CHUNKSIZE 65536
 
@@ -258,84 +258,101 @@ oggz_read_sync (OGGZ * oggz)
 
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
-  while(cb_ret == 0){
+  while(cb_ret == 0) {
 
     if (reader->current_serialno != -1) {
     /* process a packet if we can.  If the machine isn't loaded,
        neither is a page */
-    while(cb_ret == 0) {
-      ogg_int64_t granulepos;
-      int result;
+      while(cb_ret == 0) {
+        ogg_int64_t granulepos;
+        int result;
 
-      serialno = reader->current_serialno;
+        serialno = reader->current_serialno;
 
-      stream = oggz_get_stream (oggz, serialno);
+        stream = oggz_get_stream (oggz, serialno);
 
-      if (stream == NULL) {
-	/* new stream ... check bos etc. */
-	if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
-	  /* error -- could not add stream */
-	  return -7;
-	}
-      }
-      os = &stream->ogg_stream;
-
-      result = ogg_stream_packetout(os, op);
-
-      if(result == -1) {
-#ifdef DEBUG
-	printf ("oggz_read_sync: hole in the data\n");
-#endif
-	return -7;
-      }
-
-      if(result > 0){
-        int content;
-        
-	/* got a packet.  process it */
-	granulepos = op->granulepos;
-
-        content = oggz_stream_get_content(oggz, serialno);
-  
-  /*
-   * if we have no metrics for this stream yet, then generate them
-   */      
-	if 
-        (
-          (!stream->metric || (content == OGGZ_CONTENT_SKELETON)) 
-          && 
-          (oggz->flags & OGGZ_AUTO)
-        ) 
-        {
-	  oggz_auto_get_granulerate (oggz, op, serialno, NULL);
-	}
-
-        /* attempt to determine granulepos for this packet */
-        if (oggz->flags & OGGZ_AUTO) {
-          reader->current_granulepos = oggz_auto_calculate_granulepos (content, 
-                    granulepos, stream, op); 
-        } else {
-          reader->current_granulepos = granulepos;
+        if (stream == NULL) {
+        	/* new stream ... check bos etc. */
+        	if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
+      	    /* error -- could not add stream */
+      	    return -7;
+        	}
         }
-        stream->last_granulepos = reader->current_granulepos;
-        
-	/* set unit on last packet of page */
-	if ((oggz->metric || stream->metric) && reader->current_granulepos != -1) {
-	  reader->current_unit = oggz_get_unit (oggz, serialno, 
-                                          reader->current_granulepos);
-	}
+        os = &stream->ogg_stream;
 
-	if (stream->read_packet) {
-	  cb_ret =
-	    stream->read_packet (oggz, op, serialno, stream->read_user_data);
-	} else if (reader->read_packet) {
-	  cb_ret =
-	    reader->read_packet (oggz, op, serialno, reader->read_user_data);
-	}
+        result = ogg_stream_packetout(os, op);
+
+        if(result == -1) {
+#ifdef DEBUG
+        	printf ("oggz_read_sync: hole in the data\n");
+#endif
+          result = ogg_stream_packetout(os, op);
+          if (result == -1) {
+#ifdef DEBUG
+            /*
+             * libogg flags "holes in the data" (which are really 
+             * inconsistencies in the page sequence number) by returning
+             * -1.  This occurs in some files and pretty much doesn't matter,
+             *  so we silently swallow the notification and reget the packet.
+             *  If the result is *still* -1 then something strange is happening.
+             */
+            printf ("shouldn't get here");
+#endif
+            return -7;
+          }
+        }
+
+        if(result > 0){
+          int content;
+          
+	        /* got a packet.  process it */
+	        granulepos = op->granulepos;
+
+          content = oggz_stream_get_content(oggz, serialno);
+  
+          /*
+           * if we have no metrics for this stream yet, then generate them
+           */      
+        	if 
+          (
+            (!stream->metric || (content == OGGZ_CONTENT_SKELETON)) 
+            && 
+            (oggz->flags & OGGZ_AUTO)
+          ) 
+          {
+        	  oggz_auto_get_granulerate (oggz, op, serialno, NULL);
+        	}
+
+          /* attempt to determine granulepos for this packet */
+          if (oggz->flags & OGGZ_AUTO) {
+            reader->current_granulepos = 
+              oggz_auto_calculate_granulepos (content, granulepos, stream, op); 
+          } else {
+            reader->current_granulepos = granulepos;
+          }
+          stream->last_granulepos = reader->current_granulepos;
+        
+        	/* set unit on last packet of page */
+        	if 
+          (
+            (oggz->metric || stream->metric) && reader->current_granulepos != -1
+          ) 
+          {
+      	    reader->current_unit = oggz_get_unit (oggz, serialno, 
+                                          reader->current_granulepos);
+        	}
+
+        	if (stream->read_packet) {
+        	  cb_ret =
+	            stream->read_packet (oggz, op, serialno, stream->read_user_data);
+        	} else if (reader->read_packet) {
+	          cb_ret =
+      	      reader->read_packet (oggz, op, serialno, reader->read_user_data);
+        	}
+        }
+        else
+        	break;
       }
-      else
-	break;
-    }
     }
 
     /* If we've got a stop already, don't read more data in */
@@ -352,8 +369,8 @@ oggz_read_sync (OGGZ * oggz)
     if (stream == NULL) {
       /* new stream ... check bos etc. */
       if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
-	/* error -- could not add stream */
-	return -7;
+	      /* error -- could not add stream */
+      	return -7;
       }
 
       /* identify stream type */
@@ -376,18 +393,18 @@ oggz_read_sync (OGGZ * oggz)
       stream->page_granulepos = granulepos;
 
       if ((oggz->metric || stream->metric) && granulepos != -1) {
-	      reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
+       reader->current_unit = oggz_get_unit (oggz, serialno, granulepos);
       } else if (granulepos == 0) {
-	      reader->current_unit = 0;
+       reader->current_unit = 0;
       }
     }
 
     if (stream->read_page) {
       cb_ret =
-	stream->read_page (oggz, &og, serialno, stream->read_page_user_data);
+	      stream->read_page (oggz, &og, serialno, stream->read_page_user_data);
     } else if (reader->read_page) {
       cb_ret = reader->read_page (oggz, &og, serialno,
-				  reader->read_page_user_data);
+		  		  reader->read_page_user_data);
     }
 
 #if 0
