@@ -11,6 +11,10 @@
 
 #include "skeleton.h"
 
+#ifdef WIN32                                                                   
+#define snprintf _snprintf
+#endif 
+
 /* write an ogg_page to a file pointer */
 int write_ogg_page_to_file(ogg_page *og, FILE *out) {
    int written;

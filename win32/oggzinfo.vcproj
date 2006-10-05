@@ -167,6 +167,12 @@
 						BasicRuntimeChecks="3"/>
 				</FileConfiguration>
 			</File>
+			<File
+				RelativePath="..\src\tools\skeleton.c">
+			</File>
+			<File
+				RelativePath=".\strsep.c">
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
