@@ -87,8 +87,10 @@ oggz_io_write (OGGZ * oggz, void * buf, size_t n)
     bytes = io->write (io->write_user_handle, buf, n);
   }
 
-  else return (size_t) OGGZ_ERR_INVALID;
-
+  else {
+    return (size_t) OGGZ_ERR_INVALID;
+  }
+    
   return bytes;
 }
 
