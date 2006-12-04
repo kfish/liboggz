@@ -170,6 +170,28 @@ ot_speex_info (unsigned char * data, long len)
 }
 
 static char *
+ot_flac_info (unsigned char * data, long len)
+{
+  char * buf;
+  int samplerate;
+  int channels;
+
+  if (len < 30) return NULL;
+
+  buf = malloc (60);
+
+  samplerate = (ogg_int64_t) (data[27] << 12) | (data[28] << 4) | 
+               ((data[29] >> 4)&0xf);
+  channels = 1 + (data[29] >> 1)&0x7;
+
+  snprintf (buf, 60,
+	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
+            samplerate, channels);
+
+  return buf;
+}
+
+static char *
 ot_oggpcm2_info (unsigned char * data, long len)
 {
   char * buf;
@@ -211,7 +233,7 @@ static const OTCodecInfoFunc codec_ident[] = {
   NULL,             /* ANNODEX */
   ot_skeleton_info,
   NULL,             /* FLAC0 */
-  NULL,             /* FLAC */
+  ot_flac_info,     /* FLAC */
   NULL,             /* ANXDATA */
   NULL              /* UNKOWN */
 };
