@@ -46,18 +46,25 @@ read_comments (OGGZ * oggz, long serialno)
 {
   const OggzComment * comment;
   const char * vendor;
+  const char * content_type;
+
+  content_type = oggz_stream_get_content_type (oggz, serialno);
+
+  printf ("%s: serial %010ld\n\n", content_type, serialno);
 
   vendor = oggz_comment_get_vendor (oggz, serialno);
-  if (vendor) puts (vendor);
+  if (vendor) printf ("  Vendor: %s\r\n", vendor);
 
   for (comment = oggz_comment_first (oggz, serialno); comment;
        comment = oggz_comment_next (oggz, serialno, comment)) {
     if (comment->value) {
-      printf ("%s: %s\r\n", comment->name, comment->value);
+      printf ("  %s: %s\r\n", comment->name, comment->value);
     } else {
-      printf ("%s\r\n", comment->name);
+      printf ("  %s\r\n", comment->name);
     }
   }
+
+  puts ("\r\n");
 }
 
 static int
