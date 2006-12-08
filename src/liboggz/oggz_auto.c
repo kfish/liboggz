@@ -782,10 +782,14 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
 
   switch (stream->content) {
     case OGGZ_CONTENT_VORBIS:
+      if (op->bytes > 7 && memcmp (op->packet, "\003vorbis", 7) == 0)
+        offset = 7;
       break;
     case OGGZ_CONTENT_SPEEX:
       offset = 0; break;
     case OGGZ_CONTENT_THEORA:
+      if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)
+        offset = 7;
       break;
     default:
       break;
