@@ -136,15 +136,49 @@ oggz_vector_nth_l (OggzVector * vector, int n)
 }
 
 void *
-oggz_vector_find (OggzVector * vector, OggzFindFunc func, long serialno)
+oggz_vector_find_p (OggzVector * vector, const void * data)
 {
-  void * data;
+  void * d;
+  int i;
+
+  if (vector->compare == NULL) -1;
+
+  for (i = 0; i < vector->nr_elements; i++) {
+    d = vector->data[i].p;
+    if (vector->compare (d, data, vector->compare_user_data))
+      return d;
+  }
+
+  return NULL;
+}
+
+int
+oggz_vector_find_index_p (OggzVector * vector, const void * data)
+{
+  void * d;
+  int i;
+
+  if (vector->compare == NULL) -1;
+
+  for (i = 0; i < vector->nr_elements; i++) {
+    d = vector->data[i].p;
+    if (vector->compare (d, data, vector->compare_user_data))
+      return i;
+  }
+
+  return -1;
+}
+
+void *
+oggz_vector_find_with (OggzVector * vector, OggzFindFunc func, long serialno)
+{
+  void * d;
   int i;
 
   for (i = 0; i < vector->nr_elements; i++) {
-    data = vector->data[i].p;
-    if (func (data, serialno))
-      return data;
+    d = vector->data[i].p;
+    if (func (d, serialno))
+      return d;
   }
 
   return NULL;

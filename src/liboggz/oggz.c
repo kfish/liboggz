@@ -167,6 +167,8 @@ oggz_stream_clear (void * data)
 {
   oggz_stream_t * stream = (oggz_stream_t *) data;
 
+  oggz_comments_free (stream);
+
   if (stream->ogg_stream.serialno != -1)
     ogg_stream_clear (&stream->ogg_stream);
 
@@ -301,7 +303,7 @@ oggz_get_stream (OGGZ * oggz, long serialno)
 {
   if (serialno < 0) return NULL;
 
-  return oggz_vector_find (oggz->streams, oggz_find_stream, serialno);
+  return oggz_vector_find_with (oggz->streams, oggz_find_stream, serialno);
 }
 
 oggz_stream_t *
@@ -313,6 +315,8 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   if (stream == NULL) return NULL;
 
   ogg_stream_init (&stream->ogg_stream, (int)serialno);
+
+  oggz_comments_init (stream);
 
   stream->content = OGGZ_CONTENT_UNKNOWN;
   stream->nr_headers = 0;
@@ -326,7 +330,7 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   stream->b_o_s = 1;
   stream->e_o_s = 0;
   stream->granulepos = 0;
-  stream->packetno = -1; /* will be incremented on first write */
+  stream->packetno = -1; /* will be incremented on first read or write */
 
   stream->metric = NULL;
   stream->metric_user_data = NULL;

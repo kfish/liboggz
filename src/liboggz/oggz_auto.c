@@ -774,4 +774,28 @@ oggz_auto_calculate_granulepos(int content, ogg_int64_t now,
   
 }
 
+int
+oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
+                         ogg_packet * op)
+{
+  int offset = -1;
+
+  switch (stream->content) {
+    case OGGZ_CONTENT_VORBIS:
+      break;
+    case OGGZ_CONTENT_SPEEX:
+      offset = 0; break;
+    case OGGZ_CONTENT_THEORA:
+      break;
+    default:
+      break;
+  }
+
+  if (offset >= 0) {
+    oggz_comments_decode (oggz, serialno, op->packet+offset, op->bytes-offset);
+  }
+
+  return 0;
+}
+
 #endif /* OGGZ_CONFIG_READ */

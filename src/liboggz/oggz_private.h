@@ -43,6 +43,7 @@
 #include "oggz_vector.h"
 
 typedef struct _OGGZ OGGZ;
+typedef struct _OggzComment OggzComment;
 typedef struct _OggzIO OggzIO;
 typedef struct _OggzReader OggzReader;
 typedef struct _OggzWriter OggzWriter;
@@ -83,6 +84,10 @@ struct _oggz_stream_t {
   ogg_int64_t granulerate_d;
   ogg_int64_t basegranule;
   int granuleshift;
+
+  /* The comments */
+  char * vendor;
+  OggzVector * comments;
 
   /** CURRENT STATE **/
   /* non b_o_s packet has been written (not just queued) */
@@ -194,6 +199,14 @@ struct _OggzIO {
   void * flush_user_handle;
 };
 
+struct _OggzComment {
+  /** The name of the comment, eg. "AUTHOR" */
+  char * name;
+
+  /** The value of the comment, as UTF-8 */
+  char * value;
+};
+
 struct _OGGZ {
   int flags;
   FILE * file;
@@ -254,6 +267,18 @@ int
 oggz_get_granulerate (OGGZ * oggz, long serialno,
                                     ogg_int64_t * granulerate_n,
                                     ogg_int64_t * granulerate_d);
+
+int
+oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
+                         ogg_packet * op);
+
+/* comments */
+int oggz_comments_init (oggz_stream_t * stream);
+int oggz_comments_free (oggz_stream_t * stream);
+int oggz_comments_decode (OGGZ * oggz, long serialno,
+                          unsigned char * comments, long length);
+long oggz_comments_encode (OGGZ * oggz, long serialno,
+                           unsigned char * buf, long length);
 
 /* oggz_io */
 size_t oggz_io_read (OGGZ * oggz, void * buf, size_t n);

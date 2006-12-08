@@ -181,6 +181,10 @@ enum OggzError {
   /** Packet disallowed due to invalid packetno */
   OGGZ_ERR_BAD_PACKETNO                 = -25,
 
+  /** Comment violates VorbisComment restrictions */
+  /* 129 == 0x81 is the frame marker for Theora's comments page ;-) */
+  OGGZ_ERR_COMMENT_INVALID              = -129,
+
   /** Guard provided by user has non-zero value */
   OGGZ_ERR_BAD_GUARD                    = -210,
 

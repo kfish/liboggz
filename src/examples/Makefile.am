@@ -14,7 +14,7 @@ endif
 endif
 
 if OGGZ_CONFIG_READ
-oggz_read_programs = read-file read-io
+oggz_read_programs = read-file read-io dump-comments
 endif
 
 if OGGZ_CONFIG_WRITE
@@ -39,6 +39,9 @@ read_file_LDADD = $(OGGZ_LIBS)
 
 read_io_SOURCES = read-io.c
 read_io_LDADD = $(OGGZ_LIBS)
+
+dump_comments_SOURCES = dump-comments.c
+dump_comments_LDADD = $(OGGZ_LIBS)
 
 write_feed_SOURCES = write-feed.c
 write_feed_LDADD = $(OGGZ_LIBS)

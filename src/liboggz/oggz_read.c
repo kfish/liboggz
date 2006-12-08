@@ -304,6 +304,8 @@ oggz_read_sync (OGGZ * oggz)
 
         if(result > 0){
           int content;
+
+          stream->packetno++;
           
           /* got a packet.  process it */
           granulepos = op->granulepos;
@@ -340,6 +342,10 @@ oggz_read_sync (OGGZ * oggz)
           {
             reader->current_unit =
               oggz_get_unit (oggz, serialno, reader->current_granulepos);
+          }
+
+          if (stream->packetno == 1) {
+            oggz_auto_read_comments (oggz, stream, serialno, op);
           }
 
           if (stream->read_packet) {

@@ -13,6 +13,8 @@ TESTS_ENVIRONMENT = $(VALGRIND_ENVIRONMENT)
 
 test: check
 
+comment_tests = comment-test
+
 if OGGZ_CONFIG_WRITE
 write_tests = write-bad-guard write-unmarked-guard write-recursive \
 	write-bad-bytes write-bad-bos write-dup-bos write-bad-eos \
@@ -32,13 +34,16 @@ seek_tests = seek-stress-test.sh
 endif
 
 noinst_SCRIPTS = $(seek_tests)
-noinst_PROGRAMS = $(write_tests) $(rw_tests) $(seek_progs)
+noinst_PROGRAMS = $(comment_tests) $(write_tests) $(rw_tests) $(seek_progs)
 noinst_HEADERS = oggz_tests.h
 
 EXTRA_DIST = $(seek_tests)
 
 #TESTS = $(write_tests) $(rw_tests) $(seek_tests)
-TESTS = $(write_tests) $(rw_tests)
+TESTS = $(comment_tests) $(write_tests) $(rw_tests)
+
+comment_test_SOURCES = comment-test.c
+comment_test_LDADD = $(OGGZ_LIBS)
 
 write_bad_guard_SOURCES = write-bad-guard.c
 write_bad_guard_LDADD = $(OGGZ_LIBS)

@@ -46,7 +46,13 @@ void
 oggz_vector_delete (OggzVector * vector);
 
 void *
-oggz_vector_find (OggzVector * vector, OggzFindFunc func, long serialno);
+oggz_vector_find_p (OggzVector * vector, const void * data);
+
+int
+oggz_vector_find_index_p (OggzVector * vector, const void * data);
+
+void *
+oggz_vector_find_with (OggzVector * vector, OggzFindFunc func, long serialno);
 
 void *
 oggz_vector_nth_p (OggzVector * vector, int n);

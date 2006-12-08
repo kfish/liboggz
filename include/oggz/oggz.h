@@ -551,6 +551,7 @@ int oggz_get_eos (OGGZ * oggz, long serialno);
  */
 long oggz_serialno_new (OGGZ * oggz);
 
+#include <oggz/oggz_comments.h>
 #include <oggz/oggz_read.h>
 #include <oggz/oggz_seek.h>
 #include <oggz/oggz_write.h>
