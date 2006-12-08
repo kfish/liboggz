@@ -51,7 +51,8 @@
  * and <a href="http://www.annodex.net/">CMML</a>.
  * Oggz is also compatible with 
  * <a href="http://www.annodex.net/">Annodex</a> streams, and supports seeking
- * on all tracks described in an Ogg Skeleton track.
+ * on all tracks described in an
+ * <a href="http://wiki.xiph.org/OggSkeleton">Ogg Skeleton</a> track.
  *
  * You need to open the file with the OGGZ_AUTO flag set:
  *
