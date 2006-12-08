@@ -33,8 +33,23 @@
 #ifndef __OGGZ_COMMENT_H__
 #define __OGGZ_COMMENT_H__
 
+/*
+ * XXX: oggz_comment_generate() IS NOT YET IMPLEMENTED
+ * - When writing, Oggz allows you to set up the comments in memory, and
+ *   provides a single function to generate a corresponding ogg_packet. 
+ *   It is your responsibility to then actually write that packet in sequence.
+ *
+ * \section comments_set Writing comments
+ * 
+ * For writing, Oggz contains API methods for adding comments
+ * (oggz_comment_add() and oggz_comment_add_byname()
+ * and for removing comments
+ * (oggz_comment_remove() and oggz_comment_remove_byname()).
+ * XXX: There is currently no function to write the comments to the bitstream!
+ */
+
 /** \file
- * Encoding and decoding of comments.
+ * Reading of comments.
  *
  * Vorbis, Speex and Theora bitstreams
  * use a comment format called "Vorbiscomment", defined 
@@ -45,17 +60,12 @@
  * The following general features of Vorbiscomment are relevant to this API:
  * - Each stream has one comment packet, which occurs before any encoded
  *   audio data in the stream.
- * - When encoding, OGGZ will generate the comment block and pass it
- *   to the encoded() callback in sequence, just like any other packet.
- *   Hence, all comments must be set before any call to oggz_encode_*().
- * - When decoding, OGGZ will decode the comment block before calling
- *   the first decoded() callback. Hence, retrieving comment data is possible
- *   from as soon as the decoded() callback is first called.
+ * - When reading, Oggz will decode the comment block before calling
+ *   the second read() callback for each stream. Hence, retrieving comment
+ *   data is possible once the read() callback has been called a second time.
  *
  * Each comment block contains one Vendor string, which can be retrieved
- * with oggz_comment_get_vendor(). When encoding, this string is
- * effectively fixed by the codec libraries; it cannot be set by the
- * application.
+ * with oggz_comment_get_vendor().
  *
  * The rest of a comment block consists of \a name = \a value pairs, with
  * the following restrictions:
@@ -66,22 +76,16 @@
  *   \a name within a Vorbiscomment block.
  * - The \a value may be any UTF-8 string.
  *
- * \section comments_get Retrieving comments
+ * \section comments_get Reading comments
  *
- * OGGZ contains API methods to iterate through all comments associated
- * with a OGGZ* handle (oggz_comment_first() and
+ * Oggz contains API methods to iterate through all comments associated
+ * with the logical bitstreams of an OGGZ* handle (oggz_comment_first() and
  * oggz_comment_next(), and to iterate through comments matching a
  * particular name (oggz_comment_first_byname() and
  * oggz_comment_next_byname()). Given that multiple comments may exist
  * with the same \a name, you should not use
  * oggz_comment_first_byname() as a simple "get" function.
  *
- * \section comments_set Encoding comments
- * 
- * For encoding, OGGZ contains API methods for adding comments
- * (oggz_comment_add() and oggz_comment_add_byname()
- * and for removing comments
- * (oggz_comment_remove() and oggz_comment_remove_byname()).
  */
 
 #include <oggz/oggz.h>
