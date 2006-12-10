@@ -714,8 +714,8 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   
 }
 
-#if 0
-/*
+/**
+ * FLAC
  * Defined at: http://flac.sourceforge.net/ogg_mapping.html
  *   - Native FLAC audio frames appear as subsequent packets in the stream.
  *     Each packet corresponds to one FLAC audio frame.
@@ -729,11 +729,106 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
  * http://rafb.net/paste/results/Pkib5w72.html
  */
 
+typedef struct {
+  ogg_int64_t previous_gp;
+  int encountered_first_data_packet;
+} auto_calc_flac_info_t;
+
 static ogg_int64_t 
 auto_calc_flac (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op)
 {
+  auto_calc_flac_info_t *info;
+
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = malloc(sizeof(auto_calc_flac_info_t));
+    info = (auto_calc_flac_info_t *)stream->calculate_data;
+    info->previous_gp = 0;
+    info->encountered_first_data_packet = 0;
+
+    /* this is a header packet */
+    goto out;
+  }
+
+  info = (auto_calc_flac_info_t *)stream->calculate_data;
+
+  /* FLAC audio frames begin with marker 0xFF */
+  if (op->packet[0] == 0xff)
+      info->encountered_first_data_packet = 1;
+
+  if (now == -1 && op->packet[0] == 0xff && op->bytes > 2) {
+    unsigned char bs;
+    int block_size;
+
+    bs = (op->packet[2] & 0xf0) >> 4;
+
+    switch (bs) {
+      case 0x0: /*   0000 : get from STREAMINFO metadata block */
+        block_size = -1;
+        break;
+      case 0x1: /* 0001 : 192 samples */
+        block_size = 192;
+        break;
+      /* 0010-0101 : 576 * (2^(n-2)) samples, i.e. 576/1152/2304/4608 */
+      case 0x2:
+        block_size = 576;
+        break;
+      case 0x3:
+        block_size = 1152;
+        break;
+      case 0x4:
+        block_size = 2304;
+        break;
+      case 0x5:
+        block_size = 4608;
+        break;
+      case 0x6: /* 0110 : get 8 bit (blocksize-1) from end of header */
+        block_size = -1;
+        break;
+      case 0x7: /* 0111 : get 16 bit (blocksize-1) from end of header */
+        block_size = -1;
+        break;
+      /* 1000-1111 : 256 * (2^(n-8)) samples, i.e. 256/512/1024/2048/4096/8192/16384/32768 */
+      case 0x8:
+        block_size = 256;
+        break;
+      case 0x9:
+        block_size = 512;
+        break;
+      case 0xa:
+        block_size = 1024;
+        break;
+      case 0xb:
+        block_size = 2048;
+        break;
+      case 0xc:
+        block_size = 4096;
+        break;
+      case 0xd:
+        block_size = 8192;
+        break;
+      case 0xe:
+        block_size = 16384;
+        break;
+      case 0xf:
+        block_size = 32768;
+        break;
+      default:
+        block_size = -1;
+        break;
+    }
+
+    if (block_size != -1) {
+      now = info->previous_gp + block_size;
+    }
+  } else if (now == -1 && info->encountered_first_data_packet == 0) {
+    /* this is a header packet */
+    now = 0;
+  }
+
+out:
+  info->previous_gp = now;
+  return now;
 }
-#endif
 
 const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"\200theora", 7, "Theora", auto_theora, auto_calc_theora},
@@ -743,8 +838,8 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL},
   {"Annodex", 8, "Annodex", auto_annodex, NULL},
   {"fishead", 7, "Skeleton", auto_fishead, NULL},
-  {"fLaC", 4, "Flac0", auto_flac0, NULL},
-  {"\177FLAC", 4, "Flac", auto_flac, NULL},
+  {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac},
+  {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL},
   {"", 0, "Unknown", NULL}
 }; 
