@@ -713,6 +713,28 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   return now;
   
 }
+
+#if 0
+/*
+ * Defined at: http://flac.sourceforge.net/ogg_mapping.html
+ *   - Native FLAC audio frames appear as subsequent packets in the stream.
+ *     Each packet corresponds to one FLAC audio frame.
+ *   - FLAC packets may span page boundaries.
+ *
+ * The frame header defines block size
+ * http://flac.sourceforge.net/format.html#frame_header
+ *
+ * Note that most FLAC packets will have a granulepos, but rare cases exist
+ * where they don't. See for example
+ * http://rafb.net/paste/results/Pkib5w72.html
+ */
+
+static ogg_int64_t 
+auto_calc_flac (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op)
+{
+}
+#endif
+
 const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"\200theora", 7, "Theora", auto_theora, auto_calc_theora},
   {"\001vorbis", 7, "Vorbis", auto_vorbis, auto_calc_vorbis},
