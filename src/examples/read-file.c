@@ -30,30 +30,57 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
+#endif
+ 
 #include <oggz/oggz.h>
 
 static int got_an_eos = 0;
 
+static void
+print_granulepos (ogg_int64_t granulepos, int granuleshift)
+{
+  if (granuleshift < 1) {
+    printf ("%" PRId64, granulepos);
+  } else {
+    ogg_int64_t iframe, pframe;
+    iframe = granulepos >> granuleshift;
+    pframe = granulepos - (iframe << granuleshift);
+
+    printf ("%" PRId64 "|%" PRId64, iframe, pframe);
+  }
+}
+
+
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
-#if 0
-  if (got_an_eos) {
-    printf ("[%010ld]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,
-	    (long)op->granulepos);
-  }
-#endif
+  int granuleshift;
+
+  granuleshift = oggz_get_granuleshift (oggz, serialno);
+
+  printf ("%010ld: op->granulepos: ", serialno);
+  print_granulepos (op->granulepos, granuleshift);
+  printf ("  oggz_tell_granulepos(): ");
+  print_granulepos (oggz_tell_granulepos (oggz), granuleshift);
 
   if (op->b_o_s) {
-    printf ("%010ld: [%lld] BOS %8s\n", serialno, op->granulepos, op->packet);
+    printf (" *** bos");
   }
 
   if (op->e_o_s) {
     got_an_eos = 1;
-    printf ("%010ld: [%lld] EOS\n", serialno, op->granulepos);
+    printf (" *** eos");
   }
+
+  printf ("\n");
 
   return 0;
 }
@@ -62,7 +89,6 @@ int
 main (int argc, char ** argv)
 {
   OGGZ * oggz;
-  long n;
 
   if (argc < 2) {
     printf ("usage: %s filename\n", argv[0]);
@@ -75,7 +101,7 @@ main (int argc, char ** argv)
 
   oggz_set_read_callback (oggz, -1, read_packet, NULL);
 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  oggz_run (oggz);
 
   oggz_close (oggz);
 
