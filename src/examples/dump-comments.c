@@ -83,7 +83,6 @@ int
 main (int argc, char ** argv)
 {
   OGGZ * oggz;
-  long n;
 
   if (argc < 2) {
     printf ("usage: %s infilename\n", argv[0]);
@@ -99,9 +98,9 @@ main (int argc, char ** argv)
     exit (1);
   }
 
-  oggz_set_read_callback (oggz, -1, read_packet, NULL);
+  oggz_set_read_callback (oggz, -1 /* read all streams */, read_packet, NULL);
 
-  while ((n = oggz_read (oggz, 1024)) > 0);
+  oggz_run (oggz);
 
   oggz_close (oggz);
 
