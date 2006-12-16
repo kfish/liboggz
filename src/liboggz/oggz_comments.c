@@ -113,6 +113,13 @@ The comment header is decoded as follows:
                                  buf[base+1]=(char)(((val)>>8)&0xff); \
                                  buf[base]=(char)((val)&0xff);
 
+/* The FLAC header will encode the length of the comments in
+   24bit BE format.
+*/
+#define writeint24be(buf, base, val) buf[base]=(char)(((val)>>16)&0xff); \
+                                     buf[base+1]=(char)(((val)>>8)&0xff); \
+                                     buf[base+2]=(char)((val)&0xff);
+
 #if 0
 static void
 comment_init(char **comments, int* length, char *vendor_string)
@@ -633,4 +640,94 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   *c = 0x01;
 
   return actual_length;
+}
+
+/* In Flac, OggPCM, Speex, Theora and Vorbis the comment packet will
+   be second in the stream, i.e. packetno=1, and it will have granulepos=0 */
+ogg_packet *
+oggz_comment_generate(OGGZ * oggz, long serialno) {
+  ogg_packet *c_packet;
+
+  unsigned char *buffer;
+  unsigned const char *preamble;
+  long preamble_length, comment_length, buf_size;
+
+  OggzStreamContent content = oggz_stream_get_content (oggz, serialno);
+
+  /* Some types use preambles in the comment packet. FLAC is notable;
+     n9-32 should contain the length of the comment data as 24bit unsigned
+     BE, and the first octet should be ORed with 0x01 if this is the last
+     (only) metadata block. Any user doing FLAC has to know how to do the
+     encapsulation anyway. */
+  const unsigned char preamble_vorbis[7] =
+    {0x03, 0x76, 0x6f, 0x72, 0x62, 0x69, 0x73};
+  const unsigned char preamble_theora[7] =
+    {0x81, 0x74, 0x68, 0x65, 0x6f, 0x72, 0x61};
+  const unsigned char preamble_flac[4] =
+    {0x04, 0x00, 0x00, 0x00};
+
+
+  switch(content) {
+    case OGGZ_CONTENT_VORBIS:
+      preamble_length = sizeof preamble_vorbis;
+      preamble = preamble_vorbis;
+      break;
+    case OGGZ_CONTENT_THEORA:
+      preamble_length = sizeof preamble_theora;
+      preamble = preamble_theora;
+      break;
+    case OGGZ_CONTENT_FLAC:
+      preamble_length = sizeof preamble_flac;
+      preamble = preamble_flac;
+      break;
+    case OGGZ_CONTENT_PCM:
+    case OGGZ_CONTENT_SPEEX:
+      preamble_length = 0;
+      preamble = 0;
+      /* No preamble for these */
+      break;
+    default:
+      return 0;
+  }
+
+  comment_length = oggz_comments_encode (oggz, serialno, 0, 0);
+  if(comment_length <= 0)
+    {
+      return 0;
+    }
+
+  buf_size = preamble_length + comment_length;
+
+  if(content == OGGZ_CONTENT_FLAC && comment_length >= 0x0fff)
+    {
+      return 0;
+    }
+
+  c_packet = malloc(sizeof *c_packet);
+  if(c_packet) {
+    memset(c_packet, 0, sizeof *c_packet);
+    c_packet->packetno = 1;
+    c_packet->packet = malloc(buf_size);
+  }
+
+  if(c_packet && c_packet->packet) {
+    buffer = c_packet->packet;
+    if(preamble_length) {
+      memcpy(buffer, preamble, preamble_length);
+      if(content == OGGZ_CONTENT_FLAC)
+	{
+	  /* MACRO */
+	  writeint24be(c_packet->packet, 1, comment_length );
+	}
+      buffer += preamble_length;
+    }
+    /* The framing byte for Vorbis shouldn't affect any of the other
+       types. */
+    oggz_comments_encode (oggz, serialno, buffer, comment_length);
+  } else {
+    free(c_packet);
+    c_packet = 0;
+  }
+
+  return c_packet;
 }

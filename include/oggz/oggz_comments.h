@@ -227,6 +227,23 @@ oggz_comment_remove (OGGZ * oggz, long serialno, OggzComment * comment);
 int
 oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name);
 
+/**
+ * Output a comment packet for the specified stream
+ * \param oggz A OGGZ* handle (created with OGGZ_ENCODE)
+ * \param serialno Identify a logical bitstream within \a oggz
+ * \returns A comment packet for the stream. The packet and its contents must
+ * be freed by the caller.
+ * \retval NULL content type does not support comments, not enough memory
+ * or comment was too long for FLAC
+ * \note In a FLAC comment packet the first bit of the packet data must be
+ * set if it is the last header packet. This must be done manually as liboggz
+ * cannot tell if there are more header packets to come. E.g.
+ * \code packet->packet |= 0x01;
+ * \endcode
+ */
+ogg_packet *
+oggz_comment_generate(OGGZ * oggz, long serialno);
+
 #ifdef __cplusplus
 }
 #endif
