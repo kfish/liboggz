@@ -33,21 +33,6 @@
 #ifndef __OGGZ_COMMENT_H__
 #define __OGGZ_COMMENT_H__
 
-/*
- * XXX: oggz_comment_generate() IS NOT YET IMPLEMENTED
- * - When writing, Oggz allows you to set up the comments in memory, and
- *   provides a single function to generate a corresponding ogg_packet. 
- *   It is your responsibility to then actually write that packet in sequence.
- *
- * \section comments_set Writing comments
- * 
- * For writing, Oggz contains API methods for adding comments
- * (oggz_comment_add() and oggz_comment_add_byname()
- * and for removing comments
- * (oggz_comment_remove() and oggz_comment_remove_byname()).
- * XXX: There is currently no function to write the comments to the bitstream!
- */
-
 /** \file
  * Reading of comments.
  *
@@ -63,6 +48,9 @@
  * - When reading, Oggz will decode the comment block before calling
  *   the second read() callback for each stream. Hence, retrieving comment
  *   data is possible once the read() callback has been called a second time.
+ * - When writing, Oggz allows you to set up the comments in memory, and
+ *   provides a single function to generate a corresponding ogg_packet. 
+ *   It is your responsibility to then actually write that packet in sequence.
  *
  * Each comment block contains one Vendor string, which can be retrieved
  * with oggz_comment_get_vendor().
@@ -86,6 +74,12 @@
  * with the same \a name, you should not use
  * oggz_comment_first_byname() as a simple "get" function.
  *
+ * \section comments_set Writing comments
+ * 
+ * For writing, Oggz contains API methods for adding comments
+ * (oggz_comment_add() and oggz_comment_add_byname()
+ * and for removing comments
+ * (oggz_comment_remove() and oggz_comment_remove_byname()).
  */
 
 #include <oggz/oggz.h>
