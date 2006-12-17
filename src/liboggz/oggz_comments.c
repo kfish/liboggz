@@ -698,7 +698,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno) {
 
   buf_size = preamble_length + comment_length;
 
-  if(content == OGGZ_CONTENT_FLAC && comment_length >= 0x0fff)
+  if(content == OGGZ_CONTENT_FLAC && comment_length >= 0x00ffffff)
     {
       return 0;
     }
@@ -721,13 +721,29 @@ oggz_comment_generate(OGGZ * oggz, long serialno) {
 	}
       buffer += preamble_length;
     }
-    /* The framing byte for Vorbis shouldn't affect any of the other
-       types. */
     oggz_comments_encode (oggz, serialno, buffer, comment_length);
+    c_packet->bytes = buf_size;
+    /* The framing byte for Vorbis shouldn't affect any of the other
+       types, but strip it anyway. */
+    if(content != OGGZ_CONTENT_VORBIS)
+      {
+	c_packet->bytes -= 1;
+      }
   } else {
     free(c_packet);
     c_packet = 0;
   }
 
   return c_packet;
+}
+
+void oggz_packet_destroy(ogg_packet *packet) {
+  if(packet) {
+    if(packet->packet)
+      {
+	free(packet->packet);
+      }
+    free(packet);
+  }
+  return;
 }

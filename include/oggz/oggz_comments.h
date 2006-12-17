@@ -225,18 +225,35 @@ oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name);
  * Output a comment packet for the specified stream
  * \param oggz A OGGZ* handle (created with OGGZ_ENCODE)
  * \param serialno Identify a logical bitstream within \a oggz
- * \returns A comment packet for the stream. The packet and its contents must
- * be freed by the caller.
+ * \returns A comment packet for the stream. When no longer needed it
+ * should be freed with oggz_packet_destroy().
  * \retval NULL content type does not support comments, not enough memory
  * or comment was too long for FLAC
- * \note In a FLAC comment packet the first bit of the packet data must be
- * set if it is the last header packet. This must be done manually as liboggz
- * cannot tell if there are more header packets to come. E.g.
+ * \note Supported streams are FLAC (but see below), OggPCM, Speex,
+ * Theora and Vorbis.
+ * \note FLAC users: FLAC streams may contain multiple metadata blocks
+ * of different types. When encapsulated in Ogg the first of these must
+ * be a Vorbis comment packet but PADDING, APPLICATION, SEEKTABLE,
+ * CUESHEET and PICTURE may follow. The last metadata block must have its
+ * first bit set to 1. This bit is \b not set in the returned packet,
+ * since liboggz does not know whether you will supply more metadata blocks.
+ * If there are no following metadata blocks you must set it manually e.g.
  * \code packet->packet |= 0x01;
  * \endcode
+ * Additionally FLAC metadata blocks are limited to 16MB minus 1 byte of
+ * content, this function will refuse to produce longer comment packets
+ * for FLAC.
+ * \n See http://flac.sourceforge.net/format.html for more details.
  */
 ogg_packet *
 oggz_comment_generate(OGGZ * oggz, long serialno);
+  
+/**
+ * Free a packet and its payload.
+ * \param packet A packet previously returned from a function such
+ * as oggz_comment_generate(). User generated packets should not be passed.
+ */
+void oggz_packet_destroy (ogg_packet *packet);
 
 #ifdef __cplusplus
 }
