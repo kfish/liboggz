@@ -77,9 +77,10 @@
  * \section comments_set Writing comments
  * 
  * For writing, Oggz contains API methods for adding comments
- * (oggz_comment_add() and oggz_comment_add_byname()
- * and for removing comments
- * (oggz_comment_remove() and oggz_comment_remove_byname()).
+ * (oggz_comment_add() and oggz_comment_add_byname()),
+ * for removing comments
+ * (oggz_comment_remove() and oggz_comment_remove_byname())
+ * and for setting the vendor string (oggz_comment_set_vendor()).
  */
 
 #include <oggz/oggz.h>
@@ -111,6 +112,21 @@ extern "C" {
 const char *
 oggz_comment_get_vendor (OGGZ * oggz, long serialno);
 
+/**
+ * Set the vendor string
+ * \param oggz A OGGZ* handle
+ * \param serialno Identify a logical bitstream within \a oggz
+ * \param vendor_string The contents of the vendor string to add
+ * \retval 0 Success
+ * \retval OGGZ_ERR_BAD \a oggz is not a valid OGGZ* handle
+ * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \note The vendor string should identify the library used to produce
+ * the stream, e.g. libvorbis 1.0 used "Xiph.Org libVorbis I 20020717".
+ * If copying a bitstream it should be the same as the source.
+ */
+int
+oggz_comment_set_vendor (OGGZ * oggz, long serialno,
+			 const char * vendor_string);
 
 /**
  * Retrieve the first comment.

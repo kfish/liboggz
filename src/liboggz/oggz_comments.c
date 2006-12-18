@@ -217,6 +217,24 @@ oggz_comment_cmp (const OggzComment * comment1, const OggzComment * comment2)
   return 1;
 }
 
+static int
+_oggz_comment_set_vendor (OGGZ * oggz, long serialno,
+			  const char * vendor_string)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+  if (stream->vendor) oggz_free (stream->vendor);
+
+  stream->vendor = oggz_strdup (vendor_string);
+
+  return 0;
+}
+
 /* Public API */
 
 const char *
@@ -236,18 +254,24 @@ int
 oggz_comment_set_vendor (OGGZ * oggz, long serialno, const char * vendor_string)
 {
   oggz_stream_t * stream;
-
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   stream = oggz_get_stream (oggz, serialno);
-  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+  if (stream == NULL) stream = oggz_add_stream (oggz, serialno);
 
-  if (stream->vendor) oggz_free (stream->vendor);
+  if (oggz->flags & OGGZ_WRITE) {
+    if (OGGZ_CONFIG_WRITE) {
 
-  stream->vendor = oggz_strdup (vendor_string);
+      return _oggz_comment_set_vendor (oggz, serialno, vendor_string);
 
-  return 0;
+    } else {
+      return OGGZ_ERR_DISABLED;
+    }
+  } else {
+    return OGGZ_ERR_INVALID;
+  }
 }
+
 
 const OggzComment *
 oggz_comment_first (OGGZ * oggz, long serialno)
@@ -502,7 +526,7 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
    /* Vendor */
    nvalue = oggz_strdup_len (c, len);
    if (!nvalue) return -1;
-   oggz_comment_set_vendor (oggz, serialno, nvalue);
+   _oggz_comment_set_vendor (oggz, serialno, nvalue);
    if (nvalue) oggz_free (nvalue);
 #ifdef DEBUG
    fwrite(c, 1, len, stderr); fputc ('\n', stderr);

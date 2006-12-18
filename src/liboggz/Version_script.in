@@ -69,6 +69,7 @@
 		oggz_table_nth;
 
                 oggz_comment_get_vendor;
+                oggz_comment_set_vendor;
                 oggz_comment_first;
                 oggz_comment_first_byname;
                 oggz_comment_next;
@@ -77,6 +78,8 @@
                 oggz_comment_add_byname;
                 oggz_comment_remove;
                 oggz_comment_remove_byname;
+                oggz_comment_generate;
+                oggz_packet_destroy;
 
         local:
                 *;
