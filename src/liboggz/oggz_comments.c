@@ -669,14 +669,14 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
 /* In Flac, OggPCM, Speex, Theora and Vorbis the comment packet will
    be second in the stream, i.e. packetno=1, and it will have granulepos=0 */
 ogg_packet *
-oggz_comment_generate(OGGZ * oggz, long serialno) {
+oggz_comment_generate(OGGZ * oggz, long serialno,
+		      OggzStreamContent packet_type,
+		      int FLAC_final_metadata_block) {
   ogg_packet *c_packet;
 
   unsigned char *buffer;
   unsigned const char *preamble;
   long preamble_length, comment_length, buf_size;
-
-  OggzStreamContent content = oggz_stream_get_content (oggz, serialno);
 
   /* Some types use preambles in the comment packet. FLAC is notable;
      n9-32 should contain the length of the comment data as 24bit unsigned
@@ -691,7 +691,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno) {
     {0x04, 0x00, 0x00, 0x00};
 
 
-  switch(content) {
+  switch(packet_type) {
     case OGGZ_CONTENT_VORBIS:
       preamble_length = sizeof preamble_vorbis;
       preamble = preamble_vorbis;
@@ -722,7 +722,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno) {
 
   buf_size = preamble_length + comment_length;
 
-  if(content == OGGZ_CONTENT_FLAC && comment_length >= 0x00ffffff)
+  if(packet_type == OGGZ_CONTENT_FLAC && comment_length >= 0x00ffffff)
     {
       return 0;
     }
@@ -738,18 +738,21 @@ oggz_comment_generate(OGGZ * oggz, long serialno) {
     buffer = c_packet->packet;
     if(preamble_length) {
       memcpy(buffer, preamble, preamble_length);
-      if(content == OGGZ_CONTENT_FLAC)
-	{
-	  /* MACRO */
-	  writeint24be(c_packet->packet, 1, comment_length );
-	}
+      if(packet_type == OGGZ_CONTENT_FLAC) {
+	/* MACRO */
+	writeint24be(c_packet->packet, 1, comment_length );
+	if(FLAC_final_metadata_block) 
+	  {
+	    c_packet->packet[0] |= 0x01;
+	  }
+      }
       buffer += preamble_length;
     }
     oggz_comments_encode (oggz, serialno, buffer, comment_length);
     c_packet->bytes = buf_size;
     /* The framing byte for Vorbis shouldn't affect any of the other
        types, but strip it anyway. */
-    if(content != OGGZ_CONTENT_VORBIS)
+    if(packet_type != OGGZ_CONTENT_VORBIS)
       {
 	c_packet->bytes -= 1;
       }
