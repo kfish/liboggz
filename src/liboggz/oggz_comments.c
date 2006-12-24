@@ -680,7 +680,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
 
   /* Some types use preambles in the comment packet. FLAC is notable;
      n9-32 should contain the length of the comment data as 24bit unsigned
-     BE, and the first octet should be ORed with 0x01 if this is the last
+     BE, and the first octet should be ORed with 0x80 if this is the last
      (only) metadata block. Any user doing FLAC has to know how to do the
      encapsulation anyway. */
   const unsigned char preamble_vorbis[7] =
@@ -739,11 +739,13 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
     if(preamble_length) {
       memcpy(buffer, preamble, preamble_length);
       if(packet_type == OGGZ_CONTENT_FLAC) {
+	/* Use comment_length-1 as we will be stripping the Vorbis
+	   framing byte. */
 	/* MACRO */
-	writeint24be(c_packet->packet, 1, comment_length );
+	writeint24be(c_packet->packet, 1, (comment_length-1) );
 	if(FLAC_final_metadata_block) 
 	  {
-	    c_packet->packet[0] |= 0x01;
+	    c_packet->packet[0] |= 0x80;
 	  }
       }
       buffer += preamble_length;
