@@ -40,6 +40,8 @@
 
 #include "oggz_tests.h"
 
+#include "comment-test.h"
+
 #define ARTIST1 "Trout Junkies"
 #define ARTIST2 "DJ Fugu"
 #define COPYRIGHT "Copyright (C) 2004. Some Rights Reserved."
@@ -53,9 +55,12 @@ main (int argc, char * argv[])
 {
   const OggzComment * comment, * comment2;
   OggzComment mycomment;
+  ogg_packet *op;
+  const char * vendor;
   int err;
 
   long serialno = 7;
+  long invalidserialno = 8;
 
 #if OGGZ_CONFIG_WRITE
   INFO ("Initializing OGGZ for comments (writer)");
@@ -183,6 +188,85 @@ main (int argc, char * argv[])
 
   if (comment != NULL)
     FAIL ("Removed comment incorrectly retrieved");
+
+  INFO ("+ Attempting to set vendor string");
+  err = oggz_comment_set_vendor (oggz, serialno, vendor_flac );
+  if (err) FAIL ("Operation failed");
+
+  INFO ("+ Retrieving vendor string");
+  vendor = oggz_comment_get_vendor (oggz, serialno);
+  if (!vendor || strcmp(vendor, vendor_flac))
+    FAIL ("+ Operation failed");
+
+  INFO("+ Generating FLAC comment packet");
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_FLAC, 0);
+  if (!op) FAIL ("Operation failed");
+
+  INFO("+ Checking FLAC comment packet");
+  if (op->bytes != sizeof comment_packet_flac ||
+      memcmp (op->packet, comment_packet_flac, op->bytes) )
+      FAIL ("Incorrect packet");
+  oggz_packet_destroy(op);
+
+
+  INFO("+ Generating OggPCM comment packet");
+  /* OggPCM and Speex comment packets are identical. */
+  err = oggz_comment_set_vendor (oggz, serialno, vendor_speex );
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_PCM, 0);
+  if (err || !op) FAIL ("Operation failed");
+
+  INFO("+ Checking OggPCM comment packet");
+  if (op->bytes != sizeof comment_packet_speex ||
+      memcmp (op->packet, comment_packet_speex, op->bytes) )
+      FAIL ("Incorrect packet");
+  oggz_packet_destroy(op);
+
+
+  INFO("+ Generating Speex comment packet");
+  err = oggz_comment_set_vendor (oggz, serialno, vendor_speex );
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_SPEEX, 0);
+  if (err || !op) FAIL ("Operation failed");
+
+  INFO("+ Checking Speex comment packet");
+  if (op->bytes != sizeof comment_packet_speex ||
+      memcmp (op->packet, comment_packet_speex, op->bytes) )
+      FAIL ("Incorrect packet");
+  oggz_packet_destroy(op);
+
+
+  INFO("+ Generating Theora comment packet");
+  err = oggz_comment_set_vendor (oggz, serialno, vendor_theora );
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_THEORA, 0);
+  if (err || !op) FAIL ("Operation failed");
+
+  INFO("+ Checking Theora comment packet");
+  if (op->bytes != sizeof comment_packet_theora ||
+      memcmp (op->packet, comment_packet_theora, op->bytes) )
+    FAIL ("Incorrect packet");
+  oggz_packet_destroy(op);
+
+
+  INFO("+ Generating Vorbis comment packet");
+  err = oggz_comment_set_vendor (oggz, serialno, vendor_vorbis );
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_VORBIS, 0);
+  if (err || !op) FAIL ("Operation failed");
+
+  INFO("+ Checking Vorbis comment packet");
+  if (op->bytes != sizeof comment_packet_vorbis ||
+      memcmp (op->packet, comment_packet_vorbis, op->bytes) )
+    FAIL ("Incorrect packet");
+  oggz_packet_destroy(op);
+
+  INFO("+ Testing comment generate for unsupported type");
+  op = oggz_comment_generate (oggz, serialno, OGGZ_CONTENT_UNKNOWN, 0);
+  if(op) FAIL ("Returned comment packet for unsupported type");
+  oggz_packet_destroy(op);
+
+  INFO("+ Testing comment generate for invalid serialno");
+  op = oggz_comment_generate (oggz, invalidserialno, OGGZ_CONTENT_VORBIS, 0);
+  if(op) FAIL ("Returned comment packet for invalid serialno");
+  oggz_packet_destroy(op);
+
 
   INFO ("Closing OGGZ (writer)");
   oggz_close (oggz);
