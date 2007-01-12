@@ -14,7 +14,7 @@
 
 SUBDIRS = doc include src
 
-EXTRA_DIST = oggz.pc.in README.win32 \
+EXTRA_DIST = oggz.pc.in oggz-uninstalled.pc.in README.win32 \
 	symbian/bld.inf \
 	symbian/config.h \
 	symbian/liboggz.mmp \

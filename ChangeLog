@@ -1,3 +1,12 @@
+2007-01-12  Thomas Vander Stichele  <thomas at apestaart dot org>
+
+	* Makefile.am:
+	  dist uninstalled pc file
+	* oggz-uninstalled.pc.in:
+	  added
+	* configure.ac:
+	  increase package version so liboggplay can require > 0.9.5
+
 2005-11-17  Thomas Vander Stichele  <thomas at apestaart dot org>
 
 	* configure.ac:

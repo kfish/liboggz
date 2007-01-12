@@ -6,7 +6,7 @@ AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(liboggz, 0.9.5)
+AM_INIT_AUTOMAKE(liboggz, 0.9.5.1)
 AM_CONFIG_HEADER(config.h)
 
 SHARED_VERSION_INFO="3:0:2"
@@ -375,6 +375,7 @@ src/tools/oggzdiff
 src/tests/Makefile
 src/examples/Makefile
 oggz.pc
+oggz-uninstalled.pc
 ])
 
 AS_AC_EXPAND(LIBDIR, ${libdir})
