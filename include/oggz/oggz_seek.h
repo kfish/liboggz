@@ -129,7 +129,7 @@ oggz_tell_granulepos (OGGZ * oggz);
  * ahead, this may differ from the current offset of the associated file
  * descriptor.
  */
-off_t oggz_tell (OGGZ * oggz);
+oggz_off_t oggz_tell (OGGZ * oggz);
 
 /**
  * Seek to a specific byte offset
@@ -138,7 +138,7 @@ off_t oggz_tell (OGGZ * oggz);
  * \param whence As defined in <stdio.h>: SEEK_SET, SEEK_CUR or SEEK_END
  * \returns the new file offset, or -1 on failure.
  */
-off_t oggz_seek (OGGZ * oggz, loff_t offset, int whence);
+oggz_off_t oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence);
 
 #ifdef _UNIMPLEMENTED
 long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
@@ -443,7 +443,7 @@ long oggz_seek_byorder (OGGZ * oggz, void * target);
  * \param offset The offset of the start of data
  * \returns 0 on success, -1 on failure.
  */
-int oggz_set_data_start (OGGZ * oggz, off_t offset);
+int oggz_set_data_start (OGGZ * oggz, oggz_off_t offset);
 /** \}
  */
 

@@ -39,8 +39,16 @@
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
 
+/* define appropriate type for oggz_off_t */
+#ifdef _WIN32
+#include <oggz/oggz_off_t_win32.h>
+#else
+#include <oggz/oggz_off_t.h>
+#endif
+
 #include "oggz_macros.h"
 #include "oggz_vector.h"
+
 
 typedef struct _OGGZ OGGZ;
 typedef struct _OggzComment OggzComment;
@@ -135,7 +143,7 @@ struct _OggzReader {
   ogg_int64_t current_granulepos;
 
 #if 0
-  off_t offset_page_end; /* offset of end of current page */
+  oggz_off_t offset_page_end; /* offset of end of current page */
 #endif
 };
 
@@ -215,8 +223,8 @@ struct _OGGZ {
   ogg_packet current_packet;
   ogg_page current_page;
 
-  off_t offset; /* offset of current page start */
-  off_t offset_data_begin; /* offset of unit 0 page start */
+  oggz_off_t offset; /* offset of current page start */
+  oggz_off_t offset_data_begin; /* offset of unit 0 page start */
 
   long run_blocksize; /* blocksize to use for oggz_run() */
   int cb_next;

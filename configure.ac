@@ -256,7 +256,8 @@ AC_SUBST(OGGZ_OFF_MAX)
 AC_CHECK_TYPES(ssize_t)
 AC_CHECK_SIZEOF(ssize_t,4)
 
-AC_DEFINE_UNQUOTED([oggz_off_t], ${TYPEOF_OGGZ_OFF_T}, [Configured type of oggz_off_t])
+dnl was defined to set oggz_off_t type (removed by laser13)
+dnl AC_DEFINE_UNQUOTED([oggz_off_t], ${TYPEOF_OGGZ_OFF_T}, [Configured type of oggz_off_t])
 
 
 dnl
@@ -367,6 +368,7 @@ doc/Makefile
 doc/Doxyfile
 include/Makefile
 include/oggz/Makefile
+include/oggz/oggz_off_t.h
 src/Makefile
 src/liboggz/Version_script
 src/liboggz/Makefile

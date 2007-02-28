@@ -216,7 +216,7 @@ oggz_close (OGGZ * oggz)
   return 0;
 }
 
-off_t
+oggz_off_t
 oggz_tell (OGGZ * oggz)
 {
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;

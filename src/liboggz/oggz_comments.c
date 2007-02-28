@@ -41,6 +41,11 @@
 
 /*#define DEBUG*/
 
+#ifdef WIN32                                                                   
+#define strcasecmp _stricmp
+#endif
+
+
 static char *
 oggz_strdup (const char * s)
 {
