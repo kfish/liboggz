@@ -664,7 +664,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
       info->last_was_long = size;
       return (size ? info->long_size : info->short_size) / 2;
     }
-  
+    
     /*
      * if it's a short packet, then we can just use nsn_increment
      *
@@ -684,6 +684,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
         (size ? info->long_size : info->short_size)
       ) / 4;
     info->last_was_long = size;
+
     return result;
     
     /*
@@ -884,10 +885,26 @@ ogg_int64_t
 oggz_auto_calculate_granulepos(int content, ogg_int64_t now, 
                 oggz_stream_t *stream, ogg_packet *op) {
   if (oggz_auto_codec_ident[content].calculator != NULL) {
-    return oggz_auto_codec_ident[content].calculator(now, stream, op);
-  } else {
-    return now;
-  }
+    ogg_int64_t r = oggz_auto_codec_ident[content].calculator(now, stream, op);
+    /*
+     * this will cause a hiccough at the end of the first data page if there are
+     * more than one packets on that page.  In the absence of pervasive access
+     * to the packets on a page, though, it might have to do.
+     *
+     * Why a hiccough?  Because there's no granulepos attached to any packets
+     * except for the last on a page.  If the stream doesn't start at gp 0 (a
+     * very common occurrence) then we don't realise until we get to the end of
+     * the page.  By that time we've already junked the first packets on the 
+     * page.
+     */
+    if (now != -1LL) {
+      return op->granulepos;
+    }
+    return r;
+  } 
+
+  return now;
+  
   
 }
 
