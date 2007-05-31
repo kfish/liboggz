@@ -342,35 +342,27 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     info->packet_size = 
             (*(int *)(op->packet + 64)) * (*(int *)(op->packet + 56));
     info->headers_encountered = 1;
-    printf("first header, returning 0\n");
     return 0;
   }
   
   if (info->headers_encountered < 2) {
     info->headers_encountered += 1;
-    printf("second header\n");
   } else {
     info->encountered_first_data_packet = 1;
-    printf("encountered data packet\n");
   }
 
   if (now > -1) {
-    printf("returning valid gp %lld\n", now);
     return now;
   }
 
   if (info->encountered_first_data_packet) {
     if (stream->last_granulepos > 0) {
-      printf("returning calced gp %lld\n",
-          stream->last_granulepos + info->packet_size);
       return stream->last_granulepos + info->packet_size;
     }
     
-    printf("returning unknown gp\n");
     return -1;
   }
 
-  printf("fallback return of 0\n");
   return 0;
 
 }
