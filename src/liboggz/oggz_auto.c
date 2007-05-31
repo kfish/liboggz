@@ -316,13 +316,14 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
 /*
  * The first two speex packets are header and comment packets (granulepos = 0)
- * The next packet is a data packet, and has a smaller-than-usual granulepos 
- * (see below).
- * Each other packet has a granulepos increment mandated by values in the 
- * header packet.  See:
- *         http://www.speex.org/manual2/node7.html#SECTION00073000000000000000
- * for details on the header packet
  */
+
+typedef struct {
+  int headers_encountered;
+  int packet_size;
+  int encountered_first_data_packet;
+} auto_calc_speex_info_t;
+
 static ogg_int64_t 
 auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   
@@ -330,27 +331,48 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
    * on the first (b_o_s) packet, set calculate_data to be the number
    * of speex frames per packet
    */
-  if (stream->calculate_data == NULL) {
-    stream->calculate_data = malloc(sizeof(int));
-    *(int *)stream->calculate_data = 
-        (*(int *)(op->packet + 64)) * (*(int *)(op->packet + 56));
-  }
-  
-  if (now > -1)
-    return now;
 
-  /*
-   * the first data packet has smaller-than-usual granulepos to account
-   * for the fact that several of the output samples from the beginning
-   * of this packet need to be thrown away.  We calculate the granulepos
-   * by taking the mod of the page's granulepos with respect to the increment
-   * between packets.
-   */
-  if (stream->last_granulepos == 0) {
-    return stream->page_granulepos % *(int *)(stream->calculate_data);
+  auto_calc_speex_info_t *info 
+          = (auto_calc_speex_info_t *)stream->calculate_data;
+
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = malloc(sizeof(auto_calc_speex_info_t));
+    info = stream->calculate_data;
+    info->encountered_first_data_packet = 0;
+    info->packet_size = 
+            (*(int *)(op->packet + 64)) * (*(int *)(op->packet + 56));
+    info->headers_encountered = 1;
+    printf("first header, returning 0\n");
+    return 0;
   }
   
-  return stream->last_granulepos + *(int *)(stream->calculate_data);
+  if (info->headers_encountered < 2) {
+    info->headers_encountered += 1;
+    printf("second header\n");
+  } else {
+    info->encountered_first_data_packet = 1;
+    printf("encountered data packet\n");
+  }
+
+  if (now > -1) {
+    printf("returning valid gp %lld\n", now);
+    return now;
+  }
+
+  if (info->encountered_first_data_packet) {
+    if (stream->last_granulepos > 0) {
+      printf("returning calced gp %lld\n",
+          stream->last_granulepos + info->packet_size);
+      return stream->last_granulepos + info->packet_size;
+    }
+    
+    printf("returning unknown gp\n");
+    return -1;
+  }
+
+  printf("fallback return of 0\n");
+  return 0;
+
 }
 
 /*
