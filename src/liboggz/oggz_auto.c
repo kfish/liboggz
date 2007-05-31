@@ -361,6 +361,12 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
  * (see http://www.theora.org/doc/Theora_I_spec.pdf for the theora 
  * specification)
  */
+
+typedef struct {
+  int encountered_first_data_packet;
+} auto_calc_theora_info_t;
+
+
 static ogg_int64_t 
 auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
@@ -370,24 +376,40 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
   first_byte = op->packet[0];
 
+  auto_calc_theora_info_t *info 
+          = (auto_calc_theora_info_t *)stream->calculate_data;
+
   /* header packet */
   if (first_byte & 0x80)
   {
-    stream->last_granulepos = -1;
-    return (ogg_int64_t)-1;
+    if (info == NULL) {
+      stream->calculate_data = malloc(sizeof(auto_calc_theora_info_t));
+      info = stream->calculate_data;
+      info->encountered_first_data_packet = 0;
+    }
+    return (ogg_int64_t)0;
   }
   
   /* known granulepos */
   if (now > (ogg_int64_t)(-1)) {
+    info->encountered_first_data_packet = 1;
     return now;
   }
 
   /* last granulepos unknown */
   if (stream->last_granulepos == -1) {
+    info->encountered_first_data_packet = 1;
     return (ogg_int64_t)-1;
   }
 
- 
+  /*
+   * first data packet is -1 if gp not set
+   */
+  if (!info->encountered_first_data_packet) {
+    info->encountered_first_data_packet = 1;
+    return (ogg_int64_t)-1;
+  }
+
   /* inter-coded packet */
   if (first_byte & 0x40)
   {
