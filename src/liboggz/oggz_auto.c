@@ -367,29 +367,31 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   long keyframe_no;
   int keyframe_shift;
   unsigned char first_byte;
-  
-  if (now > (ogg_int64_t)(-1))
-    return now;
 
   first_byte = op->packet[0];
 
+  /* header packet */
   if (first_byte & 0x80)
   {
-    /* header packet */
-    return (ogg_int64_t)0;
+    stream->last_granulepos = -1;
+    return (ogg_int64_t)-1;
   }
   
-  if (first_byte & 0x40)
-  {
-    /* inter-coded packet */
-    return stream->last_granulepos + 1;
+  /* known granulepos */
+  if (now > (ogg_int64_t)(-1)) {
+    return now;
   }
 
-  /* intra-coded packet */
-  if (stream->last_granulepos == 0)
+  /* last granulepos unknown */
+  if (stream->last_granulepos == -1) {
+    return (ogg_int64_t)-1;
+  }
+
+ 
+  /* inter-coded packet */
+  if (first_byte & 0x40)
   {
-    /* first intra-coded packet */
-    return (ogg_int64_t)0;
+    return stream->last_granulepos + 1;
   }
 
   keyframe_shift = stream->granuleshift; 
@@ -628,10 +630,10 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
   info = (auto_calc_vorbis_info_t *)stream->calculate_data;
 
+
   if (now > -1)
   {
-    info->encountered_first_data_packet = 1;
-    //return now;
+    return now;
   }
  
   { 
@@ -648,34 +650,28 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     mode = (op->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
     size = info->mode_sizes[mode];
   
+    info->last_was_long = size;
+
     /*
-     * the first packet is always 0
+     * if we have a working granulepos, we use it.
      */
-    if (!info->encountered_first_data_packet) {
+    if (now > -1) {
       info->encountered_first_data_packet = 1;
-      info->last_was_long = size;
-      return 0;
+      return now;
     }
- 
+
+    if (info->encountered_first_data_packet == 0) {
+      info->encountered_first_data_packet = 1;
+      return -1;
+    }
+
     /*
-     * the second pos is an increment of half the current packetsize only
+     * otherwise, if we haven't yet had a working granulepos, we return
+     * -1
      */
-    if (stream->last_granulepos == 0) {
-      info->last_was_long = size;
-      return (size ? info->long_size : info->short_size) / 2;
+    if (stream->last_granulepos == -1) {
+      return -1;
     }
-    
-    /*
-     * if it's a short packet, then we can just use nsn_increment
-     *
-    if (size == 0)
-    {
-      return stream->last_granulepos + info->nsn_increment;
-    }
-     * actually, this is not how the decoder behaves.  It always decodes
-     * no further than the middle of the current packet, regardless of the
-     * number of additional samples that could be fully decoded.
-     */
 
     result = stream->last_granulepos + 
       (
@@ -687,31 +683,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
     return result;
     
-    /*
-     * I'll keep this around for now - it might come in handy if the 
-     * specification and the vorbis code ever match
-     *
-    prev_bit = info->log2_num_modes + 1;
-    next_bit = prev_bit + 1;
-
-    prev_bit = (op->packet[0] >> prev_bit) & 0x1;
-
-    if (next_bit == 8)
-    {
-      next_bit = op->packet[1] & 0x1;
-    }
-    else
-    {
-      next_bit = (op->packet[0] >> next_bit) & 0x1;
-    }
-
-    return stream->last_granulepos + 
-            info->nln_increments[(prev_bit << 1) | next_bit];
-     */
   }
-  
-  
-  return now;
   
 }
 
@@ -897,9 +869,11 @@ oggz_auto_calculate_granulepos(int content, ogg_int64_t now,
      * the page.  By that time we've already junked the first packets on the 
      * page.
      */
+    /*
     if (now != -1LL) {
       return op->granulepos;
     }
+    */
     return r;
   } 
 
