@@ -309,6 +309,10 @@ manpage.1: manpage.sgml
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>
+	<refentrytitle>hogg</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>
+      <citerefentry>
 	<refentrytitle>xxd</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,

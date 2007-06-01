@@ -177,6 +177,10 @@ manpage.1: manpage.sgml
 	<refentrytitle>oggzdiff</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>
+      <citerefentry>
+	<refentrytitle>hogg</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>
     </para>
   </refsect1>
 
