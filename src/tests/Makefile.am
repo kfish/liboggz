@@ -35,7 +35,7 @@ endif
 
 noinst_SCRIPTS = $(seek_tests)
 noinst_PROGRAMS = $(comment_tests) $(write_tests) $(rw_tests) $(seek_progs)
-noinst_HEADERS = oggz_tests.h
+noinst_HEADERS = oggz_tests.h comment-test.h
 
 EXTRA_DIST = $(seek_tests)
 

@@ -22,7 +22,7 @@ endif
 
 endif
 
-noinst_HEADERS = oggz_tools.h
+noinst_HEADERS = oggz_tools.h skeleton.h
 
 # Programs to build
 bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
