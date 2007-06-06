@@ -211,15 +211,31 @@ static char *
 ot_skeleton_info (unsigned char * data, long len)
 {
   char * buf;
+  double pres_n, pres_d, pres;
+  double base_n, base_d, base;
 
-  if (len < 64) return NULL;
+  if (len < 64L) return NULL;
 
   buf = malloc (60);
 
+  pres_n = (double)INT64_LE_AT(&data[12]);
+  pres_d = (double)INT64_LE_AT(&data[20]);
+  if (pres_d != 0.0) {
+    pres = pres_n / pres_d;
+  } else {
+    pres = 0.0;
+  }
+
+  base_n = (double)INT64_LE_AT(&data[12]);
+  base_d = (double)INT64_LE_AT(&data[20]);
+  if (base_d != 0.0) {
+    base = base_n / base_d;
+  } else {
+    base = 0.0;
+  }
+
   snprintf (buf, 60,
-	    "\tPresentation-Time: %.3f\n\tBasetime: %.3f\n",
-	    (double)INT64_LE_AT(&data[12]) / (double)INT64_LE_AT(&data[20]),
-	    (double)INT64_LE_AT(&data[28]) / (double)INT64_LE_AT(&data[36]));
+	    "\tPresentation-Time: %.3f\n\tBasetime: %.3f\n", pres, base);
 
   return buf;
 }
@@ -253,6 +269,8 @@ ot_page_identify (OGGZ *oggz, const ogg_page * og, char ** info)
   serial_no = ogg_page_serialno(og);
   
   content = oggz_stream_get_content(oggz, serial_no);
+  if (content == OGGZ_ERR_BAD_SERIALNO) return NULL;
+
   ret = oggz_stream_get_content_type(oggz, serial_no);
 
   if (info != NULL)

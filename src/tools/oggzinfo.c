@@ -290,7 +290,11 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 static void
 oi_stats_average (OI_Stats * stats)
 {
-  stats->length_avg = stats->length_total / stats->count;
+  if (stats->count > 0) {
+    stats->length_avg = stats->length_total / stats->count;
+  } else {
+    stats->length_avg = 0;
+  }
 }
 
 static void
