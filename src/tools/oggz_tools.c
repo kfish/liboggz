@@ -43,6 +43,12 @@
 #define snprintf _snprintf
 #endif  
 
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
+#endif
+
 static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
 {
@@ -344,6 +350,25 @@ ot_fprint_time (FILE * stream, double seconds)
   sec = seconds - ((double)hrs * 3600.0)- ((double)min * 60.0);
 
   return fprintf (stream, "%s%02d:%02d:%06.3f", sign, hrs, min, sec);
+}
+
+int
+ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
+                      ogg_int64_t granulepos)
+{
+  int ret, granuleshift = oggz_get_granuleshift (oggz, serialno);
+
+  if (granuleshift < 1) {
+    ret = fprintf (stream, "%" PRId64, granulepos);
+  } else {
+    ogg_int64_t iframe, pframe;
+    iframe = granulepos >> granuleshift;
+    pframe = granulepos - (iframe << granuleshift);
+
+    ret = fprintf (stream, "%" PRId64 "|%" PRId64, iframe, pframe);
+  }
+
+  return ret;
 }
 
 void

@@ -93,6 +93,7 @@ typedef struct _OI_TrackInfo OI_TrackInfo;
 typedef void (*OI_TrackFunc) (OI_Info * info, OI_TrackInfo * oit, long serialno);
 
 struct _OI_Info {
+  OGGZ * oggz;
   OggzTable * tracks;
   ogg_int64_t duration;
   long length_total;
@@ -217,16 +218,18 @@ ot_fishead_print(OI_TrackInfo *oit) {
 }
 
 static void
-ot_fisbone_print(OI_TrackInfo *oit) {
+ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
 
   char *messages, *token;
   
   if (oit->has_fisbone) {
-    printf("\n\tExtra information from Ogg Skeleton\n");
-    printf("\tserialno: %010d\n", oit->fbInfo.serial_no);
+    printf("\n\tExtra information from Ogg Skeleton track:\n");
+    /*printf("\tserialno: %010d\n", oit->fbInfo.serial_no);*/
     printf("\tNumber of header packets: %d\n", oit->fbInfo.nr_header_packet);
     printf("\tGranule rate: %.2f\n", (double)oit->fbInfo.granule_rate_n/oit->fbInfo.granule_rate_d);
-    printf("\tStart granule: %" PRId64 "\n", oit->fbInfo.start_granule);
+    printf("\tStart granule: ");
+    ot_fprint_granulepos(stdout, info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule);
+    printf ("\n");
     printf("\tPreroll: %d\n", oit->fbInfo.preroll);
     messages = token = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
     strcpy(messages, oit->fbInfo.message_header_fields);
@@ -282,7 +285,7 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
     ot_fishead_print(oit);
   }
   if (show_extra_skeleton_info && oit->has_fisbone) {
-    ot_fisbone_print(oit);
+    ot_fisbone_print(info, oit);
   }
 
  }
@@ -572,6 +575,7 @@ main (int argc, char ** argv)
       return (1);
     }
 
+    info.oggz = oggz;
     info.tracks = oggz_table_new ();
     info.length_total = 0;
     
@@ -580,8 +584,6 @@ main (int argc, char ** argv)
     info.duration = oggz_tell_units (oggz);
     
     oi_pass2 (oggz, &info);
-    
-    oggz_close (oggz);
     
     /* Print summary information */
     if (many_files)
@@ -607,6 +609,8 @@ main (int argc, char ** argv)
     oggzinfo_apply (oit_delete, &info);
     oggz_table_delete (info.tracks);
 
+    oggz_close (oggz);
+    
     if (optind < argc) puts (SEP);
   }
 

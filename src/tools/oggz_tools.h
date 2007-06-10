@@ -52,6 +52,9 @@ int ot_print_bitrate (long bps);
 
 int ot_fprint_time (FILE * stream, double seconds);
 
+int ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
+                          ogg_int64_t granulepos);
+
 /*
  * Tool initialization function. Sets stdin, stdio to binary on windows etc.
  * Call this at the beginning of main().

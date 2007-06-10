@@ -244,7 +244,6 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   ODData * oddata = (ODData *) user_data;
   ogg_int64_t units;
   double time_offset;
-  int granuleshift;
 
   if (oddata->hide_offset) {
     fprintf (outfile, "oOo");
@@ -261,23 +260,14 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   fprintf (outfile, ": serialno %010ld, ",
 	   oddata->hide_serialno ? -1 : serialno);
 
+  fprintf (outfile, "granulepos ");
   if (oddata->hide_granulepos) {
-    fprintf (outfile, "granulepos gGg,");
+    fprintf (outfile, "gGg");
   } else {
-    granuleshift = oggz_get_granuleshift (oggz, serialno);
-    if (granuleshift < 1) {
-      fprintf (outfile, "granulepos %" PRId64 ",", op->granulepos);
-    } else {
-      ogg_int64_t iframe, pframe;
-      iframe = op->granulepos >> granuleshift;
-      pframe = op->granulepos - (iframe << granuleshift);
-
-      fprintf (outfile, "granulepos %" PRId64 "|%" PRId64 ",",
-	       iframe, pframe);
-    }
+    ot_fprint_granulepos (outfile, oggz, serialno, op->granulepos);
   }
 
-  fprintf (outfile, " packetno %" PRId64,
+  fprintf (outfile, ", packetno %" PRId64,
 	   oddata->hide_packetno ? -1 : op->packetno);
 
   if (op->b_o_s) {
