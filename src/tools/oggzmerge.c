@@ -45,6 +45,11 @@
 
 #define READ_SIZE 4096
 
+#define ALL_VORBIS_WARNING \
+  "oggzmerge: WARNING: Merging Ogg Vorbis I files. The resulting file will\n" \
+  "  contain %d tracks in parallel, interleaved for simultaneous playback.\n"\
+  "  If you want to sequence these files one after another, use cat instead.\n"
+
 static void
 usage (char * progname)
 {
@@ -188,6 +193,12 @@ oggz_merge (OMData * omdata, FILE * outfile)
   /* For theora+vorbis, ensure theora bos is first */
   int careful_for_theora = 0;
 
+  /* If all input files are Ogg Vorbis I, warn that the output will not be
+   * a valid Ogg Vorbis I file as it will be multitrack. This is in response
+   * to Debian bug 280550: http://bugs.debian.org/280550
+   */
+  int v, warn_all_vorbis = 1;
+
   if (oggz_table_size (omdata->inputs) == 2)
     careful_for_theora = 1;
 
@@ -215,7 +226,7 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	  if (ogg_page_bos ((ogg_page *)input->og)) {
 	    min_i = i;
 
-	    if (careful_for_theora) {
+	    if (careful_for_theora || warn_all_vorbis) {
 	      const char * codec_name;
 	      int is_vorbis = 0;
 
@@ -228,10 +239,34 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	      else
 		active = 0;
 
+              if (!is_vorbis) warn_all_vorbis = 0;
+
 	    } else {
 	      active = 0;
 	    }
-	  }
+	  } else if (warn_all_vorbis) {
+            int all_inputs_are_beyond_bos = 1;
+
+            /* All BOS pages seen so far are Ogg Vorbis. The following loop
+             * checks if all input files are single-track, ie. Ogg Vorbis I.
+             * We can only rely on this information if all inputs are beyond
+             * bos, ie. all BOS pages have been seen. */
+            for (v = 0; v < oggz_table_size (omdata->inputs); v++) {
+              OMInput * input_v;
+              OGGZ * oggz;
+
+              input_v = (OMInput *) oggz_table_nth (omdata->inputs, i, &key);
+              oggz = input_v->reader;
+
+              if (oggz_get_bos(oggz, -1)) all_inputs_are_beyond_bos = 0;
+              else if (oggz_get_numtracks(oggz) > 1) warn_all_vorbis = 0;
+            }
+
+            if (all_inputs_are_beyond_bos && warn_all_vorbis) {
+              fprintf (stderr, ALL_VORBIS_WARNING, v);
+              warn_all_vorbis = 0;
+            }
+          }
 	  units = oggz_tell_units (input->reader);
 
 	  if (omdata->verbose) {
