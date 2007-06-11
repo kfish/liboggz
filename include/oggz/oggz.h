@@ -543,6 +543,18 @@ int oggz_get_bos (OGGZ * oggz, long serialno);
 int oggz_get_eos (OGGZ * oggz, long serialno);
 
 /**
+ * Query the number of tracks (logical bitstreams). When reading, this
+ * number is incremented every time a new track is found, so the returned
+ * value is only correct once the OGGZ is no longer at bos (beginning of
+ * stream): see oggz_get_bos() for determining this.
+ * \param oggz An OGGZ handle
+ * \return The number of tracks in OGGZ
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ * logical bitstream in \a oggz.
+ */
+int oggz_get_numtracks (OGGZ * oggz);
+
+/**
  * Request a new serialno, as required for a new stream, ensuring the serialno
  * is not yet used for any other streams managed by this OGGZ.
  * \param oggz An OGGZ handle

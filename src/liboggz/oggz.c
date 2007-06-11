@@ -432,6 +432,13 @@ oggz_set_eos (OGGZ * oggz, long serialno)
   return 0;
 }
 
+int
+oggz_get_numtracks (OGGZ * oggz)
+{
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+  return oggz_vector_size (oggz->streams);
+}
+
 long
 oggz_serialno_new (OGGZ * oggz)
 {

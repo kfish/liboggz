@@ -82,6 +82,11 @@ oggz_table_size				@47
 oggz_table_nth				@48
 
 ;
+; General querying
+;
+oggz_get_numtracks			@49
+
+;
 ;oggz stream functions (determining content type)
 ;
 oggz_stream_get_content                 @100

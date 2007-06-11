@@ -15,6 +15,7 @@
 		oggz_close;
 		oggz_get_bos;
 		oggz_get_eos;
+		oggz_get_numtracks;
 
 		oggz_run_set_blocksize;
 		oggz_run;
