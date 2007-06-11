@@ -87,6 +87,31 @@ manpage.1: manpage.sgml
       granulepos timestamps of Ogg Vorbis, Speex, FLAC and Theora bitstreams,
       and all bitstreams of Annodex files.
     </para>
+    <para>
+      For example, if you have an Ogg Theora video file, and its soundtrack
+      stored separately as an Ogg Speex audio file, and you can use
+      <command>&dhpackage;</command> to create a single Ogg file containing
+      the video and audio, interleaved together in parallel.
+    </para>
+    <para>
+      Similarly, using <command>&dhpackage;</command> on a collection of Ogg
+      Vorbis audio files will create a big Ogg file with all the songs in
+      parallel, ie. interleaved for simultaneous playback. Such a file is
+      proper Ogg, but not "Ogg Vorbis I" -- the Ogg Vorbis I specification
+      defines an Ogg Vorbis file as an Ogg file containing only one Vorbis
+      track at a time (ie. no parallel multiplexing). Many music players
+      (which use libvorbisfile) aren't designed to play multitrack Ogg files.
+      In general however, video players, and anything built on a multimedia
+      framework (like GStreamer, DirectShow etc.) will probably be able to
+      handle such files.
+    </para>
+    <para>
+      If you want to create a file containing some Ogg files sequenced one
+      after another, then you should simply concatenate them together using
+      <command>cat</command>. In Ogg this is called "chaining". If you cat
+      Ogg Vorbis I audio files together, then the result will also be a
+      compliant Ogg Vorbis file.
+    </para>
   </refsect1>
   
   <refsect1>
@@ -141,6 +166,10 @@ manpage.1: manpage.sgml
     <title>SEE ALSO</title>
     <para>
       <citerefentry>
+	<refentrytitle>cat</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
 	<refentrytitle>oggzrip</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
@@ -151,7 +180,7 @@ manpage.1: manpage.sgml
       <citerefentry>
 	<refentrytitle>oggzdiff</refentrytitle>
 	<manvolnum>1</manvolnum>
-      </citerefentry>
+      </citerefentry>,
       <citerefentry>
 	<refentrytitle>hogg</refentrytitle>
 	<manvolnum>1</manvolnum>
