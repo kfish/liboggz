@@ -355,6 +355,12 @@ oggz_read_sync (OGGZ * oggz)
             cb_ret =
               reader->read_packet (oggz, op, serialno, reader->read_user_data);
           }
+
+          /* Mark this stream as having delivered a non b_o_s packet if so.
+           * In the case where there is no packet reading callback, this is
+           * also valid as the page reading callback has already been called.
+           */
+          if (!op->b_o_s) stream->delivered_non_b_o_s = 1;
         }
         else
           break;
