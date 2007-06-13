@@ -184,7 +184,7 @@ oggz_comment_next_byname (OGGZ * oggz, long serialno,
 
 /**
  * Add a comment
- * \param oggz A OGGZ* handle (created with mode OGGZ_ENCODE)
+ * \param oggz A OGGZ* handle (created with mode OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
  * \param comment The comment to add
  * \retval 0 Success
@@ -196,7 +196,7 @@ oggz_comment_add (OGGZ * oggz, long serialno, OggzComment * comment);
 
 /**
  * Add a comment by name and value.
- * \param oggz A OGGZ* handle (created with mode OGGZ_ENCODE)
+ * \param oggz A OGGZ* handle (created with mode OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
  * \param name The name of the comment to add
  * \param value The contents of the comment to add
@@ -210,7 +210,7 @@ oggz_comment_add_byname (OGGZ * oggz, long serialno,
 
 /**
  * Remove a comment
- * \param oggz A OGGZ* handle (created with OGGZ_ENCODE)
+ * \param oggz A OGGZ* handle (created with OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
  * \param comment The comment to remove.
  * \retval 1 Success: comment removed
@@ -225,7 +225,7 @@ oggz_comment_remove (OGGZ * oggz, long serialno, OggzComment * comment);
 
 /**
  * Remove all comments with a given name.
- * \param oggz A OGGZ* handle (created with OGGZ_ENCODE)
+ * \param oggz A OGGZ* handle (created with OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
  * \param name The name of the comments to remove
  * \retval ">= 0" The number of comments removed
@@ -239,7 +239,7 @@ oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name);
 
 /**
  * Output a comment packet for the specified stream
- * \param oggz A OGGZ* handle (created with OGGZ_ENCODE)
+ * \param oggz A OGGZ* handle (created with OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
  * \param packet_type Type of comment packet to generate,
  * FLAC, OggPCM, Speex, Theora and Vorbis are supported
