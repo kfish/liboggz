@@ -30,18 +30,19 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_OFF_T_H__
-#define __OGGZ_OFF_T_H__
+#ifndef __OGGZ_OFF_T_GENERATED_H__
+#define __OGGZ_OFF_T_GENERATED_H__
 
 /** \file
- * Support for Large File Sizes on systems supporting 64-bit off_t types.
+ * Architecture-dependent type for oggz_off_t.
  *
- * This file is included by all files using @TYPEOF_OGGZ_OFF_T@ for file 
- * position e.g.: \link config.h <config.h> \endlink,
- * except on non-GNU Win32 systems \link ogg_off_t_w32.h \endlink is included
- * instead.
+ * This file should never be included directly by user code. Please include
+ * either of <oggz/oggz.h> or <oggz/oggz_off_t.h> instead.
  *
- * This file should never be included directly by user code.
+ * This file was generated when liboggz was built.
+ *
+ * Note that this file is only generated when using GNU autoconf.
+ * This file is not used on Win32 systems.
  */
 
 /**
@@ -51,27 +52,15 @@
  * To query this on your system, do eg.
  *
  <pre>
-   echo "#include <config.h>" | gcc -E - | grep oggz_off_t
+   echo "gcc -E oggz.h | grep oggz_off_t
  </pre>
  * 
  */
 
-#ifdef _WIN32
-  /* MSVC/Borland & Cygwin */
-   typedef off_t oggz_off_t;
-#else
-  
-   /* Linux/BSD/etc. */
-#  include <sys/types.h>
-   typedef @TYPEOF_OGGZ_OFF_T@ oggz_off_t;
+#include <sys/types.h>
 
-#endif
+typedef @TYPEOF_OGGZ_OFF_T@ oggz_off_t;
 
-/* Note: This is an ugly fix for proper display in printf but will work for now */
-#if SIZEOF_OGGZ_OFF_T == 8
-#define PRI_OGGZ_OFF_T "q"
-#else
-#define PRI_OGGZ_OFF_T "l"
-#endif
+#define PRI_OGGZ_OFF_T "@PRI_OGGZ_OFF_T@"
 
-#endif /* __OGGZ_OFF_T__ */
+#endif /* __OGGZ_OFF_T_GENERATED__ */

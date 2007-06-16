@@ -242,10 +242,20 @@ case "$host_os" in
 
 if test $SIZEOF_OGGZ_OFF_T = 4 ; then
     OGGZ_OFF_MAX="0x7FFFFFFF"
+    PRI_OGGZ_OFF_T="l"
+elif test $SIZEOF_OGGZ_OFF_T = 8 ; then
+    PRI_OGGZ_OFF_T="q"
 fi
 
-AC_DEFINE_UNQUOTED([TYPEOF_OGGZ_OFF_T],${TYPEOF_OGGZ_OFF_T}, [Set to long if unknown.])
+dnl The following configured variables are written into the public header
+dnl <oggz/oggz_off_t_generated.h>:
+dnl   oggz_off_t (typedef)
+dnl   PRI_OGGZ_OFF_T (printf format)
+
+dnl AC_DEFINE_UNQUOTED([TYPEOF_OGGZ_OFF_T],${TYPEOF_OGGZ_OFF_T}, [Set to long if unknown.])
 AC_SUBST(TYPEOF_OGGZ_OFF_T)
+
+AC_SUBST(PRI_OGGZ_OFF_T)
 
 AC_DEFINE_UNQUOTED([SIZEOF_OGGZ_OFF_T],${SIZEOF_OGGZ_OFF_T}, [Set to sizeof (long) if unknown.])
 AC_SUBST(SIZEOF_OGGZ_OFF_T)
@@ -362,7 +372,7 @@ doc/Makefile
 doc/Doxyfile
 include/Makefile
 include/oggz/Makefile
-include/oggz/oggz_off_t.h
+include/oggz/oggz_off_t_generated.h
 src/Makefile
 src/liboggz/Version_script
 src/liboggz/Makefile

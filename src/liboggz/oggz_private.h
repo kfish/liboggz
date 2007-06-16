@@ -38,13 +38,7 @@
 
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
-
-/* define appropriate type for oggz_off_t */
-#ifdef _WIN32
-#include <oggz/oggz_off_t_win32.h>
-#else
 #include <oggz/oggz_off_t.h>
-#endif
 
 #include "oggz_macros.h"
 #include "oggz_vector.h"

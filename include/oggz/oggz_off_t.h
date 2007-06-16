@@ -34,44 +34,18 @@
 #define __OGGZ_OFF_T_H__
 
 /** \file
- * Support for Large File Sizes on systems supporting 64-bit off_t types.
- *
- * This file is included by all files using loff_t for file 
- * position e.g.: \link config.h <config.h> \endlink,
- * except on non-GNU Win32 systems \link ogg_off_t_w32.h \endlink is included
- * instead.
- *
- * This file should never be included directly by user code.
- */
-
-/**
- * This typedef was determined on the system on which the documentation
- * was generated.
- *
- * To query this on your system, do eg.
- *
- <pre>
-   echo "#include <config.h>" | gcc -E - | grep oggz_off_t
- </pre>
- * 
+ * Architecture-dependent type and printf format for file position.
+ * Allows Large File Sizes on systems supporting 64-bit off_t types.
  */
 
 #ifdef _WIN32
   /* MSVC/Borland & Cygwin */
    typedef off_t oggz_off_t;
-#else
-  
-   /* Linux/BSD/etc. */
-#  include <sys/types.h>
-   typedef loff_t oggz_off_t;
 
-#endif
-
-/* Note: This is an ugly fix for proper display in printf but will work for now */
-#if SIZEOF_OGGZ_OFF_T == 8
-#define PRI_OGGZ_OFF_T "q"
-#else
 #define PRI_OGGZ_OFF_T "l"
+
+#else
+#include <oggz/oggz_off_t_generated.h>
 #endif
 
 #endif /* __OGGZ_OFF_T__ */

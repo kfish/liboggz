@@ -563,18 +563,12 @@ int oggz_get_numtracks (OGGZ * oggz);
  */
 long oggz_serialno_new (OGGZ * oggz);
 
-/* define appropriate type for oggz_off_t */
-#ifdef _WIN32
-#include <oggz/oggz_off_t_win32.h>
-#else
 #include <oggz/oggz_off_t.h>
-#endif
-
-#include <oggz/oggz_comments.h>
 #include <oggz/oggz_read.h>
 #include <oggz/oggz_seek.h>
 #include <oggz/oggz_write.h>
 #include <oggz/oggz_io.h>
+#include <oggz/oggz_comments.h>
 #include <oggz/oggz_deprecated.h>
 
 #ifdef __cplusplus
