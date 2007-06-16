@@ -284,7 +284,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if ((feed_err = oggz_write_feed (ovdata->writer, op, serialno, flush, NULL)) != 0) {
     ret = log_error ();
     if (timestamp == -1.0) {
-      fprintf (stderr, "%ld", oggz_tell (oggz));
+      fprintf (stderr, "%" PRI_OGGZ_OFF_T "d", oggz_tell (oggz));
     } else {
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
     }

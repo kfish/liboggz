@@ -67,9 +67,9 @@
 
 /* Note: This is an ugly fix for proper display in printf but will work for now */
 #if SIZEOF_OGGZ_OFF_T == 8
-#define PRI_OGGZ_OFF_T = "q"
+#define PRI_OGGZ_OFF_T "q"
 #else
-#define PRI_OGGZ_OFF_T = "l"
+#define PRI_OGGZ_OFF_T "l"
 #endif
 
 #endif

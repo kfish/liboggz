@@ -70,7 +70,7 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
   diff = result - units;
 
   if (verbose)
-    printf ("\t%08lx: %lld ms (%+lld ms)\n",
+    printf ("\t%0" PRI_OGGZ_OFF_T "x: %lld ms (%+lld ms)\n",
 	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
 
   if (result < 0) {
@@ -124,7 +124,8 @@ main (int argc, char * argv[])
   
   max_units = oggz_seek_units (oggz, 0, SEEK_END);
   if (verbose)
-    printf ("\t%08lx: %lld ms\n", oggz_tell (oggz), oggz_tell_units (oggz));
+    printf ("\t%0" PRI_OGGZ_OFF_T "x: %lld ms\n",
+            oggz_tell (oggz), oggz_tell_units (oggz));
 
   try_seek_units (oggz, max_units / 2);
   try_seek_units (oggz, 0);

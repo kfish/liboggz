@@ -231,14 +231,6 @@ bin_dump (unsigned char * buf, long n, int dump_char)
   }
 }
 
-/* FIXME: on Mac OS X, off_t is 64-bits.  Obviously we want a nicer
- * way to do it than this, but a quick fix is a good fix */
-#ifdef __APPLE__
-#  define PRI_off_t "q"
-#else
-#  define PRI_off_t "l"
-#endif
-
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
@@ -251,7 +243,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   } else {
     units = oggz_tell_units (oggz);
     if (units == -1) {
-      fprintf (outfile, "%08" PRI_off_t "x", oggz_tell (oggz));
+      fprintf (outfile, "%0" PRI_OGGZ_OFF_T "x", oggz_tell (oggz));
     } else {
       time_offset = (double)units / 1000.0;
       ot_fprint_time (outfile, time_offset);

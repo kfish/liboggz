@@ -118,14 +118,6 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   return OGGZ_CONTINUE;
 }
 
-/* FIXME: on Mac OS X, off_t is 64-bits.  Obviously we want a nicer
- * way to do it than this, but a quick fix is a good fix */
-#ifdef __APPLE__
-#  define PRI_off_t "q"
-#else
-#  define PRI_off_t "l"
-#endif
-
 static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
