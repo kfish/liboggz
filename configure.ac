@@ -252,11 +252,10 @@ dnl <oggz/oggz_off_t_generated.h>:
 dnl   oggz_off_t (typedef)
 dnl   PRI_OGGZ_OFF_T (printf format)
 
-dnl AC_DEFINE_UNQUOTED([TYPEOF_OGGZ_OFF_T],${TYPEOF_OGGZ_OFF_T}, [Set to long if unknown.])
 AC_SUBST(TYPEOF_OGGZ_OFF_T)
-
 AC_SUBST(PRI_OGGZ_OFF_T)
 
+dnl SIZEOF_OGGZ_OFF_T and OGGZ_OFF_MAX are only used internally by liboggz
 AC_DEFINE_UNQUOTED([SIZEOF_OGGZ_OFF_T],${SIZEOF_OGGZ_OFF_T}, [Set to sizeof (long) if unknown.])
 AC_SUBST(SIZEOF_OGGZ_OFF_T)
 
@@ -265,9 +264,6 @@ AC_SUBST(OGGZ_OFF_MAX)
 
 AC_CHECK_TYPES(ssize_t)
 AC_CHECK_SIZEOF(ssize_t,4)
-
-dnl was defined to set oggz_off_t type (removed by laser13)
-dnl AC_DEFINE_UNQUOTED([oggz_off_t], ${TYPEOF_OGGZ_OFF_T}, [Configured type of oggz_off_t])
 
 
 dnl
