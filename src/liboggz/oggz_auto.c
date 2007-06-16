@@ -387,11 +387,11 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   long keyframe_no;
   int keyframe_shift;
   unsigned char first_byte;
+  auto_calc_theora_info_t *info;
 
   first_byte = op->packet[0];
 
-  auto_calc_theora_info_t *info 
-          = (auto_calc_theora_info_t *)stream->calculate_data;
+  info = (auto_calc_theora_info_t *)stream->calculate_data;
 
   /* header packet */
   if (first_byte & 0x80)
