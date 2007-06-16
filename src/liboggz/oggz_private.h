@@ -263,8 +263,7 @@ int oggz_has_metrics (OGGZ * oggz);
 
 int oggz_purge (OGGZ * oggz);
 
-int oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
-                void * user_data);
+/* metric_internal */
 
 int
 oggz_set_granulerate (OGGZ * oggz, long serialno, 
@@ -276,9 +275,21 @@ oggz_get_granulerate (OGGZ * oggz, long serialno,
                                     ogg_int64_t * granulerate_n,
                                     ogg_int64_t * granulerate_d);
 
+int oggz_set_granuleshift (OGGZ * oggz, long serialno, int granuleshift);
+
+int oggz_get_granuleshift (OGGZ * oggz, long serialno);
+
+/* oggz_auto */
+ 
+int
+oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
+                           void * user_data);
+
 int
 oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
                          ogg_packet * op);
+
+int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno);
 
 /* comments */
 int oggz_comments_init (oggz_stream_t * stream);

@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CFLAGS = -Wall -pedantic -g
-
 EXTRA_DIST = oggzdiff
 
 bin_SCRIPTS = oggzdiff

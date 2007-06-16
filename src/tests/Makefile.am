@@ -1,7 +1,5 @@
 ## Process this file with automake to produce Makefile.in
 
-AM_CFLAGS = -Wall -pedantic
-
 INCLUDES = -I$(top_srcdir)/include @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz

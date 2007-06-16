@@ -679,8 +679,6 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
      */
     int mode;
     int size;
-    int prev_bit;
-    int next_bit;
     int result;
 
     mode = (op->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
@@ -876,8 +874,8 @@ int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
 
 int
 oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
-                void * user_data) {
-  OggzReadPacket read_packet;
+                void * user_data)
+{
   int content = 0;
 
   content = oggz_stream_get_content(oggz, serialno);

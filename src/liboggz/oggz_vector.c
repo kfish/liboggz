@@ -40,7 +40,7 @@
 
 typedef int (*OggzFunc) (void * data);
 typedef int (*OggzFindFunc) (void * data, long serialno);
-typedef int (*OggzCmpFunc) (void * a, void * b, void * user_data);
+typedef int (*OggzCmpFunc) (const void * a, const void * b, void * user_data);
 
 typedef struct _OggzVector OggzVector;
 
@@ -141,7 +141,7 @@ oggz_vector_find_p (OggzVector * vector, const void * data)
   void * d;
   int i;
 
-  if (vector->compare == NULL) -1;
+  if (vector->compare == NULL) return NULL;
 
   for (i = 0; i < vector->nr_elements; i++) {
     d = vector->data[i].p;
@@ -158,7 +158,7 @@ oggz_vector_find_index_p (OggzVector * vector, const void * data)
   void * d;
   int i;
 
-  if (vector->compare == NULL) -1;
+  if (vector->compare == NULL) return -1;
 
   for (i = 0; i < vector->nr_elements; i++) {
     d = vector->data[i].p;
