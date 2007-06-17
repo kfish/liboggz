@@ -651,6 +651,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
+    writer->writing = 0;
     return oggz_map_return_value_to_error (cb_ret);
   }
 
@@ -720,6 +721,7 @@ oggz_write (OGGZ * oggz, long n)
 
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
+    writer->writing = 0;
     if (cb_ret == OGGZ_WRITE_EMPTY) cb_ret = 0;
     return oggz_map_return_value_to_error (cb_ret);
   }
