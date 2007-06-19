@@ -95,12 +95,21 @@ oggz_tell_raw (OGGZ * oggz)
 /*
  * seeks and syncs
  */
+
+int
+oggz_seek_reset_stream(void *data) {
+  ((oggz_stream_t *)data)->last_granulepos = -1;
+  return 0;
+}
+
 static oggz_off_t
 oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   OggzReader * reader = &oggz->x.reader;
   oggz_off_t offset_at;
 
+  oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
+  
   if (oggz_io_seek (oggz, offset, whence) == -1) {
     return -1;
   }
