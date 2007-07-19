@@ -97,19 +97,18 @@ oggz_tell_raw (OGGZ * oggz)
  */
 
 int
-oggz_seek_reset_stream(void *data) {
-  ((oggz_stream_t *)data)->last_granulepos = -1;
+oggz_seek_reset_stream(void *data, void *arg) {
+  ((oggz_stream_t *)data)->last_granulepos = (int)arg;
   return 0;
 }
 
 static oggz_off_t
 oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 {
-  OggzReader * reader = &oggz->x.reader;
-  oggz_off_t offset_at;
+  OggzReader  * reader = &oggz->x.reader;
+  oggz_off_t    offset_at;
+  int           i;
 
-  oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
-  
   if (oggz_io_seek (oggz, offset, whence) == -1) {
     return -1;
   }
@@ -120,6 +119,8 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 
   ogg_sync_reset (&reader->ogg_sync);
 
+  oggz_vector_foreach1(oggz->streams, oggz_seek_reset_stream, -1);
+  
   return offset_at;
 }
 
@@ -285,8 +286,9 @@ oggz_get_next_start_page (OGGZ * oggz, ogg_page * og)
      *   !ogg_page_continued : page contains start of a packet
      *   ogg_page_packets > 1: page contains start of a packet
      */
-    if (page_offset <= 0 || !ogg_page_continued (og) ||
-	ogg_page_packets (og) > 1)
+    /*if (page_offset <= 0 || !ogg_page_continued (og) ||
+	ogg_page_packets (og) > 1)*/
+    if (page_offset <= 0 || ogg_page_granulepos(og) > -1)
       found = 1;
   }
   while (!found);
@@ -377,8 +379,8 @@ oggz_get_prev_start_page (OGGZ * oggz, ogg_page * og,
   offset_at = oggz_reset (oggz, found_offset, unit_at, SEEK_SET);
 
 #ifdef DEBUG
-    printf ("get_prev_start_page: [C] offset_at: @%" PRI_OGGZ_OFF "d\t"
-	    "found_offset: @%" PRO_OGGZ_OFF "d\tunit_at: %lld\n",
+    printf ("get_prev_start_page: [C] offset_at: @%" PRI_OGGZ_OFF_T "d\t"
+	    "found_offset: @%" PRI_OGGZ_OFF_T "d\tunit_at: %lld\n",
 	    offset_at, found_offset, unit_at);
 #endif
 
@@ -484,6 +486,10 @@ oggz_scan_for_page (OGGZ * oggz, ogg_page * og, ogg_int64_t unit_target,
 
       break;
 #else
+      do {
+        offset_at = oggz_get_prev_start_page(oggz, og, &granule_at, &serialno);
+        unit_at = oggz_get_unit(oggz, serialno, granule_at);
+      } while (unit_at > unit_target);
       return offset_at;
 #endif
     } else if (unit_at == unit_target) {
@@ -753,9 +759,10 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
   }
 
  found:
-  offset_at = oggz_get_prev_start_page (oggz, og, &granule_at, &serialno);
-
-  unit_at = oggz_get_unit (oggz, serialno, granule_at);
+  do {
+    offset_at = oggz_get_prev_start_page (oggz, og, &granule_at, &serialno);
+    unit_at = oggz_get_unit (oggz, serialno, granule_at);
+  } while (unit_at > unit_target);
 
   if (offset_at < 0) {
     oggz_reset (oggz, offset_orig, -1, SEEK_SET);

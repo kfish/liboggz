@@ -39,6 +39,7 @@
 #include "oggz_macros.h"
 
 typedef int (*OggzFunc) (void * data);
+typedef int (*OggzFunc1) (void * data, void * arg);
 typedef int (*OggzFindFunc) (void * data, long serialno);
 typedef int (*OggzCmpFunc) (const void * a, const void * b, void * user_data);
 
@@ -191,6 +192,18 @@ oggz_vector_foreach (OggzVector * vector, OggzFunc func)
 
   for (i = 0; i < vector->nr_elements; i++) {
     func (vector->data[i].p);
+  }
+
+  return 0;
+}
+
+int
+oggz_vector_foreach1 (OggzVector * vector, OggzFunc1 func, void *arg)
+{
+  int i;
+
+  for (i = 0; i < vector->nr_elements; i++) {
+    func (vector->data[i].p, arg);
   }
 
   return 0;

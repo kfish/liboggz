@@ -36,6 +36,7 @@
 typedef void OggzVector;
 
 typedef int (*OggzFunc) (void * data);
+typedef int (*OggzFunc1) (void * data, void *arg);
 typedef int (*OggzFindFunc) (void * data, long serialno);
 typedef int (*OggzCmpFunc) (const void * a, const void * b, void * user_data);
 
@@ -62,6 +63,9 @@ oggz_vector_nth_l (OggzVector * vector, int n);
 
 int
 oggz_vector_foreach (OggzVector * vector, OggzFunc func);
+
+int
+oggz_vector_foreach1 (OggzVector * vector, OggzFunc1 func, void *arg);
 
 int
 oggz_vector_size (OggzVector * vector);
