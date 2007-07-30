@@ -289,12 +289,28 @@ AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
 
 # Checks for typedefs, structures, and compiler characteristics.
 
-dnl Use -Wall if we have gcc.
+dnl Add some useful warnings if we have gcc.
 dnl changequote(,)dnl
 if test "x$ac_cv_prog_gcc" = xyes ; then
   CFLAGS="$CFLAGS -Wall -g -std=gnu99 -Wdeclaration-after-statement"
 fi
 dnl changequote([,])dnl
+
+dnl
+dnl  Configuration option to add -Werror to all Makefiles
+dnl
+
+AC_ARG_ENABLE(gcc-werror,
+     AC_HELP_STRING([--enable-gcc-werror], [enable -Werror in all Makefiles]),
+     [ ac_enable_gcc_werror=yes ], [ ac_enable_gcc_werror=no] )
+
+if test "x${ac_enable_gcc_werror}" = xyes ; then
+  CFLAGS="-Werror $CFLAGS"
+fi
+
+dnl
+dnl Shared library symbol versioning and hiding
+dnl
 
 case "$target_os" in
   linux* | solaris*)
