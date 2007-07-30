@@ -32,12 +32,6 @@
 
 #include "config.h"
 
-#ifdef HAVE_RANDOM
-#  define oggz_random random
-#else
-#  define oggz_random rand
-#endif
-
 #ifndef WIN32
 #  define oggz_stat_regular(mode) (S_ISREG((mode)) || S_ISLNK((mode)))
 #else

@@ -439,14 +439,26 @@ oggz_get_numtracks (OGGZ * oggz)
   return oggz_vector_size (oggz->streams);
 }
 
+/* Generate a pseudorandom serialno on request, ensuring that the number
+ * selected is not -1 or the serialno of an existing logical bitstream.
+ * NB. This inlines a simple linear congruential generator to avoid problems
+ * of portability of rand() vs. the POSIX random()/initstate()/getstate(), and
+ * in the case of rand() in order to avoid interfering with the random number
+ * sequence.
+ * Adapated from a patch by Erik de Castro Lopo, July 2007.
+ */
 long
 oggz_serialno_new (OGGZ * oggz)
 {
-  long serialno;
+  static long serialno = 0;
+  int k;
+
+  if (serialno == 0) serialno = time(NULL);
 
   do {
-    serialno = oggz_random();
-  } while (oggz_get_stream (oggz, serialno) != NULL);
+    for (k = 0; k < 3 || serialno == 0; k++)
+      serialno = 11117 * serialno + 211231;
+  } while (serialno == -1 || oggz_get_stream (oggz, serialno) != NULL);
 
   return serialno;
 }

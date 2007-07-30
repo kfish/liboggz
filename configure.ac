@@ -36,7 +36,7 @@ AC_TYPE_SIZE_T
 
 # Checks for library functions.
 AC_FUNC_REALLOC
-AC_CHECK_FUNCS([memmove random])
+AC_CHECK_FUNCS([memmove])
 
 # Check for pkg-config
 AC_CHECK_PROG(HAVE_PKG_CONFIG, pkg-config, yes)
