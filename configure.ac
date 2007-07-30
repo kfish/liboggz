@@ -292,7 +292,7 @@ AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
 dnl Use -Wall if we have gcc.
 dnl changequote(,)dnl
 if test "x$ac_cv_prog_gcc" = xyes ; then
-  CFLAGS="$CFLAGS -Wall -g -std=c99 -Wdeclaration-after-statement"
+  CFLAGS="$CFLAGS -Wall -g -std=gnu99 -Wdeclaration-after-statement"
 fi
 dnl changequote([,])dnl
 
