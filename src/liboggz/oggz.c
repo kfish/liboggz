@@ -301,7 +301,7 @@ oggz_find_stream (void * data, long serialno)
 oggz_stream_t *
 oggz_get_stream (OGGZ * oggz, long serialno)
 {
-  if (serialno < 0) return NULL;
+  if (serialno == -1) return NULL;
 
   return oggz_vector_find_with (oggz->streams, oggz_find_stream, serialno);
 }
