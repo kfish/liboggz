@@ -107,7 +107,6 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   OggzReader  * reader = &oggz->x.reader;
   oggz_off_t    offset_at;
-  int           i;
 
   if (oggz_io_seek (oggz, offset, whence) == -1) {
     return -1;
@@ -119,7 +118,7 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 
   ogg_sync_reset (&reader->ogg_sync);
 
-  oggz_vector_foreach1(oggz->streams, oggz_seek_reset_stream, -1);
+  oggz_vector_foreach1(oggz->streams, oggz_seek_reset_stream, (void *)-1);
   
   return offset_at;
 }
