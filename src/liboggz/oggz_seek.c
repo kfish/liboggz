@@ -97,8 +97,8 @@ oggz_tell_raw (OGGZ * oggz)
  */
 
 int
-oggz_seek_reset_stream(void *data, void *arg) {
-  ((oggz_stream_t *)data)->last_granulepos = (int)arg;
+oggz_seek_reset_stream(void *data) {
+  ((oggz_stream_t *)data)->last_granulepos = -1L;
   return 0;
 }
 
@@ -118,7 +118,7 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 
   ogg_sync_reset (&reader->ogg_sync);
 
-  oggz_vector_foreach1(oggz->streams, oggz_seek_reset_stream, (void *)-1);
+  oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
   
   return offset_at;
 }

@@ -134,7 +134,7 @@ my_io_read (void * user_handle, void * buf, size_t n)
   /* Mark that the read IO method was actually used */
   read_called++;
 
-  len = MIN (n, DATA_BUF_LEN - offset);
+  len = MIN ((int)n, DATA_BUF_LEN - offset);
   memcpy (buf, &data_buf[offset], len);
 
   offset += len;

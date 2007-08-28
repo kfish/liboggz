@@ -848,7 +848,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac},
   {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL},
-  {"", 0, "Unknown", NULL}
+  {"", 0, "Unknown", NULL, NULL}
 }; 
 
 int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {

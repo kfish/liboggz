@@ -260,7 +260,6 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   if (strict) {
     if (op->bytes < 0) return OGGZ_ERR_BAD_BYTES;
     if (!suffix && b_o_s != stream->b_o_s) return OGGZ_ERR_BAD_B_O_S;
-
     if (op->granulepos != -1 && op->granulepos < stream->granulepos)
       return OGGZ_ERR_BAD_GRANULEPOS;
 
@@ -580,7 +579,7 @@ static long
 oggz_writer_make_packet (OGGZ * oggz)
 {
   OggzWriter * writer = &oggz->x.writer;
-  oggz_writer_packet_t * zpacket, * next_zpacket;
+  oggz_writer_packet_t * zpacket, * next_zpacket = NULL;
   int cb_ret = 0;
 
 #ifdef DEBUG

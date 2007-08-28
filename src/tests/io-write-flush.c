@@ -144,7 +144,7 @@ my_io_write (void * user_handle, void * buf, size_t n)
   /* Mark that the write IO method was actually used */
   write_called++;
 
-  len = MIN (n, DATA_BUF_LEN - write_offset);
+  len = MIN ((int)n, DATA_BUF_LEN - write_offset);
   memcpy (&data_buf[write_offset], buf, len);
 
   write_offset += len;

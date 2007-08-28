@@ -205,7 +205,7 @@ static void
 checked_fwrite (const void *data, size_t size, size_t count, FILE *stream)
 {
   int n = fwrite (data, size, count, stream);
-  if (n != count) {
+  if ((size_t)n != count) {
     perror ("write failed");
     exit (1);
   }
