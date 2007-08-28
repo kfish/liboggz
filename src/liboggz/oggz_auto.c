@@ -399,8 +399,8 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     if (info == NULL) {
       stream->calculate_data = malloc(sizeof(auto_calc_theora_info_t));
       info = stream->calculate_data;
-      info->encountered_first_data_packet = 0;
     }
+    info->encountered_first_data_packet = 0;
     return (ogg_int64_t)0;
   }
   
