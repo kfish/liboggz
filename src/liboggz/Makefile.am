@@ -18,6 +18,7 @@ liboggz_la_SOURCES = \
 	oggz_stream.c oggz_stream.h \
 	oggz_table.c \
 	oggz_vector.c oggz_vector.h \
+	oggz_dlist.c oggz_dlist.h \
 	metric_internal.c
 
 liboggz_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
