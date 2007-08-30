@@ -847,6 +847,8 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   OggzReader * reader = &oggz->x.reader;
 
+  ogg_int64_t r;
+
   if (oggz == NULL) {
 #ifdef DEBUG
     printf ("oggz_seek_units: oggz NULL, FAIL\n");
@@ -870,20 +872,23 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 
   switch (whence) {
   case SEEK_SET:
-    return oggz_seek_set (oggz, units);
+    r = oggz_seek_set (oggz, units);
     break;
   case SEEK_CUR:
     units += reader->current_unit;
-    return oggz_seek_set (oggz, units);
+    r = oggz_seek_set (oggz, units);
     break;
   case SEEK_END:
-    return oggz_seek_end (oggz, units);
+    r = oggz_seek_end (oggz, units);
     break;
   default:
     /*oggz_set_error (oggz, OGGZ_EINVALID);*/
-    return -1;
+    r = -1;
     break;
   }
+
+  reader->current_granulepos = -1;
+  return r;
 }
 
 long
