@@ -101,6 +101,8 @@ oggz_new (int flags)
   oggz->order = NULL;
   oggz->order_user_data = NULL;
 
+  oggz->packet_buffer = oggz_dlist_new ();
+
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
     oggz_write_init (oggz);
   } else if (OGGZ_CONFIG_READ) {

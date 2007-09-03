@@ -42,7 +42,7 @@
 
 #include "oggz_macros.h"
 #include "oggz_vector.h"
-
+#include "oggz_dlist.h"
 
 typedef struct _OGGZ OGGZ;
 typedef struct _OggzComment OggzComment;
@@ -118,6 +118,7 @@ struct _oggz_stream_t {
   ogg_int64_t last_granulepos;
   ogg_int64_t page_granulepos;
   void * calculate_data;
+  ogg_packet  * last_packet;
 };
 
 struct _OggzReader {
@@ -237,6 +238,8 @@ struct _OGGZ {
     OggzReader reader;
     OggzWriter writer;
   } x;
+
+  OggzDList * packet_buffer;
 };
 
 OGGZ * oggz_read_init (OGGZ * oggz);

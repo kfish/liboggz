@@ -238,6 +238,96 @@ oggz_get_next_page_7 (OGGZ * oggz, ogg_page * og)
   return ret;
 }
 
+typedef struct {
+  ogg_packet      packet;
+  ogg_int64_t     calced_granulepos;
+  oggz_stream_t * stream;
+  OggzReader    * reader;
+  OGGZ          * oggz;
+  long            serialno;
+} OggzBufferedPacket;
+
+OggzBufferedPacket *
+oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet, 
+            ogg_int64_t granulepos, long serialno, oggz_stream_t * stream, 
+            OggzReader *reader) {
+
+  OggzBufferedPacket *p = malloc(sizeof(OggzBufferedPacket));
+  memcpy(&(p->packet), packet, sizeof(ogg_packet));
+  p->packet.packet = malloc(packet->bytes);
+  memcpy(p->packet.packet, packet->packet, packet->bytes);
+
+  p->calced_granulepos = granulepos;
+  p->stream = stream;
+  p->serialno = serialno;
+  p->reader = reader;
+  p->oggz = oggz;
+
+  return p;
+}
+
+void
+oggz_read_free_pbuffer_entry(OggzBufferedPacket *p) {
+  
+  free(p->packet.packet);
+  free(p);
+
+}
+
+OggzDListIterResponse
+oggz_read_update_gp(void *elem) {
+
+  OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
+
+  if (p->calced_granulepos == -1 && p->stream->last_granulepos != -1) {
+    int content = oggz_stream_get_content(p->oggz, p->serialno);
+    p->calced_granulepos = 
+      oggz_auto_calculate_gp_backwards(content, p->stream->last_granulepos,
+      p->stream, &(p->packet), p->stream->last_packet);
+      
+    p->stream->last_granulepos = p->calced_granulepos;
+    p->stream->last_packet = &(p->packet);
+  }
+
+  return DLIST_ITER_CONTINUE;
+
+}
+
+OggzDListIterResponse
+oggz_read_deliver_packet(void *elem) {
+
+  OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
+  ogg_int64_t gp_stored;
+  long unit_stored;
+
+  if (p->calced_granulepos == -1) {
+    return DLIST_ITER_CANCEL;
+  }
+
+  gp_stored = p->reader->current_granulepos;
+  unit_stored = p->reader->current_unit;
+
+  p->reader->current_granulepos = p->calced_granulepos;
+
+  p->reader->current_unit =
+    oggz_get_unit (p->oggz, p->serialno, p->calced_granulepos);
+
+  if (p->stream->read_packet) {
+    p->stream->read_packet(p->oggz, &(p->packet), p->serialno, 
+            p->stream->read_user_data);
+  } else if (p->reader->read_packet) {
+    p->reader->read_packet(p->oggz, &(p->packet), p->serialno, 
+            p->reader->read_user_data);
+  }
+
+  p->reader->current_granulepos = gp_stored;
+  p->reader->current_unit = unit_stored;
+
+  oggz_read_free_pbuffer_entry(p);
+
+  return DLIST_ITER_CONTINUE;
+}
+
 static int
 oggz_read_sync (OGGZ * oggz)
 {
@@ -346,6 +436,44 @@ oggz_read_sync (OGGZ * oggz)
 
           if (stream->packetno == 1) {
             oggz_auto_read_comments (oggz, stream, serialno, op);
+          }
+
+          /*
+           * while we are getting invalid granulepos values, store the incoming
+           * packets in a dlist */
+          if (reader->current_granulepos == -1) {
+            OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
+                              oggz, &packet, reader->current_granulepos, 
+                              serialno, stream, reader);
+
+            oggz_dlist_append(oggz->packet_buffer, p);
+            continue;
+          } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+            /*
+             * move backward through the list assigning gp values based upon
+             * the granulepos we just recieved.  Then move forward through
+             * the list delivering any packets at the beginning with valid
+             * gp values
+             */
+            ogg_int64_t gp_stored = stream->last_granulepos;
+            stream->last_packet = &packet;
+            oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
+            oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
+
+            /*
+             * fix up the stream granulepos 
+             */
+            stream->last_granulepos = gp_stored;
+
+            if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+              OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
+                              oggz, &packet, reader->current_granulepos, 
+                              serialno, stream, reader);
+
+              oggz_dlist_append(oggz->packet_buffer, p);
+              continue;
+            }
+
           }
 
           if (stream->read_packet) {

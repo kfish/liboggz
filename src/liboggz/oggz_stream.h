@@ -42,6 +42,9 @@ typedef struct {
   OggzReadPacket  reader;
   ogg_int64_t     (*calculator)(ogg_int64_t now, oggz_stream_t *stream, 
                   ogg_packet *op);
+  ogg_int64_t     (*r_calculator)(ogg_int64_t next_packet_gp, 
+                  oggz_stream_t *stream, ogg_packet *this_packet, 
+                  ogg_packet *next_packet);
 } oggz_auto_contenttype_t;
 
 extern const oggz_auto_contenttype_t oggz_auto_codec_ident[];
@@ -57,4 +60,9 @@ const char * oggz_stream_get_content_type (OGGZ *oggz, long serialno);
 ogg_int64_t 
 oggz_auto_calculate_granulepos(int content, ogg_int64_t now, 
                 oggz_stream_t *stream, ogg_packet *op);
+
+ogg_int64_t
+oggz_auto_calculate_gp_backwards(int content, ogg_int64_t next_packet_gp,
+      oggz_stream_t *stream, ogg_packet *this_packet, ogg_packet *next_packet);
+
 #endif /* __OGGZ_STREAM_H__ */

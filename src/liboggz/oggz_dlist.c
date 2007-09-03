@@ -63,6 +63,8 @@ oggz_dlist_new (void) {
   dlist->head = dummy_front;
   dlist->tail = dummy_back;
 
+  return dlist;
+
 }
 
 void
@@ -76,6 +78,8 @@ oggz_dlist_delete(OggzDList *dlist) {
 
   free(dlist->tail);
   free(dlist);
+
+  printf("dlist:DELETE complete\n");
 
 }
 
@@ -137,13 +141,14 @@ oggz_dlist_reverse_iter(OggzDList *dlist, OggzDListIterFunc func) {
 void
 oggz_dlist_deliter(OggzDList *dlist, OggzDListIterFunc func) {
 
-  OggzDListElem *p;
+  OggzDListElem *p, *q;
 
-  for (p = dlist->head->next; p != dlist->tail; p = p->next) {
+  for (p = dlist->head->next; p != dlist->tail; p = q) {
     if (func(p->data) == DLIST_ITER_CANCEL) {
       break;
     }
 
+    q = p->next;
     p->prev->next = p->next;
     p->next->prev = p->prev;
 
@@ -155,13 +160,14 @@ oggz_dlist_deliter(OggzDList *dlist, OggzDListIterFunc func) {
 void
 oggz_dlist_reverse_deliter(OggzDList *dlist, OggzDListIterFunc func) {
 
-  OggzDListElem *p;
+  OggzDListElem *p, *q;
 
-  for (p = dlist->tail->prev; p != dlist->head; p = p->prev) {
+  for (p = dlist->tail->prev; p != dlist->head; p = q) {
     if (func(p->data) == DLIST_ITER_CANCEL) {
       break;
     }
 
+    q = p->prev;
     p->prev->next = p->next;
     p->next->prev = p->prev;
 

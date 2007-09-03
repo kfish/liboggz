@@ -444,6 +444,26 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
 }
 
+auto_rcalc_theora(ogg_int64_t next_packet_gp, oggz_stream_t *stream, 
+                  ogg_packet *this_packet, ogg_packet *next_packet) {
+
+  int keyframe = (int)(next_packet_gp >> stream->granuleshift);
+  int offset = (int)(next_packet_gp - (keyframe << stream->granuleshift));
+
+  /* assume kf is 60 frames ago. NOTE: This is going to cause problems,
+   * but I can't think of what else to do.  The position of the last kf
+   * is fundamentally unknowable.
+   */
+  if (offset == 0) {
+    return ((keyframe - 60L) << stream->granuleshift) + 59;
+  }
+  else {
+    return (((ogg_int64_t)keyframe) << stream->granuleshift) + (offset - 1);
+  }
+
+}
+
+
 /*
  * Vorbis packets can be short or long, and each packet overlaps the previous
  * and next packets.  The granulepos of a packet is always the last sample
@@ -721,6 +741,25 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   
 }
 
+ogg_int64_t
+auto_rcalc_vorbis(ogg_int64_t next_packet_gp, oggz_stream_t *stream,
+                  ogg_packet *this_packet, ogg_packet *next_packet) {
+
+  auto_calc_vorbis_info_t *info = 
+                  (auto_calc_vorbis_info_t *)stream->calculate_data;
+
+  int mode = 
+      (this_packet->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
+  int this_size = info->mode_sizes[mode] ? info->long_size : info->short_size;
+  int next_size;
+
+  mode = (next_packet->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
+  next_size = info->mode_sizes[mode] ? info->long_size : info->short_size;
+
+  return next_packet_gp - ((this_size + next_size) / 4);
+
+}
+
 /**
  * FLAC
  * Defined at: http://flac.sourceforge.net/ogg_mapping.html
@@ -838,17 +877,17 @@ out:
 }
 
 const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
-  {"\200theora", 7, "Theora", auto_theora, auto_calc_theora},
-  {"\001vorbis", 7, "Vorbis", auto_vorbis, auto_calc_vorbis},
-  {"Speex", 5, "Speex", auto_speex, auto_calc_speex},
-  {"PCM     ", 8, "PCM", auto_oggpcm2, NULL},
-  {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL},
-  {"Annodex", 8, "Annodex", auto_annodex, NULL},
-  {"fishead", 7, "Skeleton", auto_fishead, NULL},
-  {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac},
-  {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac},
-  {"AnxData", 7, "AnxData", auto_anxdata, NULL},
-  {"", 0, "Unknown", NULL, NULL}
+  {"\200theora", 7, "Theora", auto_theora, auto_calc_theora, auto_rcalc_theora},
+  {"\001vorbis", 7, "Vorbis", auto_vorbis, auto_calc_vorbis, auto_rcalc_vorbis},
+  {"Speex", 5, "Speex", auto_speex, auto_calc_speex, NULL},
+  {"PCM     ", 8, "PCM", auto_oggpcm2, NULL, NULL},
+  {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL, NULL},
+  {"Annodex", 8, "Annodex", auto_annodex, NULL, NULL},
+  {"fishead", 7, "Skeleton", auto_fishead, NULL, NULL},
+  {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac, NULL},
+  {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
+  {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
+  {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
 int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
@@ -892,28 +931,23 @@ oggz_auto_calculate_granulepos(int content, ogg_int64_t now,
                 oggz_stream_t *stream, ogg_packet *op) {
   if (oggz_auto_codec_ident[content].calculator != NULL) {
     ogg_int64_t r = oggz_auto_codec_ident[content].calculator(now, stream, op);
-    /*
-     * this will cause a hiccough at the end of the first data page if there are
-     * more than one packets on that page.  In the absence of pervasive access
-     * to the packets on a page, though, it might have to do.
-     *
-     * Why a hiccough?  Because there's no granulepos attached to any packets
-     * except for the last on a page.  If the stream doesn't start at gp 0 (a
-     * very common occurrence) then we don't realise until we get to the end of
-     * the page.  By that time we've already junked the first packets on the 
-     * page.
-     */
-    /*
-    if (now != -1LL) {
-      return op->granulepos;
-    }
-    */
     return r;
   } 
 
   return now;
-  
-  
+}
+
+ogg_int64_t
+oggz_auto_calculate_gp_backwards(int content, ogg_int64_t next_packet_gp,
+      oggz_stream_t *stream, ogg_packet *this_packet, ogg_packet *next_packet) {
+
+  if (oggz_auto_codec_ident[content].r_calculator != NULL) {
+    return oggz_auto_codec_ident[content].r_calculator(next_packet_gp,
+            stream, this_packet, next_packet);
+  }
+
+  return 0;
+
 }
 
 int
