@@ -752,11 +752,14 @@ auto_rcalc_vorbis(ogg_int64_t next_packet_gp, oggz_stream_t *stream,
       (this_packet->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
   int this_size = info->mode_sizes[mode] ? info->long_size : info->short_size;
   int next_size;
+  ogg_int64_t r;
 
   mode = (next_packet->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
   next_size = info->mode_sizes[mode] ? info->long_size : info->short_size;
 
-  return next_packet_gp - ((this_size + next_size) / 4);
+  r = next_packet_gp - ((this_size + next_size) / 4);
+  if (r < 0) return 0L;
+  return r;
 
 }
 
