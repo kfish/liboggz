@@ -686,12 +686,6 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
   info = (auto_calc_vorbis_info_t *)stream->calculate_data;
 
-
-  if (now > -1)
-  {
-    return now;
-  }
- 
   { 
     /*
      * we're in a data packet!  First we need to get the mode of the packet,
@@ -704,18 +698,18 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     mode = (op->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
     size = info->mode_sizes[mode];
   
-    info->last_was_long = size;
-
     /*
      * if we have a working granulepos, we use it.
      */
     if (now > -1) {
       info->encountered_first_data_packet = 1;
+      info->last_was_long = size;
       return now;
     }
 
     if (info->encountered_first_data_packet == 0) {
       info->encountered_first_data_packet = 1;
+      info->last_was_long = size;
       return -1;
     }
 
@@ -724,6 +718,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
      * -1
      */
     if (stream->last_granulepos == -1) {
+      info->last_was_long = size;
       return -1;
     }
 
