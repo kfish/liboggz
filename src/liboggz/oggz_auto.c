@@ -693,15 +693,16 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
      */
     int mode;
     int size;
-    int result;
+    ogg_int64_t result;
 
     mode = (op->packet[0] >> 1) & ((1 << info->log2_num_modes) - 1);
     size = info->mode_sizes[mode];
   
     /*
-     * if we have a working granulepos, we use it.
+     * if we have a working granulepos, we use it, but only if we can't
+     * calculate a valid gp value.
      */
-    if (now > -1) {
+    if (now > -1 && stream->last_granulepos == -1) {
       info->encountered_first_data_packet = 1;
       info->last_was_long = size;
       return now;
