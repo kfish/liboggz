@@ -3,6 +3,7 @@
 	ProjectType="Visual C++"
 	Version="7.10"
 	Name="liboggz"
+	ProjectGUID="{92EE813D-F197-4119-A573-9FB9466E4C1B}"
 	SccProjectName=""
 	SccLocalPath="">
 	<Platforms>
@@ -22,7 +23,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\include\;.;..\..\libogg\include\"
+				AdditionalIncludeDirectories="..\..\include\;..\;..\..\..\libogg\include\"
 				PreprocessorDefinitions="WIN32;NDEBUG;_WINDOWS;_USRDLL;LIBOGGZ_EXPORTS"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -42,8 +43,8 @@
 				OutputFile="$(OutDir)/liboggz.dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\win32\Dynamic_Release"
-				ModuleDefinitionFile=".\liboggz.def"
+				AdditionalLibraryDirectories="..\..\..\libogg\win32\Dynamic_Release"
+				ModuleDefinitionFile="..\liboggz.def"
 				ProgramDatabaseFile="$(OutDir)/$(ProjectName).pdb"
 				ImportLibrary="liboggz.lib"
 				TargetMachine="1"/>
@@ -58,7 +59,7 @@
 			<Tool
 				Name="VCPostBuildEventTool"
 				Description="Copy libogg to output directory"
-				CommandLine="copy ..\..\libogg\win32\Dynamic_Release\ogg.dll .\Release"/>
+				CommandLine="copy ..\..\..\libogg\win32\Dynamic_Release\ogg.dll .\Release"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
 			<Tool
@@ -82,14 +83,14 @@
 			Name="Debug|Win32"
 			OutputDirectory="$(SolutionDir)$(ConfigurationName)"
 			IntermediateDirectory="$(ConfigurationName)"
-			ConfigurationType="2"
+			ConfigurationType="4"
 			UseOfMFC="0"
 			ATLMinimizesCRunTimeLibraryUsage="FALSE"
 			CharacterSet="2">
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\include;.;..\..\libogg\include"
+				AdditionalIncludeDirectories="..\..\include;..\;..\..\..\libogg\include\"
 				PreprocessorDefinitions="WIN32;_DEBUG;_WINDOWS;_USRDLL;LIBOGGZ_EXPORTS"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -104,17 +105,7 @@
 			<Tool
 				Name="VCCustomBuildTool"/>
 			<Tool
-				Name="VCLinkerTool"
-				AdditionalDependencies="odbc32.lib odbccp32.lib libogg.lib"
-				OutputFile="$(OutDir)/liboggz.dll"
-				LinkIncremental="1"
-				SuppressStartupBanner="TRUE"
-				AdditionalLibraryDirectories="..\..\libogg\win32\VS2003\libogg\Debug"
-				ModuleDefinitionFile=".\liboggz.def"
-				GenerateDebugInformation="TRUE"
-				ProgramDatabaseFile="$(OutDir)/liboggz.pdb"
-				ImportLibrary="./liboggz.lib"
-				TargetMachine="1"/>
+				Name="VCLibrarianTool"/>
 			<Tool
 				Name="VCMIDLTool"
 				PreprocessorDefinitions="_DEBUG"
@@ -125,6 +116,8 @@
 				HeaderFileName=""/>
 			<Tool
 				Name="VCPostBuildEventTool"
+				Description="Copy libogg to output directory"
+				CommandLine="copy ..\..\..\libogg\win32\Dynamic_Debug\ogg_d.dll .\Debug"
 				ExcludedFromBuild="TRUE"/>
 			<Tool
 				Name="VCPreBuildEventTool"/>
@@ -139,8 +132,6 @@
 			<Tool
 				Name="VCXMLDataGeneratorTool"/>
 			<Tool
-				Name="VCWebDeploymentTool"/>
-			<Tool
 				Name="VCManagedWrapperGeneratorTool"/>
 			<Tool
 				Name="VCAuxiliaryManagedWrapperGeneratorTool"/>
@@ -153,13 +144,13 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat">
 			<File
-				RelativePath="liboggz.def">
+				RelativePath="..\liboggz.def">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\metric_internal.c">
+				RelativePath="..\..\src\liboggz\metric_internal.c">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz.c">
+				RelativePath="..\..\src\liboggz\oggz.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -179,7 +170,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_auto.c">
+				RelativePath="..\..\src\liboggz\oggz_auto.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -199,10 +190,10 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_comments.c">
+				RelativePath="..\..\src\liboggz\oggz_comments.c">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_io.c">
+				RelativePath="..\..\src\liboggz\oggz_io.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -222,7 +213,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_read.c">
+				RelativePath="..\..\src\liboggz\oggz_read.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -242,13 +233,13 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_seek.c">
+				RelativePath="..\..\src\liboggz\oggz_seek.c">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_stream.c">
+				RelativePath="..\..\src\liboggz\oggz_stream.c">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_table.c">
+				RelativePath="..\..\src\liboggz\oggz_table.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -268,7 +259,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_vector.c">
+				RelativePath="..\..\src\liboggz\oggz_vector.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -288,7 +279,7 @@
 				</FileConfiguration>
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_write.c">
+				RelativePath="..\..\src\liboggz\oggz_write.c">
 				<FileConfiguration
 					Name="Release|Win32">
 					<Tool
@@ -315,49 +306,49 @@
 				RelativePath="config.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz.h">
+				RelativePath="..\..\include\oggz\oggz.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_auto.h">
+				RelativePath="..\..\src\liboggz\oggz_auto.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_byteorder.h">
+				RelativePath="..\..\src\liboggz\oggz_byteorder.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_compat.h">
+				RelativePath="..\..\include\oggz\oggz_comments.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_constants.h">
+				RelativePath="..\..\src\liboggz\oggz_compat.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_io.h">
+				RelativePath="..\..\include\oggz\oggz_constants.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_macros.h">
+				RelativePath="..\..\include\oggz\oggz_io.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_off_t_win32.h">
+				RelativePath="..\..\src\liboggz\oggz_macros.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_private.h">
+				RelativePath="..\..\src\liboggz\oggz_private.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_read.h">
+				RelativePath="..\..\include\oggz\oggz_read.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_seek.h">
+				RelativePath="..\..\include\oggz\oggz_seek.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_stream.h">
+				RelativePath="..\..\src\liboggz\oggz_stream.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_table.h">
+				RelativePath="..\..\include\oggz\oggz_table.h">
 			</File>
 			<File
-				RelativePath="..\src\liboggz\oggz_vector.h">
+				RelativePath="..\..\src\liboggz\oggz_vector.h">
 			</File>
 			<File
-				RelativePath="..\include\oggz\oggz_write.h">
+				RelativePath="..\..\include\oggz\oggz_write.h">
 			</File>
 		</Filter>
 		<Filter
