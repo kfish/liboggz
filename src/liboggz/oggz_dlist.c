@@ -79,8 +79,6 @@ oggz_dlist_delete(OggzDList *dlist) {
   free(dlist->tail);
   free(dlist);
 
-  printf("dlist:DELETE complete\n");
-
 }
 
 int
