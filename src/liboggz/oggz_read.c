@@ -298,7 +298,7 @@ oggz_read_deliver_packet(void *elem) {
 
   OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
   ogg_int64_t gp_stored;
-  long unit_stored;
+  ogg_int64_t unit_stored;
 
   if (p->calced_granulepos == -1) {
     return DLIST_ITER_CANCEL;
@@ -437,43 +437,45 @@ oggz_read_sync (OGGZ * oggz)
           if (stream->packetno == 1) {
             oggz_auto_read_comments (oggz, stream, serialno, op);
           }
-
-          /*
-           * while we are getting invalid granulepos values, store the incoming
-           * packets in a dlist */
-          if (reader->current_granulepos == -1) {
-            OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
-                              oggz, &packet, reader->current_granulepos, 
-                              serialno, stream, reader);
-
-            oggz_dlist_append(oggz->packet_buffer, p);
-            continue;
-          } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+          
+          if (oggz->flags & OGGZ_AUTO) {
+          
             /*
-             * move backward through the list assigning gp values based upon
-             * the granulepos we just recieved.  Then move forward through
-             * the list delivering any packets at the beginning with valid
-             * gp values
-             */
-            ogg_int64_t gp_stored = stream->last_granulepos;
-            stream->last_packet = &packet;
-            oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
-            oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
-
-            /*
-             * fix up the stream granulepos 
-             */
-            stream->last_granulepos = gp_stored;
-
-            if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+             * while we are getting invalid granulepos values, store the 
+             * incoming packets in a dlist */
+            if (reader->current_granulepos == -1) {
               OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
-                              oggz, &packet, reader->current_granulepos, 
-                              serialno, stream, reader);
+                                oggz, &packet, reader->current_granulepos, 
+                                serialno, stream, reader);
 
               oggz_dlist_append(oggz->packet_buffer, p);
               continue;
-            }
+            } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+              /*
+               * move backward through the list assigning gp values based upon
+               * the granulepos we just recieved.  Then move forward through
+               * the list delivering any packets at the beginning with valid
+               * gp values
+               */
+              ogg_int64_t gp_stored = stream->last_granulepos;
+              stream->last_packet = &packet;
+              oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
+              oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
 
+              /*
+               * fix up the stream granulepos 
+               */
+              stream->last_granulepos = gp_stored;
+
+              if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
+                OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
+                                oggz, &packet, reader->current_granulepos, 
+                                serialno, stream, reader);
+
+                oggz_dlist_append(oggz->packet_buffer, p);
+                continue;
+              }
+            }
           }
 
           if (stream->read_packet) {

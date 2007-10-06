@@ -444,6 +444,7 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
 }
 
+static ogg_int64_t
 auto_rcalc_theora(ogg_int64_t next_packet_gp, oggz_stream_t *stream, 
                   ogg_packet *this_packet, ogg_packet *next_packet) {
 
