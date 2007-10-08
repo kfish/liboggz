@@ -23,6 +23,7 @@ if enable_read and enable_write:
 		'read-stop-ok.c',
 		'read-stop-err.c',
 		'io-read.c',
+		'io-run.c',
 		'io-seek.c',
 		'io-write.c',
 		'io-read-single.c',
