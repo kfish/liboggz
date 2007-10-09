@@ -39,7 +39,9 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#ifndef WIN32
 #include <strings.h>
+#endif
 #include <fcntl.h>
 #include <assert.h>
 
