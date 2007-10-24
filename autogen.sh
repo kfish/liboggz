@@ -41,7 +41,9 @@ fi
 #
 
 automake_version="none"
-if automake-1.9 --version >/dev/null 2>&1; then
+if automake-1.10 --version >/dev/null 2>&1; then
+  automake_version="-1.10"
+elif automake-1.9 --version >/dev/null 2>&1; then
   automake_version="-1.9"
 elif automake-1.8 --version >/dev/null 2>&1; then
   automake_version="-1.8"
@@ -60,6 +62,7 @@ elif automake --version > /dev/null 2>&1; then
     1.7*)                             automake_version="-1.7" ;;
     1.8*)                             automake_version="-1.8" ;;
     1.9*)                             automake_version="-1.9" ;;
+    1.10*)                            automake_version="-1.10" ;;
   esac
 fi
 
