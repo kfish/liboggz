@@ -14,7 +14,7 @@ oggz_read_programs = oggzdump oggzinfo oggz-scan
 oggz_read_noinst_programs =
 
 if OGGZ_CONFIG_WRITE
-oggz_rw_programs = oggzmerge oggzrip oggz-validate
+oggz_rw_programs = oggzmerge oggzrip oggz-validate oggz-comment
 oggz_rw_noinst_programs = oggz-basetime
 endif
 
@@ -28,6 +28,9 @@ noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
 oggzinfo_SOURCES = oggzinfo.c oggz_tools.c skeleton.c
 oggzinfo_LDADD = $(OGGZ_LIBS) -lm
+
+oggz_comment_SOURCES = oggz-comment.c oggz_tools.c
+oggz_comment_LDADD = $(OGGZ_LIBS)
 
 oggzdump_SOURCES = oggzdump.c oggz_tools.c
 oggzdump_LDADD = $(OGGZ_LIBS)
