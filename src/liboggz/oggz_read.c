@@ -419,6 +419,11 @@ oggz_read_sync (OGGZ * oggz)
           if (oggz->flags & OGGZ_AUTO) {
             reader->current_granulepos = 
               oggz_auto_calculate_granulepos (content, granulepos, stream, op); 
+            /* make sure that we accept any "real" gaps in the granulepos
+             */
+            if (granulepos != -1 && reader->current_granulepos < granulepos) {
+              reader->current_granulepos = granulepos;
+            }
           } else {
             reader->current_granulepos = granulepos;
           }
