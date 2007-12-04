@@ -53,9 +53,12 @@ usage (char * progname)
   printf ("\nOutput options\n");
   printf ("  -l, --list            List the comments in the given file.\n");
   printf ("\nEditing options\n");
+  /*printf ("  -a, --all             Edit comments for all logical bitstreams\n");*/
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
-  printf ("  -s, --set              Set a comment\n");
+  printf ("  -s serialno, --serialno serialno\n");
+  printf ("                         Edit comments of the logical bitstream with\n");
+  printf ("                         specified serialno\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
