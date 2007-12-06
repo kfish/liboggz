@@ -227,6 +227,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
     /*printf("\tserialno: %010d\n", oit->fbInfo.serial_no);*/
     printf("\tNumber of header packets: %d\n", oit->fbInfo.nr_header_packet);
     printf("\tGranule rate: %.2f\n", (double)oit->fbInfo.granule_rate_n/oit->fbInfo.granule_rate_d);
+    printf("\tGranule shift: %d\n", (int)oit->fbInfo.granule_shift);
     printf("\tStart granule: ");
     ot_fprint_granulepos(stdout, info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule);
     printf ("\n");
