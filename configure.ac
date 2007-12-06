@@ -428,7 +428,7 @@ AC_MSG_RESULT([
 
     Type 'make install' to install $PACKAGE.
 
-    Type 'make check' to test $PACKAGE using the unittests
+    Type 'make check' to test $PACKAGE using the unit and functional tests
     contained in the src/tests directory.
     ${TESTS_INFO}
 
