@@ -183,6 +183,10 @@ struct _OggzWriter {
   int page_offset; /* n bytes already copied out of current page */
 
   ogg_stream_state * current_stream;
+
+  int no_more_packets; /* used only in the local oggz_write loop to indicate
+                          end of stream */
+
 };
 
 struct _OggzIO {

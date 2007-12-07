@@ -103,6 +103,7 @@ oggz_write_init (OGGZ * oggz)
   writer->hungry_only_when_empty = 0;
 
   writer->writing = 0;
+  writer->no_more_packets = 0;
   writer->state = OGGZ_MAKING_PACKETS;
 
   writer->flushing = 0;
@@ -635,11 +636,13 @@ oggz_writer_make_packet (OGGZ * oggz)
 long
 oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   long bytes, bytes_written = 1, remaining = n, nwritten = 0;
   int active = 1, cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+ 
+  writer = &oggz->x.writer;
 
   if (!(oggz->flags & OGGZ_WRITE)) {
     return OGGZ_ERR_INVALID;
@@ -651,6 +654,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
     writer->writing = 0;
+    writer->no_more_packets = 0;
     return oggz_map_return_value_to_error (cb_ret);
   }
 
@@ -659,11 +663,14 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 
     while (writer->state == OGGZ_MAKING_PACKETS) {
       if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
-	active = 0;
-	break;
+        if (cb_ret == OGGZ_WRITE_EMPTY) {
+          writer->flushing = 1;
+          writer->no_more_packets = 1;
+          cb_ret = OGGZ_CONTINUE;
+        }
       }
       if (oggz_page_init (oggz)) {
-	writer->state = OGGZ_WRITING_PAGES;
+        writer->state = OGGZ_WRITING_PAGES;
       }
     }
 
@@ -671,12 +678,15 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
       bytes_written = oggz_page_copyout (oggz, buf, bytes);
 
       if (bytes_written == -1) {
-	active = 0;
+        active = 0;
         cb_ret = OGGZ_ERR_SYSTEM; /* XXX: catch next */
       } else if (bytes_written == 0) {
-	if (!oggz_page_init (oggz)) {
-	  writer->state = OGGZ_MAKING_PACKETS;
-	}
+        if (writer->no_more_packets) {
+          active = 0;
+          break;
+        } else if (!oggz_page_init (oggz)) {
+          writer->state = OGGZ_MAKING_PACKETS;
+        }
       }
 
       buf += bytes_written;
@@ -701,11 +711,13 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
 long
 oggz_write (OGGZ * oggz, long n)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   long bytes, bytes_written = 1, remaining = n, nwritten = 0;
   int active = 1, cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  writer = &oggz->x.writer;
 
   if (!(oggz->flags & OGGZ_WRITE)) {
     return OGGZ_ERR_INVALID;
@@ -721,6 +733,7 @@ oggz_write (OGGZ * oggz, long n)
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
     writer->writing = 0;
+    writer->no_more_packets = 0;
     if (cb_ret == OGGZ_WRITE_EMPTY) cb_ret = 0;
     return oggz_map_return_value_to_error (cb_ret);
   }
@@ -735,11 +748,22 @@ oggz_write (OGGZ * oggz, long n)
 
     while (writer->state == OGGZ_MAKING_PACKETS) {
       if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
-	      active = 0;
 #ifdef DEBUG
       	printf ("oggz_write: no packets (cb_ret is %d)\n", cb_ret);
 #endif
-      	break;
+        /*
+         * if we're out of packets because we're at the end of the file,
+         * we can't finish just yet.  Instead we need to force a page flush,
+         * and write the page out.  So we set flushing and no_more_packets to
+         * 1.  This causes oggz_page_init to flush the page, then we 
+         * will switch the state to OGGZ_WRITING_PAGES, which will trigger
+         * the writing code below.
+         */
+        if (cb_ret == OGGZ_WRITE_EMPTY) {
+          writer->flushing = 1;
+          writer->no_more_packets = 1;
+          cb_ret = OGGZ_CONTINUE;
+        }
       }
       if (oggz_page_init (oggz)) {
         writer->state = OGGZ_WRITING_PAGES;
@@ -753,12 +777,21 @@ oggz_write (OGGZ * oggz, long n)
         active = 0;
         return OGGZ_ERR_SYSTEM; /* XXX: catch next */
       } else if (bytes_written == 0) {
-	if (!oggz_page_init (oggz)) {
+        /*
+         * OK so we've completely written the current page.  If no_more_packets
+         * is set then that means there's no more pages after this one, so
+         * we set active to 0, break out of the loop, pack up our things and
+         * go home.
+         */
+        if (writer->no_more_packets) {
+          active = 0;
+          break;
+        } else if (!oggz_page_init (oggz)) {
 #ifdef DEBUG
-	  printf ("oggz_write: bytes_written == 0, DONE\n");
+          printf ("oggz_write: bytes_written == 0, DONE\n");
 #endif
-	  writer->state = OGGZ_MAKING_PACKETS;
-	}
+          writer->state = OGGZ_MAKING_PACKETS;
+        }
       }
 
       remaining -= bytes_written;
