@@ -655,6 +655,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
     oggz->cb_next = 0;
     writer->writing = 0;
     writer->no_more_packets = 0;
+    if (cb_ret == OGGZ_WRITE_EMPTY) cb_ret = 0;
     return oggz_map_return_value_to_error (cb_ret);
   }
 
@@ -667,6 +668,9 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
           writer->flushing = 1;
           writer->no_more_packets = 1;
           cb_ret = OGGZ_CONTINUE;
+        } else {
+          active = 0;
+          break;
         }
       }
       if (oggz_page_init (oggz)) {
@@ -763,6 +767,9 @@ oggz_write (OGGZ * oggz, long n)
           writer->flushing = 1;
           writer->no_more_packets = 1;
           cb_ret = OGGZ_CONTINUE;
+        } else {
+          active = 0;
+          break;
         }
       }
       if (oggz_page_init (oggz)) {
