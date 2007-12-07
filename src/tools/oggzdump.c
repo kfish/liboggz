@@ -256,14 +256,17 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   fprintf (outfile, ": serialno %010ld, ",
 	   oddata->hide_serialno ? -1 : serialno);
 
-  fprintf (outfile, "granulepos ");
   if (oddata->hide_granulepos) {
-    fprintf (outfile, "gGg");
+    fprintf (outfile, "granulepos gGg");
   } else {
-    ot_fprint_granulepos (outfile, oggz, serialno, calced_gp);
     if (op->granulepos == -1) {
-      fprintf (outfile, " (VIRT)");
-    } else if (op->granulepos != calced_gp) {
+      fprintf (outfile, "calc. gpos ");
+    } else {
+      fprintf (outfile, "granulepos ");
+    }
+    ot_fprint_granulepos (outfile, oggz, serialno, calced_gp);
+
+    if (op->granulepos != -1 && op->granulepos != calced_gp) {
       fprintf (outfile, " ERR: file gp ");
       ot_fprint_granulepos (outfile, oggz, serialno, op->granulepos);
     }
