@@ -19,26 +19,13 @@ EXTRA_DIST = oggz.pc.in oggz-uninstalled.pc.in README.win32 \
 	symbian/config.h \
 	symbian/liboggz.mmp \
 	win32/Makefile \
-	win32/attgetopt.c \
-	win32/config.h \
-	win32/getopt.h \
-	win32/liboggz.def \
-	win32/liboggz.dsp \
-	win32/liboggz.dsw \
-	win32/liboggz.sln \
-	win32/liboggz.vcproj \
-	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj \
-	win32/oggzdump.dsp \
-	win32/oggzdump.vcproj \
-	win32/oggzed.dsp \
-	win32/oggzed.vcproj \
-	win32/oggzinfo.dsp \
-	win32/oggzinfo.vcproj \
-	win32/oggzmerge.dsp \
-	win32/oggzmerge.vcproj \
-	win32/oggzrip.vcproj \
-	win32/oggzscan.vcproj \
-	win32/oggzvalidate.vcproj
+	win32/*.[ch] \
+	win32/*.def \
+	win32/*.dsp \
+	win32/*.dsw \
+	win32/VS200[35]/*.sln \
+	win32/VS200[35]/liboggz/*.vcproj \
+	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj
 
 pkgconfigdir = $(libdir)/pkgconfig
 pkgconfig_DATA = oggz.pc
