@@ -651,6 +651,10 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   if (writer->writing) return OGGZ_ERR_RECURSIVE_WRITE;
   writer->writing = 1;
 
+#ifdef DEBUG
+  printf ("oggz_write_output: IN\n");
+#endif
+
   if ((cb_ret = oggz->cb_next) != OGGZ_CONTINUE) {
     oggz->cb_next = 0;
     writer->writing = 0;
@@ -662,16 +666,28 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   while (active && remaining > 0) {
     bytes = MIN (remaining, 1024);
 
+#ifdef DEBUG
+    printf ("oggz_write_output: write loop (%ld , %ld remain) ...\n", bytes,
+	    remaining);
+#endif
+
     while (writer->state == OGGZ_MAKING_PACKETS) {
+#ifdef DEBUG
+      	printf ("oggz_write_output: MAKING_PACKETS\n");
+#endif
       if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
+#ifdef DEBUG
+        printf ("oggz_write_output: no packets (cb_ret is %d)\n", cb_ret);
+#endif
         if (cb_ret == OGGZ_WRITE_EMPTY) {
           writer->flushing = 1;
           writer->no_more_packets = 1;
-          cb_ret = OGGZ_CONTINUE;
-        } else {
-          active = 0;
-          break;
         }
+        /* At this point, in contrast to oggz_write(), we break out of this
+         * loop unconditionally.
+         */
+        active = 0;
+        break;
       }
       if (oggz_page_init (oggz)) {
         writer->state = OGGZ_WRITING_PAGES;
@@ -689,6 +705,9 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
           active = 0;
           break;
         } else if (!oggz_page_init (oggz)) {
+#ifdef DEBUG
+          printf ("oggz_write_output: bytes_written == 0, DONE\n");
+#endif
           writer->state = OGGZ_MAKING_PACKETS;
         }
       }
@@ -699,6 +718,10 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
       nwritten += bytes_written;
     }
   }
+
+#ifdef DEBUG
+  printf ("oggz_write_output: OUT %ld\n", nwritten);
+#endif
 
   writer->writing = 0;
 
@@ -753,7 +776,7 @@ oggz_write (OGGZ * oggz, long n)
     while (writer->state == OGGZ_MAKING_PACKETS) {
       if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
 #ifdef DEBUG
-      	printf ("oggz_write: no packets (cb_ret is %d)\n", cb_ret);
+        printf ("oggz_write: no packets (cb_ret is %d)\n", cb_ret);
 #endif
         /*
          * if we're out of packets because we're at the end of the file,
