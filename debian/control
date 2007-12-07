@@ -29,7 +29,7 @@ Description: convenience interface for Ogg stream I/O
 Package: liboggz1-dev
 Section: libdevel
 Architecture: any
-Depends: liboggz1 (= ${source:Version}), libc6-dev, libogg-dev
+Depends: liboggz1 (= ${binary:Version}), libc6-dev, libogg-dev
 Provides: liboggz-dev
 Conflicts: liboggz-dev
 Description: convenience interface for Ogg stream I/O (development files)
@@ -53,7 +53,7 @@ Description: utilities for mangling Ogg streams
 Package: liboggz1-dbg
 Section: libdevel
 Architecture: any
-Depends: liboggz1 (= ${source:Version})
+Depends: liboggz1 (= ${binary:Version})
 Description: convenience interface for Ogg stream I/O debugging symbols
  Oggz provides a simple programming interface for reading and writing
  Ogg files and streams.
