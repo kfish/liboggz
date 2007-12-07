@@ -21,9 +21,6 @@ endif
 ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -g
 endif
-ifeq (,$(findstring nostrip,$(DEB_BUILD_OPTIONS)))
-	INSTALL_PROGRAM += -s
-endif
 
 config.status: configure
 	dh_testdir
@@ -32,7 +29,8 @@ config.status: configure
 		--build=$(DEB_BUILD_GNU_TYPE) \
 		--prefix=/usr \
 		--mandir=\$${prefix}/share/man \
-		--infodir=\$${prefix}/share/info
+		--infodir=\$${prefix}/share/info \
+		|| cat config.log
 
 build: build-stamp
 build-stamp:  config.status
@@ -52,6 +50,7 @@ endif
 ifneq "$(wildcard /usr/share/misc/config.guess)" ""
 	cp -f /usr/share/misc/config.guess config.guess
 endif
+	rm -rf debian/oggz-tools-dbg
 	dh_clean 
 
 install: build
@@ -64,38 +63,28 @@ install: build
 # Build architecture-independent files here.
 binary-indep: build install
 
-
 # Build architecture-dependent files here.
 binary-arch: build install
 	dh_testdir
 	dh_testroot
-	dh_movefiles
-	dh_installchangelogs ChangeLog
-	dh_installdocs
-	dh_installexamples
-#	dh_install
-#	dh_installmenu
-#	dh_installdebconf	
-#	dh_installlogrotate
-#	dh_installemacsen
-#	dh_installpam
-#	dh_installmime
-#	dh_installinit
-#	dh_installcron
-#	dh_installinfo
-	dh_installman
-	dh_link
-	dh_strip
-	dh_compress
-	dh_fixperms
-#	dh_perl
-#	dh_python
-	dh_makeshlibs
-	dh_installdeb
-	dh_shlibdeps -ldebian/liboggz1/usr/lib
-	dh_gencontrol
-	dh_md5sums
-	dh_builddeb
+	dh_movefiles -a
+	dh_installchangelogs -a ChangeLog
+	dh_installdocs -a
+	dh_installexamples -a
+	dh_installman -a
+	dh_link -a
+	dh_strip -a --keep-debug --dbg-package=liboggz1 --dbg-package=oggz-tools
+# move the oggz-tools-dbg stuff into liboggz-dbg
+	cp -a $(CURDIR)/debian/oggz-tools-dbg/* $(CURDIR)/debian/liboggz1-dbg/
+	rm -rf $(CURDIR)/debian/oggz-tools-dbg
+	dh_compress -a
+	dh_fixperms -a
+	dh_makeshlibs -a
+	dh_installdeb -a
+	dh_shlibdeps -a -ldebian/liboggz1/usr/lib
+	dh_gencontrol -a
+	dh_md5sums -a
+	dh_builddeb -a
 
 binary: binary-indep binary-arch
 .PHONY: build clean binary-indep binary-arch binary install 

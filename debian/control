@@ -2,14 +2,13 @@ Source: liboggz
 Section: net
 Priority: optional
 Maintainer: Jamie Wilkinson <jaq@debian.org>
-Build-Depends: debhelper (>= 4.0.0), libogg-dev, doxygen, docbook-to-man
-Standards-Version: 3.6.1.0
+Build-Depends: debhelper (>= 4.0.0), libogg-dev, doxygen, docbook-to-man, binutils (>= 2.12.90.0.9)
+Standards-Version: 3.6.2
 
 Package: liboggz1
 Section: libs
 Architecture: any
 Depends: ${shlibs:Depends}
-Replaces: liboggz0
 Description: convenience interface for Ogg stream I/O
  Oggz provides a simple programming interface for reading and writing
  Ogg files and streams.
@@ -32,10 +31,32 @@ Section: libdevel
 Architecture: any
 Depends: liboggz1 (= ${Source-Version}), libc6-dev, libogg-dev
 Provides: liboggz-dev
-Replaces: liboggz0-dev
+Conflicts: liboggz-dev
 Description: convenience interface for Ogg stream I/O (development files)
  Oggz provides a simple programming interface for reading and writing
  Ogg files and streams.
  .
  This package contains the header files, static libraries, and stream
  debugging tools required for developing applications that use Oggz.
+
+Package: oggz-tools
+Section: utils
+Architecture: any
+Depends: ${shlibs:Depends}
+Description: utilities for mangling Ogg streams
+ Oggz provides a simple programming interface for reading and writing
+ Ogg files and streams.
+ .
+ This package contains some utilities useful for debugging and tweaking
+ Ogg streams, using liboggz
+
+Package: liboggz1-dbg
+Section: libdevel
+Architecture: any
+Depends: liboggz1 (= ${Source-Version})
+Description: convenience interface for Ogg stream I/O debugging symbols
+ Oggz provides a simple programming interface for reading and writing
+ Ogg files and streams.
+ .
+ This package contains debugging symbols useful for tracing bugs in
+ liboggz software.
