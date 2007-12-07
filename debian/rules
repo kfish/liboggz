@@ -22,6 +22,9 @@ ifneq (,$(findstring debug,$(DEB_BUILD_OPTIONS)))
 	CFLAGS += -g
 endif
 
+configure:
+	./autogen.sh
+
 config.status: configure
 	dh_testdir
 	CFLAGS="$(CFLAGS)" ./configure \
