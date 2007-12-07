@@ -44,6 +44,8 @@
 
 #define SUBSECONDS 1000.0
 
+/* #define DEBUG */
+
 typedef ogg_int64_t timestamp_t;
 
 typedef struct _OVData {
@@ -343,11 +345,18 @@ validate (char * filename)
   oggz_set_read_page (reader, -1, read_page, &ovdata);
 
   while (active && (n = oggz_read (reader, 1024)) != 0) {
+#ifdef DEBUG
+      fprintf (stderr, "validate: read %ld bytes\n", n);
+#endif
+    
     if (max_errors && nr_errors > max_errors) {
       fprintf (stderr,
 	       "oggz-validate: maximum error count reached, bailing out ...\n");
       active = 0;
     } else while ((nout = oggz_write_output (ovdata.writer, buf, n)) > 0) {
+#ifdef DEBUG
+      fprintf (stderr, "validate: wrote %ld bytes\n", nout);
+#endif
       bytes_written += nout;
     }
   }
