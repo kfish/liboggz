@@ -37,6 +37,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <strings.h>
 
 #include <oggz/oggz.h>
 #include "oggz_tools.h"
@@ -48,14 +49,18 @@ static char * progname;
 static void
 usage (char * progname)
 {
-  printf ("Usage: %s [options] filename\n", progname);
+  printf ("Usage: %s filename [options] tagname=tagvalue ...\n", progname);
   printf ("List or edit comments in an Ogg file.\n");
   printf ("\nOutput options\n");
   printf ("  -l, --list            List the comments in the given file.\n");
   printf ("\nEditing options\n");
-  /*printf ("  -a, --all             Edit comments for all logical bitstreams\n");*/
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
+  printf ("  -c, --clear            Clear comments before editing\n");
+  printf ("  -a, --all              Edit comments for all logical bitstreams\n");
+  printf ("  -t content-type, --serialno content-type\n");
+  printf ("                         Edit comments of the logical bitstream with\n");
+  printf ("                         specified serialno\n");
   printf ("  -s serialno, --serialno serialno\n");
   printf ("                         Edit comments of the logical bitstream with\n");
   printf ("                         specified serialno\n");
@@ -66,79 +71,106 @@ usage (char * progname)
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
-int get_stream_types(OGGZ *oggz, ogg_packet *op,
-		     long serialno, void* user_data) {
+int copy_replace_comments(OGGZ *oggz,
+                         ogg_packet *op,
+                         long serialno,
+                         void *user_data) {
+  OGGZ *oggz_write = (OGGZ *)user_data;
+  int flush;
+  if(op->granulepos == -1)
+    flush = 0;
+  else
+    flush = OGGZ_FLUSH_AFTER;
+  if(op->packetno == 1) {
+    oggz_write_feed(oggz_write,
+                   oggz_comment_generate(oggz_write, serialno,
+                                         oggz_stream_get_content(oggz, serialno),
+                                         0),
+                   serialno, flush, NULL);
+  } else
+    oggz_write_feed(oggz_write, op, serialno, flush, NULL);
+  return 0;
+}
+
+int copy_comments(OGGZ *oggz,
+                 ogg_packet *op,
+                 long serialno,
+                 void *user_data) {
+  OGGZ *oggz_write = (OGGZ *)user_data;
+  OggzComment * comment;
+  if(op->packetno == 1) {
+    oggz_comment_set_vendor(oggz_write, serialno,
+                           oggz_comment_get_vendor(oggz, serialno));
+    for(comment = oggz_comment_first(oggz, serialno); comment;
+       comment = oggz_comment_next(oggz, serialno, comment))
+      oggz_comment_add(oggz_write, serialno, comment);
+  }
+  return 0;
+}
+
+int list_comments(OGGZ *oggz,
+                 ogg_packet *op, 
+                 long serialno,
+                 void *user_data) {
+  const OggzComment * comment;
+  if(op->packetno == 1) {
+    printf("%s (serial = %ld):\n",
+          oggz_stream_get_content_type(oggz, serialno), serialno);
+    printf("\tVendor: %s\n", oggz_comment_get_vendor(oggz, serialno));
+    for (comment = oggz_comment_first(oggz, serialno); comment;
+        comment = oggz_comment_next(oggz, serialno, comment))
+      printf ("\t%s: %s\n", comment->name, comment->value);
+  }
+  return 0;
+}
+
+int get_stream_types(OGGZ *oggz,
+                    ogg_packet *op,
+                    long serialno,
+                    void *user_data) {
   OggzTable *table = (OggzTable *)user_data;
-  char *content;
-  if(!oggz_table_lookup(table, serialno)) {
-    content = oggz_stream_get_content_type(oggz, serialno);
+  OggzStreamContent *content = malloc(sizeof(OggzStreamContent));
+  if(oggz_table_lookup(table, serialno) == NULL) {
+    *content = oggz_stream_get_content(oggz, serialno);
     oggz_table_insert(table, serialno, content);
   }
   return 0;
 }
 
-int copy_replace_comments(OGGZ *oggz, ogg_packet *op,
-			  long serialno, void *user_data) {
-  OGGZ *oggz_write = (OGGZ *)user_data;
-  ogg_packet *comment_packet;
-  OggzStreamContent content = oggz_stream_get_content(oggz, serialno);
-  int flush=0;
-/*
-  if (op->granulepos == -1) {
-    flush = 0;
-  } else {
-    flush = OGGZ_FLUSH_AFTER;
-  }
-*/
-  if(op->packetno == 1) {
-    oggz_comment_set_vendor(oggz_write, serialno,
-			    oggz_comment_get_vendor(oggz, serialno));
-    comment_packet = oggz_comment_generate(oggz_write, serialno, content, 0);
-    oggz_write_feed(oggz_write, comment_packet, serialno, flush, NULL);
-  } else {
-    oggz_write_feed(oggz_write, op, serialno, flush, NULL);
-  }
-  return 0;
-}
-
-void list_comments(OGGZ *oggz, long serialno) {
-  OggzComment *comment;
-  printf("\tVendor: ");
-  printf(oggz_comment_get_vendor(oggz, serialno));
-  printf("\n");
-  comment = oggz_comment_first(oggz, serialno);
-  while(comment) {
-    printf("\t");
-    printf(comment->name);
-    printf(": ");
-    printf(comment->value);
-    printf("\n");
-    comment = oggz_comment_next(oggz, serialno, comment);
-  }
-}
-
-void list_comments_all(OGGZ *oggz) {
+void edit_comments(OGGZ *oggz,
+                  long serialno,
+                  OggzComment *comments) {
   int i;
-  long serialno;
-  OggzTable *table = oggz_table_new();
-  oggz_set_read_callback(oggz, -1, get_stream_types, table);
-  oggz_run(oggz);
-  for(i = 0; i < oggz_table_size(table); i++) {
-    printf(oggz_table_nth(table, i, &serialno));
-    printf(" (serialno = %ld):\n", serialno);
-    list_comments(oggz, serialno);
-  }
-}
-
-void edit_comments(OGGZ *oggz, long serialno, OggzComment *comments) {
-  int i;
-  for(i = 0; strcmp(comments[i].name, "0") != 0; i++) {
-    printf(comments[i].name);
+  for(i = 0; strcmp(comments[i].name, "0"); i++) {
     oggz_comment_remove_byname(oggz, serialno, comments[i].name);
-    printf(": ");
-    printf(comments[i].value);
     oggz_comment_add(oggz, serialno, &comments[i]);
   }
+}
+
+int comment_table_insert(OggzTable *type_table,
+                        OggzTable *comment_table,
+                        long serialno,
+                        OggzComment *comments) {
+  OggzStreamContent type;
+  long type_serialno;
+  int i;
+  if(!strcmp(comments[0].name, "0"))
+    return 0;
+  if(serialno > 0) {
+    oggz_table_insert(comment_table, serialno, comments);
+  } else if(serialno > -11) {
+    for(i = 0; i < oggz_table_size(type_table); i++) {
+      type = *(OggzStreamContent *)oggz_table_nth(type_table, i, &type_serialno);
+      if(type == serialno * -1)
+       oggz_table_insert(comment_table, type_serialno, comments);
+    }
+  } else {
+    for(i = 0; i < oggz_table_size(type_table); i++) {
+      oggz_table_nth(type_table, i, &type_serialno);
+      oggz_table_insert(comment_table, type_serialno, comments);
+    }
+  }
+  return 1;
 }
 
 OggzComment parse_comment_field(char *arg) {
@@ -148,28 +180,51 @@ OggzComment parse_comment_field(char *arg) {
   comment.name = strcpy(calloc(strlen(arg) + 1, sizeof(char)), arg);
   c = strchr(comment.name, '=');
   *c = '\0';
-  for(i = 0; comment.name[i]; i++) {
+  for(i = 0; comment.name[i]; i++)
     if(islower(arg[i]))
       comment.name[i] = toupper(arg[i]);
-  }
   comment.value = c + 1;
   return comment;
+}
+
+OggzStreamContent strto_oggz_content(char *type) {
+  if(!strcasecmp(type, "theora"))
+    return OGGZ_CONTENT_THEORA;
+  if(!strcasecmp(type, "vorbis"))
+    return OGGZ_CONTENT_VORBIS;
+  if(!strcasecmp(type, "speex"))
+    return OGGZ_CONTENT_SPEEX;
+  if(!strcasecmp(type, "pcm"))
+    return OGGZ_CONTENT_PCM;
+  if(!strcasecmp(type, "cmml"))
+    return OGGZ_CONTENT_CMML;
+  if(!strcasecmp(type, "anx2"))
+    return OGGZ_CONTENT_ANX2;
+  if(!strcasecmp(type, "skeleton"))
+    return OGGZ_CONTENT_SKELETON;
+  if(!strcasecmp(type, "flac0"))
+    return OGGZ_CONTENT_FLAC0;
+  if(!strcasecmp(type, "flac"))
+    return OGGZ_CONTENT_FLAC;
+  if(!strcasecmp(type, "anxdata"))
+    return OGGZ_CONTENT_ANXDATA;
+  return OGGZ_CONTENT_UNKNOWN;
 }
 
 void version() {
   printf ("%s version " VERSION "\n", progname);
 }
 
+
 int main(int argc, char *argv[]) {
-  int i, index;
-  long n, nout, serialno = 0;
-  unsigned char buffer[1024];
-  char *out_filename;
-  FILE *out_file;
+  int i, temp, clear = 0;
+  long n, serialno = -11;
+  char *out_file;
   OGGZ *oggz_in;
   OGGZ *oggz_out;
   OggzComment *comments;
-  OggzTable *table = oggz_table_new();
+  OggzTable *type_table = oggz_table_new();
+  OggzTable *comment_table = oggz_table_new();
 
   progname = argv[0];
 
@@ -183,34 +238,50 @@ int main(int argc, char *argv[]) {
     version();
     return 0;
   } else if(strcmp(argv[1], "--help") == 0
-	    || strcmp(argv[1], "-h") == 0) {
-    usage (progname);
+           || strcmp(argv[1], "-h") == 0) {
+    usage(progname);
     return 0;
   } else {
     oggz_in = oggz_open(argv[1], OGGZ_READ);
-    oggz_out = oggz_new(OGGZ_WRITE);
-    out_filename = argv[1];
+    out_file = argv[1];
   }
 
+  oggz_set_read_callback(oggz_in, -1, get_stream_types, type_table);
+  oggz_run(oggz_in);
   comments = calloc(argc - 1, sizeof(OggzComment));
-  comments[index = 0].name = "0";
+  comments[temp = 0].name = "0";
   for(i = 2; i < argc; i++) {
-    if(strcmp(argv[i], "-l") == 0
-	      || strcmp(argv[i], "--list") == 0)
-      list_comments_all(oggz_in);
-    else if(strcmp(argv[i], "-o") == 0
-	      || strcmp(argv[i], "--list") == 0)
-      out_filename = argv[++i];
-    else if(strchr(argv[i], '=') != NULL) {
-      comments[index] = parse_comment_field(argv[i]);
-      comments[++index].name = "0";
-    } else if(strncmp(argv[i], "-s", 2) == 0) {
-      if(strcmp(comments[0].name, "0") != 0) {
-	oggz_table_insert(table, serialno, comments);
-	comments = calloc(argc - 2, sizeof(OggzComment));
-	comments[index = 0].name = "0";
+    if(!strcmp(argv[i], "-o"))
+      out_file = argv[++i];
+    else if(!strcmp(argv[i], "-c")
+           || !strcmp(argv[i], "--clear"))
+      clear = 1;
+    else if(!strcmp(argv[i], "-l")
+           || !strcmp(argv[i], "--list")) {
+      oggz_seek(oggz_in, 0, SEEK_SET);
+      oggz_set_read_callback(oggz_in, -1, list_comments, NULL);
+      oggz_run(oggz_in);
+    } else if(strchr(argv[i], '=') != NULL) {
+      comments[temp] = parse_comment_field(argv[i]);
+      comments[++temp].name = "0";
+    } else if(!strcmp(argv[i], "-a")) {
+      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
+       comments = calloc(argc - 2, sizeof(OggzComment));
+       comments[temp = 0].name = "0";
       }
-      serialno = strtol(&argv[i][2], NULL, 10);
+      serialno = -11;
+    } else if(!strcmp(argv[i], "-t")) {
+      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
+       comments = calloc(argc - 2, sizeof(OggzComment));
+       comments[temp = 0].name = "0";
+      }
+      serialno = strto_oggz_content(argv[++i]) * -1;
+    } else if(!strcmp(argv[i], "-s")) {
+      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
+       comments = calloc(argc - 2, sizeof(OggzComment));
+       comments[temp = 0].name = "0";
+      }
+      serialno = strtol(argv[++i], NULL, 10);
     } else {
       printf("Error: option or field \"");
       printf(argv[i]);
@@ -218,32 +289,43 @@ int main(int argc, char *argv[]) {
       return 0;
     }
   }
-  if(strcmp(comments[0].name, "0") != 0)
-    oggz_table_insert(table, serialno, comments);
+  comment_table_insert(type_table, comment_table, serialno, comments);
 
-  if(oggz_table_size(table) != 0) {
-    for(i = 0; i < oggz_table_size(table); i++) {
-      comments = oggz_table_nth(table, i, &serialno);
+  if(oggz_table_size(comment_table)) {
+    temp = 0;
+    if(!strcmp(out_file, argv[1])) {
+      out_file = tmpnam(NULL);
+      temp = 1;
+    }
+    oggz_out = oggz_open(out_file, OGGZ_WRITE);
+    if(!clear) {
+      oggz_seek(oggz_in, 0, SEEK_SET);
+      oggz_set_read_callback(oggz_in, -1, copy_comments, oggz_out);
+      oggz_run(oggz_in);
+    }
+    for(i = 0; i < oggz_table_size(comment_table); i++) {
+      comments = oggz_table_nth(comment_table, i, &serialno);
       edit_comments(oggz_out, serialno, comments);
     }
+    oggz_seek(oggz_in, 0, SEEK_SET);
     oggz_set_read_callback(oggz_in, -1, copy_replace_comments, oggz_out);
-    out_file = fopen(out_filename, "w");
-
-    while((n = oggz_read(oggz_in, 1024)) != 0) {
-      while((nout = oggz_write_output(oggz_out, buffer, n)) > 0) {
-	fwrite(buffer, 1, n, out_file);
-      }
+    while((n = oggz_read(oggz_in, 1024)) > 0)
+      while(oggz_write(oggz_out, n) > 0);
+    if(temp) {
+      remove(argv[1]);
+      rename(out_file, argv[1]);
     }
-
-  } else if(oggz_in)
-    list_comments_all(oggz_in);
-  else {
+    oggz_close(oggz_out);
+  } else if(oggz_in) {
+    oggz_seek(oggz_in, 0, SEEK_SET);
+    oggz_set_read_callback(oggz_in, -1, list_comments, NULL);
+    oggz_run(oggz_in);
+  } else {
     printf("Error: file \"");
     printf(argv[1]);
     printf("\" could not be opened.\n");
   }
 
   oggz_close(oggz_in);
-  oggz_close(oggz_out);
   return 0;
 }
