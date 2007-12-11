@@ -58,9 +58,9 @@ usage (char * progname)
   printf ("                         Specify output filename\n");
   printf ("  -c, --clear            Clear comments before editing\n");
   printf ("  -a, --all              Edit comments for all logical bitstreams\n");
-  printf ("  -t content-type, --serialno content-type\n");
-  printf ("                         Edit comments of the logical bitstream with\n");
-  printf ("                         specified serialno\n");
+  printf ("  -t content-type, --type content-type\n");
+  printf ("                         Edit comments of the logical bitstreams with\n");
+  printf ("                         specified content-type\n");
   printf ("  -s serialno, --serialno serialno\n");
   printf ("                         Edit comments of the logical bitstream with\n");
   printf ("                         specified serialno\n");
@@ -270,13 +270,15 @@ int main(int argc, char *argv[]) {
        comments[temp = 0].name = "0";
       }
       serialno = -11;
-    } else if(!strcmp(argv[i], "-t")) {
+    } else if(!strcmp(argv[i], "-t")
+           || !strcmp(argv[i], "--type")) {
       if(comment_table_insert(type_table, comment_table, serialno, comments)) {
        comments = calloc(argc - 2, sizeof(OggzComment));
        comments[temp = 0].name = "0";
       }
       serialno = strto_oggz_content(argv[++i]) * -1;
-    } else if(!strcmp(argv[i], "-s")) {
+    } else if(!strcmp(argv[i], "-s")
+           || !strcmp(argv[i], "--serialno")) {
       if(comment_table_insert(type_table, comment_table, serialno, comments)) {
        comments = calloc(argc - 2, sizeof(OggzComment));
        comments[temp = 0].name = "0";
