@@ -73,7 +73,7 @@ manpage.1: manpage.sgml
 	<arg choice="opt">--output <parameter>filename</parameter></arg>
       </group>
 
-      <group><arg choice="opt">-c</arg><arg choice="opt">--clear</arg></group>
+      <group><arg choice="opt">-d</arg><arg choice="opt">--delete</arg></group>
 
       <group><arg choice="opt">-a</arg><arg choice="opt">--all</arg></group>
       <group>
@@ -82,8 +82,8 @@ manpage.1: manpage.sgml
       </group>
 
       <group>
-	<arg choice="opt">-t <parameter>content-type</parameter></arg>
-	<arg choice="opt">--type <parameter>content-type</parameter></arg>
+	<arg choice="opt">-c <parameter>content-type</parameter></arg>
+	<arg choice="opt">--content-type <parameter>content-type</parameter></arg>
       </group>
 
       <arg choice="plain">filename</arg>
@@ -131,8 +131,8 @@ manpage.1: manpage.sgml
 	    </para></listitem>
 	</varlistentry>
 	<varlistentry>
-	  <term>-c, --clear</term>
-	  <listitem><para>Clear comments before editing.</para></listitem>
+	  <term>-d, --delete</term>
+	  <listitem><para>Delete comments before editing.</para></listitem>
 	</varlistentry>
       </variablelist>
 	<varlistentry>
@@ -141,7 +141,7 @@ manpage.1: manpage.sgml
 	</varlistentry>
       </variablelist>
         <varlistentry>
-          <term>-t <parameter>content-type</parameter>, --type <parameter>content-type</parameter></term>
+          <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
           <listitem><para>Edit comments of the logical bitstreams with
                specified <parameter>content-type</parameter>.</para></listitem>
         </varlistentry>

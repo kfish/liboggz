@@ -56,9 +56,9 @@ usage (char * progname)
   printf ("\nEditing options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
-  printf ("  -c, --clear            Clear comments before editing\n");
+  printf ("  -d, --delete           Delete comments before editing\n");
   printf ("  -a, --all              Edit comments for all logical bitstreams\n");
-  printf ("  -t content-type, --type content-type\n");
+  printf ("  -c content-type, --content-type content-type\n");
   printf ("                         Edit comments of the logical bitstreams with\n");
   printf ("                         specified content-type\n");
   printf ("  -s serialno, --serialno serialno\n");
@@ -253,8 +253,8 @@ int main(int argc, char *argv[]) {
   for(i = 2; i < argc; i++) {
     if(!strcmp(argv[i], "-o"))
       out_file = argv[++i];
-    else if(!strcmp(argv[i], "-c")
-           || !strcmp(argv[i], "--clear"))
+    else if(!strcmp(argv[i], "-d")
+           || !strcmp(argv[i], "--delete"))
       clear = 1;
     else if(!strcmp(argv[i], "-l")
            || !strcmp(argv[i], "--list")) {
@@ -270,8 +270,8 @@ int main(int argc, char *argv[]) {
        comments[temp = 0].name = "0";
       }
       serialno = -11;
-    } else if(!strcmp(argv[i], "-t")
-           || !strcmp(argv[i], "--type")) {
+    } else if(!strcmp(argv[i], "-c")
+           || !strcmp(argv[i], "--content-type")) {
       if(comment_table_insert(type_table, comment_table, serialno, comments)) {
        comments = calloc(argc - 2, sizeof(OggzComment));
        comments[temp = 0].name = "0";
