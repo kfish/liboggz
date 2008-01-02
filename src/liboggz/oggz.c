@@ -82,6 +82,14 @@ oggz_new (int flags)
   if (oggz == NULL) return NULL;
 
   oggz->flags = flags;
+  /** DEBUGGING HACK SGS **/
+  // oggz->flags |= OGGZ_CONSTRUCT_SKELETON;
+  /** END DEBUGGING HACK **/
+
+  /* need auto-identify to construct skeleton */
+  if (oggz->flags & OGGZ_CONSTRUCT_SKELETON) {
+    oggz->flags |= OGGZ_AUTO;
+  }
   oggz->file = NULL;
   oggz->io = NULL;
 
@@ -101,7 +109,16 @@ oggz_new (int flags)
   oggz->order = NULL;
   oggz->order_user_data = NULL;
 
-  oggz->packet_buffer = oggz_dlist_new ();
+  if (oggz->flags & OGGZ_AUTO) {
+    oggz->packet_buffer = oggz_dlist_new ();
+  }
+
+  if (oggz->flags & OGGZ_CONSTRUCT_SKELETON) {
+    oggz->bos_buffer = oggz_dlist_new ();
+  }
+
+  oggz->non_bos_encountered = 0;
+  oggz->skeleton_seen = 0;
 
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
     oggz_write_init (oggz);
@@ -315,6 +332,19 @@ oggz_stream_t *
 oggz_add_stream (OGGZ * oggz, long serialno)
 {
   oggz_stream_t * stream;
+
+  /* 
+   * if we're trying to construct a skeleton and we have encountered an
+   * out-of-order bos packet then we can't really continue as we've already
+   * output the skeleton EOS
+   */
+  if 
+  (
+    oggz->non_bos_encountered == 1 && (oggz->flags & OGGZ_CONSTRUCT_SKELETON)
+  ) 
+  {
+    return NULL;
+  }
 
   stream = oggz_malloc (sizeof (oggz_stream_t));
   if (stream == NULL) return NULL;

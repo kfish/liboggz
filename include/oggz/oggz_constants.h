@@ -70,8 +70,21 @@ enum OggzFlags {
   /**
    * Suffix
    */
-  OGGZ_SUFFIX       = 0x80
+  OGGZ_SUFFIX       = 0x80,
 
+  /**
+   * Construct skeleton packets if none are present in the stream.  This
+   * operates as a filter both on reading existing streams and on writing
+   * new streams.
+   */
+  OGGZ_CONSTRUCT_SKELETON = 0x100,
+
+  /**
+   * Correct skeleton packets if they are present (but incorrect) in the
+   * stream.  This operates as a filter both on reading existing streams and
+   * on writing new streams.
+   */
+  OGGZ_CORRECT_SKELETON = 0x200
 };
 
 enum OggzStopCtl {

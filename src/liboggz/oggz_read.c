@@ -59,6 +59,7 @@
 
 #include "oggz_compat.h"
 #include "oggz_private.h"
+#include "oggz_skeleton.h"
 
 /* #define DEBUG */
 /* #define DEBUG_VERBOSE */
@@ -328,6 +329,31 @@ oggz_read_deliver_packet(void *elem) {
   return DLIST_ITER_CONTINUE;
 }
 
+OggzDListIterResponse
+oggz_read_create_fisbone(void *elem) {
+
+  OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
+
+  int packets;
+
+  ogg_packet *op = oggz_skeleton_create_fisbone(p->serialno, p->stream->content,
+                  p->stream->granulerate_n, p->stream->granulerate_d,
+                  p->stream->basegranule, p->stream->granuleshift, 
+                  &packets, (p->oggz->skeleton_packetno)++);
+
+  if (p->stream->read_packet) {
+    p->stream->read_packet(p->oggz, op, p->oggz->skeleton_serialno, 
+            p->stream->read_user_data);
+  } else if (p->reader->read_packet) {
+    p->reader->read_packet(p->oggz, op, p->oggz->skeleton_serialno, 
+            p->reader->read_user_data);
+  }
+
+  oggz_skeleton_destroy_packet(op);
+
+  return DLIST_ITER_CONTINUE;
+}
+
 static int
 oggz_read_sync (OGGZ * oggz)
 {
@@ -363,11 +389,13 @@ oggz_read_sync (OGGZ * oggz)
 
         if (stream == NULL) {
           /* new stream ... check bos etc. */
+          assert(!"there should be no new streams here!\n");
           if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
             /* error -- could not add stream */
             return -7;
           }
         }
+
         os = &stream->ogg_stream;
 
         result = ogg_stream_packetout(os, op);
@@ -401,7 +429,7 @@ oggz_read_sync (OGGZ * oggz)
           granulepos = op->granulepos;
 
           content = oggz_stream_get_content(oggz, serialno);
-  
+
           /*
            * if we have no metrics for this stream yet, then generate them
            */      
@@ -442,7 +470,46 @@ oggz_read_sync (OGGZ * oggz)
           if (stream->packetno == 1) {
             oggz_auto_read_comments (oggz, stream, serialno, op);
           }
-          
+        
+          /*
+           * don't emit BOS packets until there's a non-BOS packet or
+           * until a Skeleton BOS has been seen
+           */
+          if (oggz->flags & OGGZ_CONSTRUCT_SKELETON) {
+
+            if (content == OGGZ_CONTENT_SKELETON) {
+              oggz->skeleton_seen = 1;
+              oggz->skeleton_serialno = serialno;
+            }
+
+            if (!(oggz->non_bos_encountered || oggz->skeleton_seen)) {
+              OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
+                      oggz, &packet, reader->current_granulepos,
+                      serialno, stream, reader);
+              oggz_dlist_append(oggz->bos_buffer, p);
+              continue;
+            }
+
+            if (!oggz_dlist_is_empty(oggz->bos_buffer)) {
+              ogg_packet *op = oggz_skeleton_create_bos(0, 1000, 0, 1000);
+              if (stream->read_packet) {
+                cb_ret = stream->read_packet (oggz, op, serialno, 
+                                                    stream->read_user_data);
+              } else if (reader->read_packet) {
+                cb_ret = reader->read_packet (oggz, op, serialno, 
+                                                    reader->read_user_data);
+              }
+              oggz_skeleton_destroy_packet(op);
+              oggz_dlist_iter(oggz->bos_buffer, oggz_read_deliver_packet);
+              oggz->skeleton_packetno = 1;
+              oggz_dlist_iter(oggz->bos_buffer, oggz_read_create_fisbone);
+              oggz_dlist_delete(oggz->bos_buffer);
+              oggz->bos_buffer = oggz_dlist_new();
+
+            }
+
+          }
+
           if (oggz->flags & OGGZ_AUTO) {
           
             /*
@@ -513,13 +580,16 @@ oggz_read_sync (OGGZ * oggz)
 
     stream = oggz_get_stream (oggz, serialno);
 
+    if (stream != NULL) {
+      oggz->non_bos_encountered = 1;
+    }
+
     if (stream == NULL) {
       /* new stream ... check bos etc. */
       if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
         /* error -- could not add stream */
         return -7;
       }
-
       /* identify stream type */
       oggz_auto_identify(oggz, &og, serialno);
     }

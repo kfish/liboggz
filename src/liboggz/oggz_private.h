@@ -230,6 +230,10 @@ struct _OGGZ {
 
   OggzVector * streams;
   int all_at_eos; /* all streams are at eos */
+  int non_bos_encountered; /* a non-bos packet has been seen */
+  int skeleton_seen;
+  long skeleton_serialno;
+  int skeleton_packetno;
 
   OggzMetric metric;
   void * metric_user_data;
@@ -244,6 +248,7 @@ struct _OGGZ {
   } x;
 
   OggzDList * packet_buffer;
+  OggzDList * bos_buffer;
 };
 
 OGGZ * oggz_read_init (OGGZ * oggz);
