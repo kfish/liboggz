@@ -324,6 +324,8 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
     return -1;
   }
 
+  writer->no_more_packets = 0;
+
 #ifdef DEBUG
   printf ("oggz_write_feed: enqueued packet, queue size %d\n",
 	  oggz_vector_size (writer->packet_queue));
@@ -557,17 +559,28 @@ oggz_dequeue_packet (OGGZ * oggz, oggz_writer_packet_t ** next_zpacket)
   } else {
     *next_zpacket = oggz_vector_pop (writer->packet_queue);
 
-#ifdef DEBUG
-    printf ("oggz_dequeue_packet: dequeued packet, queue size %d\n",
-	    oggz_vector_size (writer->packet_queue));
-#endif
-
     if (*next_zpacket == NULL) {
       if (writer->hungry) {
         ret = writer->hungry (oggz, 1, writer->hungry_user_data);
         *next_zpacket = oggz_vector_pop (writer->packet_queue);
+#ifdef DEBUG
+        printf ("oggz_dequeue_packet: called hungry and popped, new queue size %d\n",
+  	        oggz_vector_size (writer->packet_queue));
+#endif
+
+#ifdef DEBUG
+      } else {
+        printf ("oggz_dequeue_packet: no packet, no hungry, queue size %d\n",
+                oggz_vector_size (writer->packet_queue));
+#endif
       }
+#ifdef DEBUG
+    } else {
+    printf ("oggz_dequeue_packet: dequeued packet, queue size %d\n",
+            oggz_vector_size (writer->packet_queue));
+#endif
     }
+
   }
 
 #ifdef DEBUG
@@ -774,6 +787,9 @@ oggz_write (OGGZ * oggz, long n)
 #endif
 
     while (writer->state == OGGZ_MAKING_PACKETS) {
+#ifdef DEBUG
+      printf ("oggz_write: MAKING PACKETS\n");
+#endif
       if ((cb_ret = oggz_writer_make_packet (oggz)) != OGGZ_CONTINUE) {
 #ifdef DEBUG
         printf ("oggz_write: no packets (cb_ret is %d)\n", cb_ret);
@@ -787,21 +803,38 @@ oggz_write (OGGZ * oggz, long n)
          * the writing code below.
          */
         if (cb_ret == OGGZ_WRITE_EMPTY) {
+#ifdef DEBUG
+          printf ("oggz_write: Inferred end of data, forcing a page flush.\n");
+#endif
           writer->flushing = 1;
           writer->no_more_packets = 1;
           cb_ret = OGGZ_CONTINUE;
         } else {
+#ifdef DEBUG
+          printf ("oggz_write: Stopped by user callback.\n");
+#endif
           active = 0;
           break;
         }
       }
       if (oggz_page_init (oggz)) {
         writer->state = OGGZ_WRITING_PAGES;
+      } else {
+#ifdef DEBUG
+        printf ("oggz_write: unable to make page...\n");
+#endif
+        if (writer->no_more_packets) {
+          active = 0;
+          break;
+        }
       }
     }
 
     if (writer->state == OGGZ_WRITING_PAGES) {
       bytes_written = oggz_page_writeout (oggz, bytes);
+#ifdef DEBUG
+      printf ("oggz_write: MAKING PAGES; wrote %ld bytes\n", bytes_written);
+#endif
 
       if (bytes_written == -1) {
         active = 0;
