@@ -704,6 +704,14 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
       }
       if (oggz_page_init (oggz)) {
         writer->state = OGGZ_WRITING_PAGES;
+      } else {
+#ifdef DEBUG
+        printf ("oggz_write_output: unable to make page...\n");
+#endif
+        if (writer->no_more_packets) {
+          active = 0;
+          break;
+        }
       }
     }
 
