@@ -179,20 +179,29 @@ static char *
 ot_flac_info (unsigned char * data, long len)
 {
   char * buf;
+  int n;
+  int version_major, version_minor;
   int samplerate;
   int channels;
 
   if (len < 30) return NULL;
 
-  buf = malloc (60);
+  buf = malloc (120);
+
+  version_major = data[5];
+  version_minor = data[6];
 
   samplerate = (ogg_int64_t) (data[27] << 12) | (data[28] << 4) | 
                ((data[29] >> 4)&0xf);
   channels = 1 + ((data[29] >> 1)&0x7);
 
-  snprintf (buf, 60,
+  n = snprintf (buf, 120-n,
 	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
             samplerate, channels);
+
+  snprintf (buf+n, 120,
+            "\tFLAC-Ogg-Mapping-Version: %d.%d\n",
+            version_major, version_minor);
 
   return buf;
 }
