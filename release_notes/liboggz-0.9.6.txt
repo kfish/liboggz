@@ -138,6 +138,5 @@ More information is available online at the Oggz homepage:
 enjoy :)
 
 --
-Conrad Parker
-Senior Software Engineer, Continuous Media Web, CSIRO Australia
-http://www.annodex.net/   http://www.ict.csiro.au/cmweb/
+Conrad Parker, Annodex Association
+http://www.annodex.net/
