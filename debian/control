@@ -52,6 +52,7 @@ Description: utilities for mangling Ogg streams
 
 Package: liboggz1-dbg
 Section: libdevel
+Priority: extra
 Architecture: any
 Depends: liboggz1 (= ${binary:Version})
 Description: convenience interface for Ogg stream I/O debugging symbols
