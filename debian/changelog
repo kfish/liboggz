@@ -1,3 +1,9 @@
+liboggz (0.9.6-1) unstable; urgency=low
+
+  * New upstream
+
+ -- John Ferlito <johnf@inodes.org>  Sun, 13 Jan 2008 23:46:18 +1100
+
 liboggz (0.9.5-5) unstable; urgency=low
 
   * update control to use $binary:Version
