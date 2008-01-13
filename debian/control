@@ -3,7 +3,7 @@ Section: net
 Priority: optional
 Maintainer: John Ferito <johnf@inodes.org>
 Build-Depends: debhelper (>= 4.0.0), libogg-dev, doxygen, docbook-to-man, binutils (>= 2.12.90.0.9), automake, pkg-config, libtool (>= 1.4)
-Standards-Version: 3.6.7
+Standards-Version: 3.7.3
 
 Package: liboggz1
 Section: libs
