@@ -1,7 +1,7 @@
 Source: liboggz
 Section: net
 Priority: optional
-Maintainer: John Ferito <johnf@inodes.org>
+Maintainer: John Ferlito <johnf@inodes.org>
 Build-Depends: debhelper (>= 4.0.0), libogg-dev, doxygen, docbook-to-man, binutils (>= 2.12.90.0.9), automake, pkg-config, libtool (>= 1.4)
 Standards-Version: 3.7.3
 
