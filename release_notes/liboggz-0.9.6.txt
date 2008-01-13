@@ -55,6 +55,7 @@ Internal:
 	* GNU Autotools build system updates (Ralph Giles, Thomas van der
 	  Stichele)
 	* Updated Win32 build system (Alex Krumm-Heller, Marcin Lubonski)
+	* libtool shared version info updated to 4:0:3
 
 About Oggz
 ----------
