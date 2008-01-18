@@ -62,7 +62,6 @@ static int
 read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   MHData * mhdata = (MHData *)user_data;
-  ogg_packet * new_op = op;
   int flush;
   int ret;
 
@@ -90,9 +89,17 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   /* Do something with the packet data */
+  if (op->packetno == 1) {
+    oggz_comments_copy (mhdata->reader, serialno, mhdata->writer, serialno);
+    oggz_comment_add_byname (mhdata->writer, serialno,
+                             "EDITOR", "modify-headers");
+    op = oggz_comment_generate (mhdata->writer, serialno,
+                                oggz_stream_get_content (mhdata->reader, serialno),
+                                0);
+  }
 
   /* Feed the packet into the writer */
-  if ((ret = oggz_write_feed (mhdata->writer, new_op, serialno, flush, NULL)) != 0) {
+  if ((ret = oggz_write_feed (mhdata->writer, op, serialno, flush, NULL)) != 0) {
     printf ("oggz_write_feed: %d\n", ret);
   }
 

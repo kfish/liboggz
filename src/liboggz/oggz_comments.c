@@ -484,6 +484,33 @@ oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name)
   }
 }
 
+int
+oggz_comments_copy (OGGZ * src, long src_serialno,
+                    OGGZ * dest, long dest_serialno)
+{
+  const OggzComment * comment;
+
+  if (src == NULL || dest == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  if (dest->flags & OGGZ_WRITE) {
+    if (OGGZ_CONFIG_WRITE) {
+      oggz_comment_set_vendor (dest, dest_serialno,
+                               oggz_comment_get_vendor (src, src_serialno));
+
+      for (comment = oggz_comment_first (src, src_serialno); comment;
+           comment = oggz_comment_next (src, src_serialno, comment)) {
+        oggz_comment_add (dest, dest_serialno, comment);
+      }
+    } else {
+      return OGGZ_ERR_DISABLED;
+    }
+  } else {
+    return OGGZ_ERR_INVALID;
+  }
+
+  return 0;
+}
+
 /* Internal API */
 int
 oggz_comments_init (oggz_stream_t * stream)
@@ -601,6 +628,9 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   /* Vendor string */
   vendor_length = strlen (stream->vendor);
   actual_length = 4 + vendor_length;
+#ifdef DEBUG
+  printf ("oggz_comments_encode: vendor = %s\n", stream->vendor);
+#endif
 
   /* user comment list length */
   actual_length += 4;

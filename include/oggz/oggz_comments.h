@@ -266,6 +266,19 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
 		      OggzStreamContent packet_type,
 		      int FLAC_final_metadata_block);
   
+/*
+ * Copy comments between two streams.
+ * \param src A OGGZ* handle
+ * \param src_serialno Identify a logical bitstream within \a src
+ * \param dest A OGGZ* handle (created with OGGZ_WRITE)
+ * \param dest_serialno Identify a logical bitstream within \a dest
+ * \retval OGGZ_ERR_BAD \a oggz is not a valid OGGZ* handle
+ * \retval OGGZ_ERR_INVALID Operation not suitable for \a dest
+ */
+int
+oggz_comments_copy (OGGZ * src, long src_serialno,
+                    OGGZ * dest, long dest_serialno);
+
 /**
  * Free a packet and its payload.
  * \param packet A packet previously returned from a function such

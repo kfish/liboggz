@@ -79,7 +79,10 @@
                 oggz_comment_add_byname;
                 oggz_comment_remove;
                 oggz_comment_remove_byname;
+
                 oggz_comment_generate;
+		oggz_comments_copy;
+
                 oggz_packet_destroy;
 
         local:
