@@ -704,12 +704,13 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   return actual_length;
 }
 
-/* In Flac, OggPCM, Speex, Theora and Vorbis the comment packet will
-   be second in the stream, i.e. packetno=1, and it will have granulepos=0 */
+/* NB. Public use of this function is deprecated; the simpler
+ * oggz_comments_generate() automatically determines the packet_type */
 ogg_packet *
 oggz_comment_generate(OGGZ * oggz, long serialno,
 		      OggzStreamContent packet_type,
-		      int FLAC_final_metadata_block) {
+		      int FLAC_final_metadata_block)
+{
   ogg_packet *c_packet;
 
   unsigned char *buffer;
@@ -749,21 +750,19 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
       /* No preamble for these */
       break;
     default:
-      return 0;
+      return NULL;
   }
 
   comment_length = oggz_comments_encode (oggz, serialno, 0, 0);
-  if(comment_length <= 0)
-    {
-      return 0;
-    }
+  if(comment_length <= 0) {
+    return NULL;
+  }
 
   buf_size = preamble_length + comment_length;
 
-  if(packet_type == OGGZ_CONTENT_FLAC && comment_length >= 0x00ffffff)
-    {
-      return 0;
-    }
+  if(packet_type == OGGZ_CONTENT_FLAC && comment_length >= 0x00ffffff) {
+    return NULL;
+  }
 
   c_packet = malloc(sizeof *c_packet);
   if(c_packet) {
@@ -802,6 +801,20 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
   }
 
   return c_packet;
+}
+
+/* In Flac, OggPCM, Speex, Theora and Vorbis the comment packet will
+   be second in the stream, i.e. packetno=1, and it will have granulepos=0 */
+ogg_packet *
+oggz_comments_generate(OGGZ * oggz, long serialno,
+		      int FLAC_final_metadata_block)
+{
+  OggzStreamContent packet_type;
+
+  packet_type = oggz_stream_get_content (oggz, serialno);
+
+  return oggz_comment_generate (oggz, serialno, packet_type,
+                                FLAC_final_metadata_block);
 }
 
 void oggz_packet_destroy(ogg_packet *packet) {

@@ -241,8 +241,6 @@ oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name);
  * Output a comment packet for the specified stream
  * \param oggz A OGGZ* handle (created with OGGZ_WRITE)
  * \param serialno Identify a logical bitstream within \a oggz
- * \param packet_type Type of comment packet to generate,
- * FLAC, OggPCM, Speex, Theora and Vorbis are supported
  * \param FLAC_final_metadata_block Set this to zero unless the packet_type is
  * FLAC, and there are no further metadata blocks to follow. See note below
  * for details.
@@ -262,9 +260,8 @@ oggz_comment_remove_byname (OGGZ * oggz, long serialno, char * name);
  * \n See http://flac.sourceforge.net/format.html for more details.
  */
 ogg_packet *
-oggz_comment_generate(OGGZ * oggz, long serialno,
-		      OggzStreamContent packet_type,
-		      int FLAC_final_metadata_block);
+oggz_comments_generate(OGGZ * oggz, long serialno,
+                       int FLAC_final_metadata_block);
   
 /*
  * Copy comments between two streams.

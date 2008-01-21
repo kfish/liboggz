@@ -81,6 +81,8 @@
                 oggz_comment_remove_byname;
 
                 oggz_comment_generate;
+
+                oggz_comments_generate;
 		oggz_comments_copy;
 
                 oggz_packet_destroy;
