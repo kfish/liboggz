@@ -970,6 +970,7 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
                          ogg_packet * op)
 {
   int offset = -1;
+  long len = -1;
 
   switch (stream->content) {
     case OGGZ_CONTENT_VORBIS:
@@ -982,12 +983,22 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
       if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)
         offset = 7;
       break;
+    case OGGZ_CONTENT_FLAC:
+      if (op->bytes > 4 && (op->packet[0] & 0x7) == 4) {
+        len = (op->packet[1]<<16) + (op->packet[2]<<8) + op->packet[3];
+        offset = 4;
+      }
     default:
       break;
   }
 
+  /* The length of the comments to decode is the rest of the packet,
+   * unless otherwise determined (ie. for FLAC) */
+  if (len == -1)
+    len = op->bytes - offset;
+
   if (offset >= 0) {
-    oggz_comments_decode (oggz, serialno, op->packet+offset, op->bytes-offset);
+    oggz_comments_decode (oggz, serialno, op->packet+offset, len);
   }
 
   return 0;
