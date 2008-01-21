@@ -290,7 +290,7 @@ int
 oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
                          ogg_packet * op);
 
-int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno);
+int oggz_auto_identify_page (OGGZ *oggz, ogg_page *og, long serialno);
 
 /* comments */
 int oggz_comments_init (oggz_stream_t * stream);

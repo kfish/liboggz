@@ -892,8 +892,9 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
-int oggz_auto_identify (OGGZ *oggz, ogg_page *og, long serialno) {
-
+int
+oggz_auto_identify_page (OGGZ *oggz, ogg_page *og, long serialno)
+{
   int i;
   
   for (i = 0; i < OGGZ_CONTENT_UNKNOWN; i++)

@@ -521,14 +521,14 @@ oggz_read_sync (OGGZ * oggz)
       }
 
       /* identify stream type */
-      oggz_auto_identify(oggz, &og, serialno);
+      oggz_auto_identify_page (oggz, &og, serialno);
     }
     else if (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_ANXDATA)
     {
       /*
        * re-identify ANXDATA streams as these are now content streams
        */
-      oggz_auto_identify(oggz, &og, serialno);
+      oggz_auto_identify_page (oggz, &og, serialno);
     }
     
     os = &stream->ogg_stream;
