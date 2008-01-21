@@ -247,6 +247,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 
     if (b_o_s || !strict || suffix) {
       stream = oggz_add_stream (oggz, serialno);
+      oggz_auto_identify_packet (oggz, op, serialno);
     } else {
       return OGGZ_ERR_BAD_SERIALNO;
     }

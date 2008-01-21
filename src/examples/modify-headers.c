@@ -94,7 +94,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     oggz_comment_add_byname (mhdata->writer, serialno,
                              "EDITOR", "modify-headers");
     op = oggz_comment_generate (mhdata->writer, serialno,
-                                oggz_stream_get_content (mhdata->reader, serialno),
+                                oggz_stream_get_content (mhdata->writer, serialno),
                                 0);
   }
 

@@ -892,8 +892,8 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
-int
-oggz_auto_identify_page (OGGZ *oggz, ogg_page *og, long serialno)
+static int
+oggz_auto_identify (OGGZ * oggz, long serialno, unsigned char * data, long len)
 {
   int i;
   
@@ -901,8 +901,8 @@ oggz_auto_identify_page (OGGZ *oggz, ogg_page *og, long serialno)
   {
     const oggz_auto_contenttype_t *codec = oggz_auto_codec_ident + i;
     
-    if (og->body_len >= codec->bos_str_len &&
-              memcmp (og->body, codec->bos_str, codec->bos_str_len) == 0) {
+    if (len >= codec->bos_str_len &&
+        memcmp (data, codec->bos_str, codec->bos_str_len) == 0) {
       
       oggz_stream_set_content (oggz, serialno, i);
       
@@ -912,6 +912,18 @@ oggz_auto_identify_page (OGGZ *oggz, ogg_page *og, long serialno)
                       
   oggz_stream_set_content (oggz, serialno, OGGZ_CONTENT_UNKNOWN);
   return 0;
+}
+
+int
+oggz_auto_identify_page (OGGZ * oggz, ogg_page *og, long serialno)
+{
+  return oggz_auto_identify (oggz, serialno, og->body, og->body_len);
+}
+
+int
+oggz_auto_identify_packet (OGGZ * oggz, ogg_packet * op, long serialno)
+{
+  return oggz_auto_identify (oggz, serialno, op->packet, op->bytes);
 }
 
 int
