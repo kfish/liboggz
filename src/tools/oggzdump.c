@@ -333,11 +333,33 @@ read_new_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 }
 
 static void
+revert_packet (OGGZ * oggz, ogg_packet * op, long serialno, int flush)
+{
+  unsigned char buf[1024];
+  long n;
+  int ret;
+
+#ifdef DEBUG
+  printf ("feeding packet (%010ld) %ld bytes %s, %s\n",
+          current_serialno, op->bytes,
+          op->b_o_s ? "bos" : "not bos",
+          op->e_o_s ? "eos" : "not eos");
+#endif
+  if ((ret = oggz_write_feed (oggz, op, serialno, flush, NULL)) != 0) {
+    fprintf (stderr, "%s: oggz_write_feed error %d\n", progname, ret);
+  }
+
+  while ((n = oggz_write_output (oggz, buf, 1024)) > 0) {
+    fwrite (buf, 1, n, outfile);
+  }
+}
+
+static void
 revert_file (char * infilename)
 {
   OGGZ * oggz;
   FILE * infile;
-  char line[80];
+  char line[120];
   int hh, mm, ss;
   unsigned int offset;
   long current_serialno = -1, serialno;
@@ -350,10 +372,8 @@ revert_file (char * infilename)
   unsigned char * packet = NULL;
   long max_bytes = 0;
 
-  unsigned char buf[1024];
   ogg_packet op;
   int flush = 1;
-  long n;
   char c;
 
   if (strcmp (infilename, "-") == 0) {
@@ -364,7 +384,7 @@ revert_file (char * infilename)
 
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT|OGGZ_AUTO);
 
-  while (fgets (line, 80, infile)) {
+  while (fgets (line, 120, infile)) {
     line_offset = 0;
 
     /* Skip time offsets, OR ensure line_offset is 0 */
@@ -389,20 +409,7 @@ revert_file (char * infilename)
     if (is_packetinfo) {
       /* flush any existing packets */
       if (current_serialno != -1) {
-	int ret;
-
-#ifdef DEBUG
-	printf ("feeding packet (%010ld) %ld bytes %s\n",
-		current_serialno, op.bytes,
-		op.b_o_s ? "bos" : "not bos");
-#endif
-	if ((ret = oggz_write_feed (oggz, &op, current_serialno, flush, NULL)) != 0) {
-	  fprintf (stderr, "%s: oggz_write_feed error %d\n", progname, ret);
-	}
-
-	while ((n = oggz_write_output (oggz, buf, 1024)) > 0) {
-	  fwrite (buf, 1, n, outfile);
-	}
+        revert_packet (oggz, &op, current_serialno, flush);
       }
 
       /* Start new packet */
@@ -435,6 +442,8 @@ revert_file (char * infilename)
 
       if (current_serialno != -1 &&
 	  sscanf (line, "%x:%n", &offset, &line_offset) >= 1) {
+        /* NUL-terminate after hex data: don't scan char representation */
+        line[50] = '\0';
 	while (nread < 16 &&
 	       (sscanf (&line[line_offset], "%2x%n", &val, &consumed) > 0)) {
 	  op.bytes++;
@@ -469,6 +478,11 @@ revert_file (char * infilename)
 	}
       }
     }
+  }
+
+  /* flush any existing packets */
+  if (current_serialno != -1) {
+    revert_packet (oggz, &op, current_serialno, flush);
   }
 
   fclose (infile);
