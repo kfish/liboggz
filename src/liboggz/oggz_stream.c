@@ -83,7 +83,6 @@ oggz_stream_get_numheaders (OGGZ * oggz, long serialno)
   stream = oggz_get_stream (oggz, serialno);
   if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
-  /*return stream->numheaders;*/
-  return 3;
+  return stream->numheaders;
 }
 

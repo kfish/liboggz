@@ -38,7 +38,6 @@
 
 #include "config.h"
 
-#if OGGZ_CONFIG_READ
 #include <stdlib.h>
 #include <string.h>
 
@@ -56,6 +55,7 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 			    ogg_int64_t granule_rate_numerator,
 			    ogg_int64_t granule_rate_denominator);
 
+#define INT16_BE_AT(x) _be_16((*(ogg_int32_t *)(x)))
 #define INT32_LE_AT(x) _le_32((*(ogg_int32_t *)(x)))
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
@@ -63,10 +63,26 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 #define OGGZ_AUTO_MULT 1000Ull
 
 static int
+oggz_stream_set_numheaders (OGGZ * oggz, long serialno, int numheaders)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+  stream->numheaders = numheaders;
+
+  return 0;
+}
+
+static int
 auto_speex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
   ogg_int64_t granule_rate = 0;
+  int numheaders;
 
   if (op->bytes < 68) return 0;
 
@@ -76,6 +92,9 @@ auto_speex (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  numheaders = (ogg_int64_t) INT32_LE_AT(&header[68]) + 2;
+  oggz_stream_set_numheaders (oggz, serialno, numheaders);
 
   return 1;
 }
@@ -94,6 +113,8 @@ auto_vorbis (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  oggz_stream_set_numheaders (oggz, serialno, 3);
 
   return 1;
 }
@@ -147,6 +168,8 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 			OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
   oggz_set_granuleshift (oggz, serialno, keyframe_shift);
 
+  oggz_stream_set_numheaders (oggz, serialno, 3);
+
   return 1;
 }
 
@@ -195,6 +218,8 @@ auto_flac0 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
+  oggz_stream_set_numheaders (oggz, serialno, 3);
+
   return 1;
 }
 
@@ -203,6 +228,7 @@ auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
   ogg_int64_t granule_rate = 0;
+  int numheaders;
 
   if (op->bytes < 51) return 0;
 
@@ -213,6 +239,9 @@ auto_flac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  numheaders = INT16_BE_AT(&header[7]);
+  oggz_stream_set_numheaders (oggz, serialno, numheaders);
 
   return 1;
 }
@@ -235,6 +264,8 @@ auto_oggpcm2 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  oggz_stream_set_numheaders (oggz, serialno, 3);
 
   return 1;
 }
@@ -265,6 +296,8 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 			OGGZ_AUTO_MULT * granule_rate_denominator);
   oggz_set_granuleshift (oggz, serialno, granuleshift);
 
+  oggz_stream_set_numheaders (oggz, serialno, 3);
+
   return 1;
 }
 
@@ -274,7 +307,7 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   unsigned char * header = op->packet;
   long fisbone_serialno; /* The serialno referred to in this fisbone */
   ogg_int64_t granule_rate_numerator = 0, granule_rate_denominator = 0;
-  int granuleshift;
+  int granuleshift, numheaders;
 
   if (op->bytes < 48) return 0;
 
@@ -297,6 +330,10 @@ auto_fisbone (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 			granule_rate_numerator,
 			OGGZ_AUTO_MULT * granule_rate_denominator);
   oggz_set_granuleshift (oggz, fisbone_serialno, granuleshift);
+
+  /* Increment the number of headers for this stream */
+  numheaders = oggz_stream_get_numheaders (oggz, serialno);
+  oggz_stream_set_numheaders (oggz, serialno, numheaders+1);
 				
   return 1;
 }
@@ -310,6 +347,9 @@ auto_fishead (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   }
   
   oggz_set_granulerate (oggz, serialno, 0, 1);
+
+  /* For skeleton, numheaders will get incremented as each header is seen */
+  oggz_stream_set_numheaders (oggz, serialno, 1);
   
   return 1;
 }
@@ -1004,4 +1044,3 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
   return 0;
 }
 
-#endif /* OGGZ_CONFIG_READ */

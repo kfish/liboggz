@@ -80,7 +80,7 @@ struct _oggz_stream_t {
 
   /** STATIC INFO */
   int content;
-  int nr_headers;
+  int numheaders;
   int preroll;
   ogg_int64_t granulerate_n;
   ogg_int64_t granulerate_d;

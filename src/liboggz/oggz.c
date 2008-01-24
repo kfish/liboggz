@@ -324,7 +324,7 @@ oggz_add_stream (OGGZ * oggz, long serialno)
   oggz_comments_init (stream);
 
   stream->content = OGGZ_CONTENT_UNKNOWN;
-  stream->nr_headers = 0;
+  stream->numheaders = 3; /* Default to 3 headers for Ogg logical bitstreams */
   stream->preroll = 0;
   stream->granulerate_n = 1;
   stream->granulerate_d = 1;

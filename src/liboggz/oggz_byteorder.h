@@ -61,7 +61,6 @@ _le_32 (ogg_uint32_t i)
    return ret;
 }
 
-#ifdef _UNUSED_
 static  unsigned short
 _be_16 (unsigned short s)
 {
@@ -72,7 +71,6 @@ _be_16 (unsigned short s)
 #endif
   return ret;
 }
-#endif /* _UNUSED_ */
 
 static  ogg_uint32_t
 _be_32 (ogg_uint32_t i)
