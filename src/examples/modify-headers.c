@@ -102,7 +102,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   }
 
   /* Determine if we're finished processing headers */
-  if (op->packetno >= 2) {
+  if (op->packetno+1 >= oggz_stream_get_numheaders (mhdata->reader, serialno)) {
     /* If this was the last header for this track, remove it from the
        track list */
     oggz_table_remove (mhdata->tracks, serialno);

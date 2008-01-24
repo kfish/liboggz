@@ -60,6 +60,7 @@
 
                 oggz_stream_get_content;
                 oggz_stream_get_content_type;
+                oggz_stream_get_numheaders;
 
 		oggz_table_new;
 		oggz_table_delete;

@@ -565,6 +565,7 @@ long oggz_serialno_new (OGGZ * oggz);
 
 #include <oggz/oggz_off_t.h>
 #include <oggz/oggz_read.h>
+#include <oggz/oggz_stream.h>
 #include <oggz/oggz_seek.h>
 #include <oggz/oggz_write.h>
 #include <oggz/oggz_io.h>

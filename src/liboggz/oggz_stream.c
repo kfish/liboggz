@@ -72,3 +72,18 @@ oggz_stream_get_content_type (OGGZ *oggz, long serialno)
 
   return oggz_auto_codec_ident[content].content_type;
 } 
+
+int
+oggz_stream_get_numheaders (OGGZ * oggz, long serialno)
+{
+  oggz_stream_t * stream;
+
+  if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+  
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
+  /*return stream->numheaders;*/
+  return 3;
+}
+
