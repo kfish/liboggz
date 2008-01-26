@@ -143,7 +143,11 @@ manpage.1: manpage.sgml
         <varlistentry>
           <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
           <listitem><para>Edit comments of the logical bitstreams with
-               specified <parameter>content-type</parameter>.</para></listitem>
+               specified <parameter>content-type</parameter>.
+               The following codec names are currently detected:
+               "cmml", "flac", "theora", "speex", "vorbis"
+          </para></listitem>
+        </varlistentry>
         </varlistentry>
         <varlistentry>
           <term>-s <parameter>serialno</parameter>, --serialno <parameter>serialno</parameter></term>

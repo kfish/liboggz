@@ -176,7 +176,7 @@ manpage.1: manpage.sgml
 	  <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
 	  <listitem><para>Dump only the logical bitstreams for a specific
 	      <parameter>content-type</parameter>. The following codec names
-	      are currently detected: "theora", "vorbis", "speex", "cmml"
+	      are currently detected: "cmml", "flac", "theora", "speex", "vorbis"
 	    </para></listitem>
 	</varlistentry>
 
