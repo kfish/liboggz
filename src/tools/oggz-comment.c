@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2007 Annodex Association
+   Copyright (C) 2008 Annodex Association
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -30,19 +30,39 @@
 */
 
 /* Kangyuan Niu: original version (Aug 2007) */
+/* Conrad Parker: modified based on modify-headers example (January 2008) */
 
-#include "config.h"
-
-#include <ctype.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <strings.h>
+#include <assert.h> /* , ja */
+#include <errno.h>
+#include <getopt.h>
 
 #include <oggz/oggz.h>
+
 #include "oggz_tools.h"
 
-/* #define DEBUG */
+#define ID_WRITE_DIRECT
+/* define USE_FLUSH_NEXT */
+
+#ifdef USE_FLUSH_NEXT
+static int flush_next = 0;
+#endif
+
+#define S_SERIALNO 0x7
+
+typedef struct {
+  int do_delete;
+  int do_all;
+  OGGZ * reader;
+  OGGZ * writer;
+  OGGZ * storer; /* Just used for storing comments from commandline */
+  FILE * outfile;
+  OggzTable * seen_tracks;
+  OggzTable * serialno_table;
+  OggzTable * content_types_table;
+} OCData;
 
 static char * progname;
 
@@ -52,7 +72,7 @@ usage (char * progname)
   printf ("Usage: %s filename [options] tagname=tagvalue ...\n", progname);
   printf ("List or edit comments in an Ogg file.\n");
   printf ("\nOutput options\n");
-  printf ("  -l, --list            List the comments in the given file.\n");
+  printf ("  -l, --list             List the comments in the given file.\n");
   printf ("\nEditing options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
@@ -71,263 +91,422 @@ usage (char * progname)
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
-int copy_replace_comments(OGGZ *oggz,
-                         ogg_packet *op,
-                         long serialno,
-                         void *user_data) {
-  OGGZ *oggz_write = (OGGZ *)user_data;
-  int flush;
-  if(op->granulepos == -1)
-    flush = 0;
-  else
-    flush = OGGZ_FLUSH_AFTER;
-  if(op->packetno == 1) {
-    oggz_write_feed(oggz_write,
-                   oggz_comment_generate(oggz_write, serialno,
-                                         oggz_stream_get_content(oggz, serialno),
-                                         0),
-                   serialno, flush, NULL);
-  } else
-    oggz_write_feed(oggz_write, op, serialno, flush, NULL);
+static OCData *
+ocdata_new ()
+{
+  OCData *ocdata = malloc (sizeof (OCData));
+  assert (ocdata != NULL);
+  memset (ocdata, 0, sizeof (OCData));
+
+  ocdata->do_all = 1;
+
+  ocdata->storer = oggz_new (OGGZ_WRITE);
+  
+  ocdata->seen_tracks = oggz_table_new ();
+  assert (ocdata->seen_tracks != NULL);
+
+  ocdata->serialno_table = oggz_table_new();
+  assert (ocdata->serialno_table != NULL);
+
+  ocdata->content_types_table = oggz_table_new();
+  assert (ocdata->content_types_table != NULL);
+  
+  return ocdata;
+}
+
+static void 
+ocdata_delete (OCData *ocdata)
+{
+  oggz_table_delete (ocdata->seen_tracks);
+  oggz_table_delete (ocdata->serialno_table);
+  oggz_table_delete (ocdata->content_types_table);
+  
+  if (ocdata->reader)
+    oggz_close (ocdata->reader);
+  if (ocdata->storer)
+    oggz_close (ocdata->storer);
+  if (ocdata->outfile)
+    fclose (ocdata->outfile);
+  
+  free (ocdata);
+}
+
+static int
+filter_stream_p (const OCData *ocdata, long serialno)
+{
+  if (ocdata->do_all)
+    return 1;
+
+  if (oggz_table_lookup (ocdata->serialno_table, serialno) != NULL)
+    return 1;
+
   return 0;
 }
 
-int copy_comments(OGGZ *oggz,
-                 ogg_packet *op,
-                 long serialno,
-                 void *user_data) {
-  OGGZ *oggz_write = (OGGZ *)user_data;
-  OggzComment * comment;
-  if(op->packetno == 1) {
-    oggz_comment_set_vendor(oggz_write, serialno,
-                           oggz_comment_get_vendor(oggz, serialno));
-    for(comment = oggz_comment_first(oggz, serialno); comment;
-       comment = oggz_comment_next(oggz, serialno, comment))
-      oggz_comment_add(oggz_write, serialno, comment);
+static int
+read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  OCData * ocdata = (OCData *)user_data;
+  const char * ident;
+  int i, n;
+
+  if (!ogg_page_bos ((ogg_page *)og))
+    return OGGZ_CONTINUE;
+
+  /* Record this track in the seen_tracks table. We don't need to store any
+   * information about the track, just the fact that it exists.
+   * Store a dummy value (as NULL is not allowed in an OggzTable).
+   */
+  oggz_table_insert (ocdata->seen_tracks, serialno, (void *)0x01);
+
+  ident = ot_page_identify (oggz, og, NULL);
+  if (ident != NULL) {
+    n = oggz_table_size (ocdata->content_types_table);
+    for (i = 0; i < n; i++) {
+      char * c = oggz_table_nth (ocdata->content_types_table, i, NULL);
+      if (strcasecmp (c, ident) == 0) {
+        oggz_table_insert (ocdata->serialno_table, serialno, (void *)0x7);
+      }
+    }
   }
-  return 0;
+
+  return OGGZ_CONTINUE;
 }
 
-int list_comments(OGGZ *oggz,
-                 ogg_packet *op, 
-                 long serialno,
-                 void *user_data) {
+static int
+more_headers (OCData * ocdata, ogg_packet * op, long serialno)
+{
+  /* Determine if we're finished processing headers */
+  if (op->packetno+1 >= oggz_stream_get_numheaders (ocdata->reader, serialno)) {
+    /* If this was the last header for this track, remove it from the
+       track list */
+    oggz_table_remove (ocdata->seen_tracks, serialno);
+
+    /* If no more tracks are left in the track list, then we have processed
+     * all the headers; stop processing of packets. */
+    if (oggz_table_size (ocdata->seen_tracks) == 0) {
+      return OGGZ_STOP_ERR;
+    }
+  }
+
+  return OGGZ_CONTINUE;
+}
+
+static int
+read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  OCData * ocdata = (OCData *)user_data;
+
+  fwrite (og->header, 1, og->header_len, ocdata->outfile);
+  fwrite (og->body, 1, og->body_len, ocdata->outfile);
+
+  return OGGZ_CONTINUE;
+}
+
+static int
+read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  OCData * ocdata = (OCData *)user_data;
+  const char * vendor;
+  int flush;
+  int ret;
+
+#ifdef USE_FLUSH_NEXT
+  flush = flush_next;
+  if (op->granulepos == -1) {
+    flush_next = 0;
+  } else {
+    flush_next = OGGZ_FLUSH_BEFORE;
+  }
+#else
+  if (op->granulepos == -1) {
+    flush = 0;
+  } else {
+    flush = OGGZ_FLUSH_AFTER;
+  }
+#endif
+
+  /* Edit the packet data if required */
+  if (filter_stream_p (ocdata, serialno) && op->packetno == 1) {
+    vendor = oggz_comment_get_vendor (ocdata->reader, serialno);
+
+    /* Copy across the comments, unless "delete comments before editing" */
+    if (!ocdata->do_delete)
+      oggz_comments_copy (ocdata->reader, serialno, ocdata->writer, serialno);
+
+    /* Add stored comments from commandline */
+    oggz_comments_copy (ocdata->storer, S_SERIALNO, ocdata->writer, serialno);
+
+    /* Ensure the original vendor is preserved */
+    oggz_comment_set_vendor (ocdata->writer, serialno, vendor);
+
+    /* Generate the replacement comments packet */
+    op = oggz_comments_generate (ocdata->writer, serialno, 0);
+  }
+
+  /* Feed the packet into the writer */
+  if ((ret = oggz_write_feed (ocdata->writer, op, serialno, flush, NULL)) != 0) 
+    fprintf (stderr, "oggz_write_feed: %d\n", ret);
+
+  return more_headers (ocdata, op, serialno);
+}
+
+static int
+edit_comments (OCData * ocdata, char * outfilename)
+{
+  unsigned char buf[1024];
+  long n;
+
+  if (outfilename == NULL) {
+    ocdata->outfile = stdout;
+  } else {
+    ocdata->outfile = fopen (outfilename, "wb");
+    if (ocdata->outfile == NULL) {
+      fprintf (stderr, "%s: unable to open output file %s\n",
+	       progname, outfilename);
+      return -1;
+    }
+  }
+
+  /* Set up writer, filling in ocdata for callbacks */
+  if ((ocdata->writer = oggz_new (OGGZ_WRITE)) == NULL) {
+    printf ("Unable to create new writer\n");
+  }
+  ocdata->outfile = fopen (outfilename, "w");
+
+  /* Set a page reader to process bos pages */
+  oggz_set_read_page (ocdata->reader, -1, read_bos, ocdata);
+
+  /* First, process headers packet-by-packet. */
+  oggz_set_read_callback (ocdata->reader, -1, read_packet, ocdata);
+  while ((n = oggz_read (ocdata->reader, 1024)) > 0) {
+    while (oggz_write_output (ocdata->writer, buf, n) > 0) {
+      fwrite (buf, 1, n, ocdata->outfile);
+    }
+  }
+
+  /* We actually don't use the writer any more from here, so close it */
+  oggz_close (ocdata->writer);
+
+  /* Now, the headers are processed. We deregister the packet reading
+   * callback. */
+  oggz_set_read_callback (ocdata->reader, -1, NULL, NULL);
+
+  /* We deal with the rest of the file as pages. */
+  /* Register a callback that copies page data directly across to outfile */
+  oggz_set_read_page (ocdata->reader, -1, read_page, ocdata);
+
+  if (oggz_run (ocdata->reader) == OGGZ_ERR_OK)
+    return 0;
+  else
+    return 1;
+}
+
+static int
+read_comments(OGGZ *oggz, ogg_packet *op, long serialno, void *user_data)
+{
+  OCData * ocdata = (OCData *)user_data;
   const OggzComment * comment;
-  if(op->packetno == 1) {
-    printf("%s (serial = %ld):\n",
-          oggz_stream_get_content_type(oggz, serialno), serialno);
+  const char * codec_name;
+
+  if (filter_stream_p (ocdata, serialno) && op->packetno == 1) {
+    codec_name = oggz_stream_get_content_type(oggz, serialno);
+    if (codec_name) {
+      printf ("%s: serialno %010ld\n", codec_name, serialno);
+    } else {
+      printf ("???: serialno %010ld\n", serialno);
+    }
+
     printf("\tVendor: %s\n", oggz_comment_get_vendor(oggz, serialno));
+
     for (comment = oggz_comment_first(oggz, serialno); comment;
-        comment = oggz_comment_next(oggz, serialno, comment))
+         comment = oggz_comment_next(oggz, serialno, comment))
       printf ("\t%s: %s\n", comment->name, comment->value);
   }
-  return 0;
+
+  return more_headers (ocdata, op, serialno);
 }
 
-int get_stream_types(OGGZ *oggz,
-                    ogg_packet *op,
-                    long serialno,
-                    void *user_data) {
-  OggzTable *table = (OggzTable *)user_data;
-  OggzStreamContent *content = malloc(sizeof(OggzStreamContent));
-  if(oggz_table_lookup(table, serialno) == NULL) {
-    *content = oggz_stream_get_content(oggz, serialno);
-    oggz_table_insert(table, serialno, content);
-  }
-  return 0;
-}
+static int
+list_comments (OCData * ocdata)
+{
+  /* Set a page reader to process bos pages */
+  oggz_set_read_page (ocdata->reader, -1, read_bos, ocdata);
 
-void edit_comments(OGGZ *oggz,
-                  long serialno,
-                  OggzComment *comments) {
-  int i;
-  for(i = 0; strcmp(comments[i].name, "0"); i++) {
-    oggz_comment_remove_byname(oggz, serialno, comments[i].name);
-    oggz_comment_add(oggz, serialno, &comments[i]);
-  }
-}
+  /* First, process headers packet-by-packet. */
+  oggz_set_read_callback (ocdata->reader, -1, read_comments, ocdata);
 
-int comment_table_insert(OggzTable *type_table,
-                        OggzTable *comment_table,
-                        long serialno,
-                        OggzComment *comments) {
-  OggzStreamContent type;
-  long type_serialno;
-  int i;
-  if(!strcmp(comments[0].name, "0"))
+  if (oggz_run (ocdata->reader) == OGGZ_ERR_STOP_OK)
     return 0;
-  if(serialno > 0) {
-    oggz_table_insert(comment_table, serialno, comments);
-  } else if(serialno > -11) {
-    for(i = 0; i < oggz_table_size(type_table); i++) {
-      type = *(OggzStreamContent *)oggz_table_nth(type_table, i, &type_serialno);
-      if(type == serialno * -1)
-       oggz_table_insert(comment_table, type_serialno, comments);
-    }
-  } else {
-    for(i = 0; i < oggz_table_size(type_table); i++) {
-      oggz_table_nth(type_table, i, &type_serialno);
-      oggz_table_insert(comment_table, type_serialno, comments);
-    }
-  }
-  return 1;
+  else
+    return 1;
 }
 
-OggzComment parse_comment_field(char *arg) {
-  int i;
-  char *c;
-  OggzComment comment;
-  comment.name = strcpy(calloc(strlen(arg) + 1, sizeof(char)), arg);
-  c = strchr(comment.name, '=');
+static void
+store_comment (OCData * ocdata, char * s)
+{
+  char * c, * name, * value;
+
+  c = strchr (s, '=');
   *c = '\0';
-  for(i = 0; comment.name[i]; i++)
-    if(islower(arg[i]))
-      comment.name[i] = toupper(arg[i]);
-  comment.value = c + 1;
-  return comment;
+
+  name = s;
+  value = c+1;
+
+  oggz_comment_add_byname (ocdata->storer, S_SERIALNO, name, value);
 }
 
-OggzStreamContent strto_oggz_content(char *type) {
-  if(!strcasecmp(type, "theora"))
-    return OGGZ_CONTENT_THEORA;
-  if(!strcasecmp(type, "vorbis"))
-    return OGGZ_CONTENT_VORBIS;
-  if(!strcasecmp(type, "speex"))
-    return OGGZ_CONTENT_SPEEX;
-  if(!strcasecmp(type, "pcm"))
-    return OGGZ_CONTENT_PCM;
-  if(!strcasecmp(type, "cmml"))
-    return OGGZ_CONTENT_CMML;
-  if(!strcasecmp(type, "anx2"))
-    return OGGZ_CONTENT_ANX2;
-  if(!strcasecmp(type, "skeleton"))
-    return OGGZ_CONTENT_SKELETON;
-  if(!strcasecmp(type, "flac0"))
-    return OGGZ_CONTENT_FLAC0;
-  if(!strcasecmp(type, "flac"))
-    return OGGZ_CONTENT_FLAC;
-  if(!strcasecmp(type, "anxdata"))
-    return OGGZ_CONTENT_ANXDATA;
-  return OGGZ_CONTENT_UNKNOWN;
-}
+int
+main (int argc, char ** argv)
+{
+  char * infilename = NULL, * outfilename = NULL;
+  OCData * ocdata;
 
-void version() {
-  printf ("%s version " VERSION "\n", progname);
-}
+  int filter_serialnos = 0;
+  int filter_content_types = 0;
 
+  int show_version = 0;
+  int show_help = 0;
+  int do_list = 0;
 
-int main(int argc, char *argv[]) {
-  int i, temp, clear = 0;
-  long n, serialno = -11;
-  char *out_file;
-  OGGZ *oggz_in;
-  OGGZ *oggz_out;
-  OggzComment *comments;
-  OggzTable *type_table = oggz_table_new();
-  OggzTable *comment_table = oggz_table_new();
+  long serialno;
+  long n;
+  int i = 1;
 
   progname = argv[0];
 
-  if(argc < 2) {
+  if (argc < 3) {
     usage (progname);
-    return 1;
+    return (1);
   }
 
-  if(strcmp(argv[1], "--version") == 0
-     || strcmp(argv[1], "-v") == 0) {
-    version();
-    return 0;
-  } else if(strcmp(argv[1], "--help") == 0
-           || strcmp(argv[1], "-h") == 0) {
-    usage(progname);
-    return 0;
-  } else {
-    oggz_in = oggz_open(argv[1], OGGZ_READ);
-    out_file = argv[1];
+  ocdata = ocdata_new ();
+
+  while (1) {
+    char * optstring = "lo:dac:s:hv";
+
+#ifdef HAVE_GETOPT_LONG
+    static struct option long_options[] = {
+      {"list",     no_argument, 0, 'l'},
+      {"output",   required_argument, 0, 'o'},
+      {"delete",   no_argument, 0, 'd'},
+      {"all",      no_argument, 0, 'a'},
+      {"content-type", required_argument, 0, 'c'},
+      {"serialno", required_argument, 0, 's'},
+      {"help",     no_argument, 0, 'h'},
+      {"version",  no_argument, 0, 'v'},
+      {0,0,0,0}
+    };
+
+    i = getopt_long(argc, argv, optstring, long_options, NULL);
+#else
+    i = getopt (argc, argv, optstring);
+#endif
+    if (i == -1) break;
+    if (i == ':') {
+      usage (progname);
+      goto exit_err;
+    }
+
+    switch (i) {
+    case 'l': /* list */
+      do_list = 1;
+      break;
+    case 'd': /* delete */
+      ocdata->do_delete = 1;
+      break;
+    case 'a': /* all */
+      ocdata->do_all = 1;
+      break;
+    case 's': /* serialno */
+      filter_serialnos = 1;
+      ocdata->do_all = 0;
+      serialno = atol (optarg);
+      oggz_table_insert (ocdata->serialno_table, serialno, (void *)0x7);
+      break;
+    case 'c': /* content-type */
+      filter_content_types = 1;
+      ocdata->do_all = 0;
+      n = oggz_table_size (ocdata->content_types_table);
+      oggz_table_insert (ocdata->content_types_table, n, optarg);
+      break;
+    case 'h': /* help */
+      show_help = 1;
+      break;
+    case 'v': /* version */
+      show_version = 1;
+      break;
+    case 'o': /* output */
+      outfilename = optarg;
+      break;
+    default:
+      break;
+    }
   }
 
-  oggz_set_read_callback(oggz_in, -1, get_stream_types, type_table);
-  oggz_run(oggz_in);
-  comments = calloc(argc - 1, sizeof(OggzComment));
-  comments[temp = 0].name = "0";
-  for(i = 2; i < argc; i++) {
-    if(!strcmp(argv[i], "-o"))
-      out_file = argv[++i];
-    else if(!strcmp(argv[i], "-d")
-           || !strcmp(argv[i], "--delete"))
-      clear = 1;
-    else if(!strcmp(argv[i], "-l")
-           || !strcmp(argv[i], "--list")) {
-      oggz_seek(oggz_in, 0, SEEK_SET);
-      oggz_set_read_callback(oggz_in, -1, list_comments, NULL);
-      oggz_run(oggz_in);
-    } else if(strchr(argv[i], '=') != NULL) {
-      comments[temp] = parse_comment_field(argv[i]);
-      comments[++temp].name = "0";
-    } else if(!strcmp(argv[i], "-a")) {
-      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
-       comments = calloc(argc - 2, sizeof(OggzComment));
-       comments[temp = 0].name = "0";
-      }
-      serialno = -11;
-    } else if(!strcmp(argv[i], "-c")
-           || !strcmp(argv[i], "--content-type")) {
-      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
-       comments = calloc(argc - 2, sizeof(OggzComment));
-       comments[temp = 0].name = "0";
-      }
-      serialno = strto_oggz_content(argv[++i]) * -1;
-    } else if(!strcmp(argv[i], "-s")
-           || !strcmp(argv[i], "--serialno")) {
-      if(comment_table_insert(type_table, comment_table, serialno, comments)) {
-       comments = calloc(argc - 2, sizeof(OggzComment));
-       comments[temp = 0].name = "0";
-      }
-      serialno = strtol(argv[++i], NULL, 10);
+  if (show_version) {
+    printf ("%s version " VERSION "\n", progname);
+  }
+
+  if (show_help) {
+    usage (progname);
+  }
+
+  if (show_version || show_help) {
+    goto exit_ok;
+  }
+
+  if (optind >= argc) {
+    usage (progname);
+    goto exit_err;
+  }
+
+  /* Parse out new comments and infilename */
+  for (; optind < argc; optind++) {
+    char * s = argv[optind];
+
+    if(strchr(s, '=') != NULL) {
+      if (!do_list) store_comment (ocdata, s);
     } else {
-      printf("Error: option or field \"");
-      printf(argv[i]);
-      printf("\" unrecognized.\n");
-      return 0;
+      infilename = s;
     }
   }
-  comment_table_insert(type_table, comment_table, serialno, comments);
 
-  if(oggz_table_size(comment_table)) {
-    temp = 0;
-    if(!strcmp(out_file, argv[1])) {
-      out_file = tmpnam(NULL);
-      temp = 1;
-    }
-    oggz_out = oggz_open(out_file, OGGZ_WRITE);
-    if(!clear) {
-      oggz_seek(oggz_in, 0, SEEK_SET);
-      oggz_set_read_callback(oggz_in, -1, copy_comments, oggz_out);
-      oggz_run(oggz_in);
-    }
-    for(i = 0; i < oggz_table_size(comment_table); i++) {
-      comments = oggz_table_nth(comment_table, i, &serialno);
-      edit_comments(oggz_out, serialno, comments);
-    }
-    oggz_seek(oggz_in, 0, SEEK_SET);
-    oggz_set_read_callback(oggz_in, -1, copy_replace_comments, oggz_out);
-    while((n = oggz_read(oggz_in, 1024)) > 0)
-      while(oggz_write(oggz_out, n) > 0);
-    if(temp) {
-      remove(argv[1]);
-      rename(out_file, argv[1]);
-    }
-    oggz_close(oggz_out);
-  } else if(oggz_in) {
-    oggz_seek(oggz_in, 0, SEEK_SET);
-    oggz_set_read_callback(oggz_in, -1, list_comments, NULL);
-    oggz_run(oggz_in);
+  /* Set up reader */
+  if (infilename == NULL || strcmp (infilename, "-") == 0) {
+    ocdata->reader = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
   } else {
-    printf("Error: file \"");
-    printf(argv[1]);
-    printf("\" could not be opened.\n");
+    ocdata->reader = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO);
   }
 
-  oggz_close(oggz_in);
-  return 0;
+  if (ocdata->reader == NULL) {
+    if (errno == 0) {
+      fprintf (stderr, "%s: %s: error opening input file\n",
+	      progname, infilename);
+    } else {
+      fprintf (stderr, "%s: %s: %s\n",
+	       progname, infilename, strerror (errno));
+    }
+    goto exit_err;
+  }
+
+  if (do_list) {
+    if (list_comments (ocdata) == 0)
+      goto exit_ok;
+    else
+      goto exit_err;
+  }
+
+  if (edit_comments (ocdata, outfilename) == 0)
+    goto exit_ok;
+  else
+    goto exit_err;
+
+exit_ok:
+  ocdata_delete (ocdata);
+  exit (0);
+
+exit_err:
+  ocdata_delete (ocdata);
+  exit (1);
 }
