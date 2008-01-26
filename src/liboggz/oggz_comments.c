@@ -619,14 +619,15 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   oggz_stream_t * stream;
   char * c = (char *)buf;
   const OggzComment * comment;
-  int nb_fields = 0, vendor_length, field_length;
+  int nb_fields = 0, vendor_length = 0, field_length;
   long actual_length, remaining = length;
 
   stream = oggz_get_stream (oggz, serialno);
   if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
   /* Vendor string */
-  vendor_length = strlen (stream->vendor);
+  if (stream->vendor)
+    vendor_length = strlen (stream->vendor);
   actual_length = 4 + vendor_length;
 #ifdef DEBUG
   printf ("oggz_comments_encode: vendor = %s\n", stream->vendor);
@@ -658,10 +659,12 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   writeint (c, 0, vendor_length);
   c += 4;
 
-  field_length = strlen (stream->vendor);
-  memcpy (c, stream->vendor, MIN (field_length, remaining));
-  c += field_length; remaining -= field_length;
-  if (remaining <= 0 ) return actual_length;
+  if (stream->vendor) {
+    field_length = strlen (stream->vendor);
+    memcpy (c, stream->vendor, MIN (field_length, remaining));
+    c += field_length; remaining -= field_length;
+    if (remaining <= 0 ) return actual_length;
+  }
 
   remaining -= 4;
   if (remaining <= 0) return actual_length;
