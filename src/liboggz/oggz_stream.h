@@ -30,8 +30,8 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#ifndef __OGGZ_STREAM_H__
-#define __OGGZ_STREAM_H__
+#ifndef __OGGZ_STREAM_PRIVATE_H__
+#define __OGGZ_STREAM_PRIVATE_H__
 
 typedef struct _oggz_stream_t oggz_stream_t;
 
@@ -65,4 +65,4 @@ ogg_int64_t
 oggz_auto_calculate_gp_backwards(int content, ogg_int64_t next_packet_gp,
       oggz_stream_t *stream, ogg_packet *this_packet, ogg_packet *next_packet);
 
-#endif /* __OGGZ_STREAM_H__ */
+#endif /* __OGGZ_STREAM_PRIVATE_H__ */
