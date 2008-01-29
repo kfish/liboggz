@@ -57,7 +57,7 @@ typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og, long serialno,
 			     void * user_data);
 
 /* oggz_stream */
-#include "oggz_stream.h"
+#include "oggz_stream_private.h"
 
 typedef ogg_int64_t (*OggzMetric) (OGGZ * oggz, long serialno,
 				   ogg_int64_t granulepos,

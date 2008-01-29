@@ -44,6 +44,8 @@
 #include "oggz_private.h"
 #include "oggz_byteorder.h"
 
+#include <oggz/oggz_stream.h>
+
 /*#define DEBUG*/
 
 /* Allow use of internal metrics; ie. the user_data for these gets free'd
