@@ -55,8 +55,7 @@ oggz_stream_t * oggz_add_stream (OGGZ * oggz, long serialno);
 
 int oggz_stream_has_metric (OGGZ * oggz, long serialno);
 int oggz_stream_set_content (OGGZ * oggz, long serialno, int content);
-OggzStreamContent oggz_stream_get_content (OGGZ * oggz, long serialno);
-const char * oggz_stream_get_content_type (OGGZ *oggz, long serialno);
+
 ogg_int64_t 
 oggz_auto_calculate_granulepos(int content, ogg_int64_t now, 
                 oggz_stream_t *stream, ogg_packet *op);
