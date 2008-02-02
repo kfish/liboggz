@@ -82,7 +82,8 @@ int write_ogg_page_to_file(ogg_page *og, FILE *out) {
    int written;
    
    written = fwrite(og->header,1, og->header_len, out);
-   written += fwrite(og->body,1, og->body_len, out);
+   if (written > 0)
+     written += fwrite(og->body,1, og->body_len, out);
 
    return written;
 }
