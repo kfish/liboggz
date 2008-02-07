@@ -197,5 +197,9 @@ if test "$?" != "0"; then
 fi
 
 diff $DIFFOPTS $FIFO1 $FIFO2
+ret=$?
 
 rm $FIFO1 $FIFO2
+
+exit $ret
+
