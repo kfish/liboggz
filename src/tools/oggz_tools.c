@@ -195,11 +195,11 @@ ot_flac_info (unsigned char * data, long len)
                ((data[29] >> 4)&0xf);
   channels = 1 + ((data[29] >> 1)&0x7);
 
-  n = snprintf (buf, 120-n,
+  n = snprintf (buf, 120,
 	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
             samplerate, channels);
 
-  snprintf (buf+n, 120,
+  snprintf (buf+n, 120-n,
             "\tFLAC-Ogg-Mapping-Version: %d.%d\n",
             version_major, version_minor);
 
