@@ -84,7 +84,6 @@ main (int argc, char * argv[])
     oggz_write_feed (oggz, &op, serialno, OGGZ_FLUSH_AFTER, NULL);
     
     granulepos += 100;
-    packetno++;
 
     /* Write bytes from packetized bitstream to the output file */
 
