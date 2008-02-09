@@ -57,7 +57,7 @@ static int my_offset = 0;
 
 /* A nonsensical Vorbis ident header.  For testing purposes
    we may as well try to break something. */
-char vorbis_bos[] = {1, 'v', 'o', 'r', 'b', 'i', 's',
+static unsigned char vorbis_bos[] = {1, 'v', 'o', 'r', 'b', 'i', 's',
 		     0, 0, 0, 0, /*version*/
 		     0, /* channels */
 		     0, 0, 0, 0, /* sample rate */
