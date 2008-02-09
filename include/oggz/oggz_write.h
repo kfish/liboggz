@@ -173,6 +173,8 @@ int oggz_write_set_hungry_callback (OGGZ * oggz,
  * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
  *         logical bitstream in \a oggz,
  *         and \a oggz is not flagged OGGZ_NONSTRICT
+ *         or \a serialno is equal to -1, or \a serialno does not fit in
+ *         32 bits, ie. within the range (-(2^31), (2^31)-1)
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
  *

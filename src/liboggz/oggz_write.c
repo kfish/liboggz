@@ -223,6 +223,15 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 
   if (guard && *guard != 0) return OGGZ_ERR_BAD_GUARD;
 
+  /* Check that the serialno is in the valid range for an Ogg page header,
+   * ie. that it fits within 32 bits and does not equal the special value -1 */
+  if ((serialno & 0xffffffff) != serialno || serialno == -1) {
+#ifdef DEBUG
+    printf ("oggz_write_feed: serialno %010ld\n", serialno);
+#endif
+    return OGGZ_ERR_BAD_SERIALNO;
+  }
+
 #ifdef DEBUG
   printf ("oggz_write_feed: (%010ld) FLUSH: %d\n", serialno, flush);
 #endif

@@ -459,7 +459,7 @@ oggz_serialno_new (OGGZ * oggz)
    * it passes cleanly through ogg_stream_init(). In any case, the size of
    * a serialno in the Ogg page header is 32 bits; it should never have been
    * declared a long in ogg.h's ogg_packet in the first place. */
-  static int serialno = 0;
+  static ogg_int32_t serialno = 0;
   int k;
 
   if (serialno == 0) serialno = time(NULL);
