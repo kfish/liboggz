@@ -455,7 +455,11 @@ oggz_get_numtracks (OGGZ * oggz)
 long
 oggz_serialno_new (OGGZ * oggz)
 {
-  static long serialno = 0;
+  /* Ensure that the returned value is within the range of an int, so that
+   * it passes cleanly through ogg_stream_init(). In any case, the size of
+   * a serialno in the Ogg page header is 32 bits; it should never have been
+   * declared a long in ogg.h's ogg_packet in the first place. */
+  static int serialno = 0;
   int k;
 
   if (serialno == 0) serialno = time(NULL);
@@ -465,7 +469,8 @@ oggz_serialno_new (OGGZ * oggz)
       serialno = 11117 * serialno + 211231;
   } while (serialno == -1 || oggz_get_stream (oggz, serialno) != NULL);
 
-  return serialno;
+  /* Cast the result back to a long for API consistency */
+  return (long)serialno;
 }
 
 /******** OggzMetric management ********/
