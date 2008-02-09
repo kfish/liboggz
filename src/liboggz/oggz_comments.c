@@ -42,6 +42,8 @@
 #include "oggz_private.h"
 #include "oggz_vector.h"
 
+#include <oggz/oggz_stream.h>
+
 /*#define DEBUG*/
 
 #ifdef WIN32                                                                   
@@ -363,7 +365,7 @@ oggz_comment_next_byname (OGGZ * oggz, long serialno,
 #define _oggz_comment_add(f,c) oggz_vector_insert_p ((f)->comments, (c))
 
 int
-oggz_comment_add (OGGZ * oggz, long serialno, OggzComment * comment)
+oggz_comment_add (OGGZ * oggz, long serialno, const OggzComment * comment)
 {
   oggz_stream_t * stream;
   OggzComment * new_comment;

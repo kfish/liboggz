@@ -60,6 +60,8 @@
 #include "oggz_compat.h"
 #include "oggz_private.h"
 
+#include <oggz/oggz_stream.h>
+
 /* #define DEBUG */
 /* #define DEBUG_VERBOSE */
 
