@@ -229,7 +229,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 #ifdef DEBUG
     printf ("oggz_write_feed: serialno %010ld\n", serialno);
 #endif
-    return OGGZ_ERR_BAD_SERIALNO;
+    /*return OGGZ_ERR_BAD_SERIALNO;*/
   }
 
 #ifdef DEBUG
