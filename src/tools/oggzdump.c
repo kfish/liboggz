@@ -246,7 +246,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   } else {
     units = oggz_tell_units (oggz);
     if (units == -1) {
-      fprintf (outfile, "%0" PRI_OGGZ_OFF_T "x", oggz_tell (oggz));
+      fprintf (outfile, "%" PRId64 "x", oggz_tell (oggz));
     } else {
       time_offset = (double)units / 1000.0;
       ot_fprint_time (outfile, time_offset);
@@ -392,12 +392,12 @@ revert_file (char * infilename)
       line_offset = 0;
 
     is_packetinfo = 0;
-    if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %lld, packetno %lld%n",
+    if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %" PRId64 ", packetno %" PRId64 "%n",
 		&offset, &serialno, &granulepos, &packetno,
 		&line_offset) >= 4) {
       is_packetinfo = 1;
     } else {
-      if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %lld|%lld, packetno %lld%n",
+      if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %" PRId64 "%" PRId64 ", packetno %" PRId64 "%n",
 		  &offset, &serialno, &iframe, &pframe, &packetno,
 		  &line_offset) >= 5) {
 	int granuleshift = oggz_get_granuleshift (oggz, serialno);

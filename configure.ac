@@ -244,7 +244,7 @@ if test $SIZEOF_OGGZ_OFF_T = 4 ; then
     OGGZ_OFF_MAX="0x7FFFFFFF"
     PRI_OGGZ_OFF_T="l"
 elif test $SIZEOF_OGGZ_OFF_T = 8 ; then
-    PRI_OGGZ_OFF_T="q"
+    PRI_OGGZ_OFF_T=PRId64
 fi
 
 dnl The following configured variables are written into the public header

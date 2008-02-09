@@ -30,9 +30,18 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
+#endif
+
 #include <oggz/oggz.h>
 
 #include "oggz_tests.h"
@@ -64,13 +73,13 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
   ogg_int64_t result, diff;
 
   if (verbose)
-    printf ("\tAttempt seek to %lld ms:\n", units);
+    printf ("\tAttempt seek to %" PRId64 " ms:\n", units);
 
   result = oggz_seek_units (oggz, units, SEEK_SET);
   diff = result - units;
 
   if (verbose)
-    printf ("\t%0" PRI_OGGZ_OFF_T "x: %lld ms (%+lld ms)\n",
+    printf ("\t%0" PRId64 "x: %" PRId64 " ms (%+" PRId64 " ms)\n",
 	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
 
   if (result < 0) {
@@ -124,7 +133,7 @@ main (int argc, char * argv[])
   
   max_units = oggz_seek_units (oggz, 0, SEEK_END);
   if (verbose)
-    printf ("\t%0" PRI_OGGZ_OFF_T "x: %lld ms\n",
+    printf ("\t%0" PRId64 "x: %" PRId64 " ms\n",
             oggz_tell (oggz), oggz_tell_units (oggz));
 
   try_seek_units (oggz, max_units / 2);

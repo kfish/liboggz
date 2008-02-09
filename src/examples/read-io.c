@@ -30,9 +30,17 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <oggz/oggz.h>
+
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
+#endif
 
 static int got_an_eos = 0;
 
@@ -47,12 +55,12 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 #endif
 
   if (op->b_o_s) {
-    printf ("%010ld: [%lld] BOS %8s\n", serialno, op->granulepos, op->packet);
+    printf ("%010ld: [%" PRId64 "] BOS %8s\n", serialno, op->granulepos, op->packet);
   }
 
   if (op->e_o_s) {
     got_an_eos = 1;
-    printf ("%010ld: [%lld] EOS\n", serialno, op->granulepos);
+    printf ("%010ld: [%" PRId64 "] EOS\n", serialno, op->granulepos);
   }
 
   return 0;
@@ -113,11 +121,11 @@ main (int argc, char ** argv)
   while ((n = oggz_read (oggz, 1024)) > 0);
 
   units = oggz_tell_units (oggz);
-  printf ("Total length: %lld ms\n", units);
+  printf ("Total length: %" PRId64 " ms\n", units);
 
   oggz_seek_units (oggz, units/2, SEEK_SET);
 
-  printf ("seeked to byte offset %lld\n", oggz_tell (oggz));
+  printf ("seeked to byte offset %" PRId64 "\n", oggz_tell (oggz));
 
   while ((n = oggz_read (oggz, 1024)) > 0);
 

@@ -30,11 +30,19 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
+#include "config.h"
+
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
+
+#ifdef HAVE_INTTYPES_H
+#  include <inttypes.h>
+#else
+#  define PRId64 "I64d"
+#endif
 
 #include <oggz/oggz.h>
 
@@ -192,7 +200,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
     ret = log_error ();
-    fprintf (stderr, "serialno %010ld: granulepos %lld on page with no completed packets, must be -1\n", serialno, gpos);
+    fprintf (stderr, "serialno %010ld: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
   }
 
   return ret;
@@ -286,7 +294,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if ((feed_err = oggz_write_feed (ovdata->writer, op, serialno, flush, NULL)) != 0) {
     ret = log_error ();
     if (timestamp == -1.0) {
-      fprintf (stderr, "%" PRI_OGGZ_OFF_T "d", oggz_tell (oggz));
+      fprintf (stderr, "%" PRId64 , oggz_tell (oggz));
     } else {
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
     }
