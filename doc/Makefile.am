@@ -14,7 +14,7 @@ EXTRA_DIST = $(man_MANS) Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
 	oggzdiff.1.sgml oggzdump.1.sgml oggzinfo.1.sgml oggzmerge.1.sgml \
-	oggzrip.1.sgml oggz-comment.1.sgml oggz-scan.1.sgml \
+	oggz-sort.1.sgml oggzrip.1.sgml oggz-comment.1.sgml oggz-scan.1.sgml \
 	oggz-validate.1.sgml
 
 # ensure doxygen-build.stamp is included,  or else the documentation will
