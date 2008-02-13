@@ -110,6 +110,7 @@ typedef enum OggzStreamContent {
   OGGZ_CONTENT_FLAC0,
   OGGZ_CONTENT_FLAC,
   OGGZ_CONTENT_ANXDATA,
+  OGGZ_CONTENT_CELT,
   OGGZ_CONTENT_UNKNOWN
 } OggzStreamContent;
 

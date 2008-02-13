@@ -273,6 +273,28 @@ auto_oggpcm2 (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 }
 
 static int
+auto_celt (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+  ogg_int64_t granule_rate = 0;
+  int numheaders;
+
+  if (op->bytes < 56) return 0;
+
+  granule_rate = (ogg_int64_t) INT32_LE_AT(&header[40]);
+#ifdef DEBUG
+  printf ("Got celt sample rate %d\n", (int)granule_rate);
+#endif
+
+  oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  numheaders = (ogg_int64_t) INT32_LE_AT(&header[52]) + 2;
+  oggz_stream_set_numheaders (oggz, serialno, numheaders);
+
+  return 1;
+}
+
+static int
 auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
   unsigned char * header = op->packet;
@@ -931,6 +953,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac, NULL},
   {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
+  {"CELT    ", 8, "CELT", auto_celt, NULL, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 

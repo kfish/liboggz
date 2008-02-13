@@ -176,6 +176,22 @@ ot_speex_info (unsigned char * data, long len)
 }
 
 static char *
+ot_celt_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  if (len < 56) return NULL;
+
+  buf = malloc (60);
+
+  snprintf (buf, 60,
+	    "\tAudio-Samplerate: %d Hz\n\tAudio-Channels: %d\n",
+	    INT32_LE_AT(&data[40]), INT32_LE_AT(&data[44]));
+
+  return buf;
+}
+
+static char *
 ot_flac_info (unsigned char * data, long len)
 {
   char * buf;
@@ -266,6 +282,7 @@ static const OTCodecInfoFunc codec_ident[] = {
   NULL,             /* FLAC0 */
   ot_flac_info,     /* FLAC */
   NULL,             /* ANXDATA */
+  ot_celt_info,     /* CELT */
   NULL              /* UNKOWN */
 };
 
