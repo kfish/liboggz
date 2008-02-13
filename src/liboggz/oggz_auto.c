@@ -432,6 +432,63 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 }
 
 /*
+ * The first two CELT packets are header and comment packets (granulepos = 0)
+ */
+
+typedef struct {
+  int headers_encountered;
+  int packet_size;
+  int encountered_first_data_packet;
+} auto_calc_celt_info_t;
+
+static ogg_int64_t 
+auto_calc_celt (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
+  
+  /*
+   * on the first (b_o_s) packet, set calculate_data to be the number
+   * of celt frames per packet
+   */
+
+  auto_calc_celt_info_t *info 
+          = (auto_calc_celt_info_t *)stream->calculate_data;
+
+  if (stream->calculate_data == NULL) {
+    stream->calculate_data = malloc(sizeof(auto_calc_celt_info_t));
+    info = stream->calculate_data;
+    info->encountered_first_data_packet = 0;
+
+    /* In general, the number of frames per packet depends on the mode.
+     * Currently (20080213) both available modes, mono and stereo, have 256
+     * frames per packet.
+     */
+    info->packet_size = 256;
+
+    info->headers_encountered = 1;
+    return 0;
+  }
+  
+  if (info->headers_encountered < 2) {
+    info->headers_encountered += 1;
+  } else {
+    info->encountered_first_data_packet = 1;
+  }
+
+  if (now > -1) {
+    return now;
+  }
+
+  if (info->encountered_first_data_packet) {
+    if (stream->last_granulepos > 0) {
+      return stream->last_granulepos + info->packet_size;
+    }
+    
+    return -1;
+  }
+
+  return 0;
+
+}
+/*
  * Header packets are marked by a set MSB in the first byte.  Inter packets
  * are marked by a set 2MSB in the first byte.  Intra packets (keyframes)
  * are any that are left over ;-)
@@ -953,7 +1010,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac, NULL},
   {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
-  {"CELT    ", 8, "CELT", auto_celt, NULL, NULL},
+  {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
