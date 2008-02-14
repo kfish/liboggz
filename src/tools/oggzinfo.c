@@ -393,12 +393,16 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
     oit->packets.length_max = op->bytes;
 
   if (!op->e_o_s && !memcmp(op->packet, FISBONE_IDENTIFIER, 8)) {
-    fisbone_packet fp = fisbone_from_ogg(op);
+    fisbone_packet fp;
+    int ret = fisbone_from_ogg(op, &fp);
+    if (ret<0) return ret;
     oit = oggz_table_lookup (info->tracks, fp.serial_no);
     oit->has_fisbone = 1;
     oit->fbInfo = fp;
   } else if (!op->e_o_s && !memcmp(op->packet, FISHEAD_IDENTIFIER, 8)) {
-    fishead_packet fp = fishead_from_ogg(op);
+    fishead_packet fp;
+    int ret = fishead_from_ogg(op, &fp);
+    if (ret<0) return ret;
     oit->has_fishead = 1;
     oit->fhInfo = fp;    
   }

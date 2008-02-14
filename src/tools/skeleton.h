@@ -52,10 +52,10 @@ typedef struct {
 extern int write_ogg_page_to_file(ogg_page *og, FILE *out);
 extern int add_message_header_field(fisbone_packet *fp, char *header_key, char *header_value);
 /* remember to deallocate the returned ogg_packet properly */
-extern ogg_packet ogg_from_fishead(fishead_packet *fp);
-extern ogg_packet ogg_from_fisbone(fisbone_packet *fp);
-extern fishead_packet fishead_from_ogg(ogg_packet *op);
-extern fisbone_packet fisbone_from_ogg(ogg_packet *op);
+extern int ogg_from_fishead(fishead_packet *fp,ogg_packet *op);
+extern int ogg_from_fisbone(fisbone_packet *fp,ogg_packet *op);
+extern int fishead_from_ogg(ogg_packet *op,fishead_packet *fp);
+extern int fisbone_from_ogg(ogg_packet *op,fisbone_packet *fp);
 extern int add_fishead_to_stream(ogg_stream_state *os, fishead_packet *fp);
 extern int add_fisbone_to_stream(ogg_stream_state *os, fisbone_packet *fp);
 extern int add_eos_packet_to_stream(ogg_stream_state *os);

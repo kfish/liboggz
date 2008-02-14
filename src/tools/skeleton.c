@@ -111,109 +111,116 @@ int add_message_header_field(fisbone_packet *fp,
 }
 
 /* create a ogg_packet from a fishead_packet structure */
-ogg_packet ogg_from_fishead(fishead_packet *fp) {
+int ogg_from_fishead(fishead_packet *fp,ogg_packet *op) {
 
-    ogg_packet op;
+    if (!fp || !op) return -1;
 
     memset(&op, 0, sizeof(op));
-    op.packet = _ogg_calloc(FISHEAD_SIZE, sizeof(unsigned char));
-    memset(op.packet, 0, FISHEAD_SIZE);
+    op->packet = _ogg_calloc(FISHEAD_SIZE, sizeof(unsigned char));
+    if (!op->packet) return -1;
 
-    memcpy (op.packet, FISHEAD_IDENTIFIER, 8); /* identifier */
-    *((ogg_uint16_t*)(op.packet+8)) = _le_16 (SKELETON_VERSION_MAJOR); /* version major */
-    *((ogg_uint16_t*)(op.packet+10)) = _le_16 (SKELETON_VERSION_MINOR); /* version minor */
-    *((ogg_int64_t*)(op.packet+12)) = _le_64 (fp->ptime_n); /* presentationtime numerator */
-    *((ogg_int64_t*)(op.packet+20)) = _le_64 (fp->ptime_d); /* presentationtime denominator */
-    *((ogg_int64_t*)(op.packet+28)) = _le_64 (fp->btime_n); /* basetime numerator */
-    *((ogg_int64_t*)(op.packet+36)) = _le_64 (fp->btime_d); /* basetime denominator */
+    memset(op->packet, 0, FISHEAD_SIZE);
+
+    memcpy (op->packet, FISHEAD_IDENTIFIER, 8); /* identifier */
+    *((ogg_uint16_t*)(op->packet+8)) = _le_16 (SKELETON_VERSION_MAJOR); /* version major */
+    *((ogg_uint16_t*)(op->packet+10)) = _le_16 (SKELETON_VERSION_MINOR); /* version minor */
+    *((ogg_int64_t*)(op->packet+12)) = _le_64 (fp->ptime_n); /* presentationtime numerator */
+    *((ogg_int64_t*)(op->packet+20)) = _le_64 (fp->ptime_d); /* presentationtime denominator */
+    *((ogg_int64_t*)(op->packet+28)) = _le_64 (fp->btime_n); /* basetime numerator */
+    *((ogg_int64_t*)(op->packet+36)) = _le_64 (fp->btime_d); /* basetime denominator */
     /* TODO: UTC time, set to zero for now */
 
-    op.b_o_s = 1;   /* its the first packet of the stream */
-    op.e_o_s = 0;   /* its not the last packet of the stream */
-    op.bytes = FISHEAD_SIZE;  /* length of the packet in bytes */
+    op->b_o_s = 1;   /* its the first packet of the stream */
+    op->e_o_s = 0;   /* its not the last packet of the stream */
+    op->bytes = FISHEAD_SIZE;  /* length of the packet in bytes */
 
-    return op;
+    return 0;
 }
 
 /* create a ogg_packet from a fisbone_packet structure. 
  * call this method after the fisbone_packet is filled and all message header fields are added
  * by calling add_message_header_field method.
  */
-ogg_packet ogg_from_fisbone(fisbone_packet *fp) {
+int ogg_from_fisbone(fisbone_packet *fp,ogg_packet *op) {
     
-    ogg_packet op;
-    int packet_size = FISBONE_SIZE + fp->current_header_size;
+    int packet_size;
+
+    if (!fp || !op) return -1;
+
+    packet_size = FISBONE_SIZE + fp->current_header_size;
 
     memset (&op, 0, sizeof (op));       
-    op.packet = _ogg_calloc (packet_size, sizeof(unsigned char));
-    memset (op.packet, 0, packet_size);
-    memcpy (op.packet, FISBONE_IDENTIFIER, 8); /* identifier */
-    *((ogg_uint32_t*)(op.packet+8)) = _le_32 (FISBONE_MESSAGE_HEADER_OFFSET); /* offset of the message header fields */
-    *((ogg_uint32_t*)(op.packet+12)) = _le_32 (fp->serial_no); /* serialno of the respective stream */
-    *((ogg_uint32_t*)(op.packet+16)) = _le_32 (fp->nr_header_packet); /* number of header packets */
-    *((ogg_int64_t*)(op.packet+20)) = _le_64 (fp->granule_rate_n); /* granulrate numerator */
-    *((ogg_int64_t*)(op.packet+28)) = _le_64 (fp->granule_rate_d); /* granulrate denominator */
-    *((ogg_int64_t*)(op.packet+36)) = _le_64 (fp->start_granule); /* start granule */
-    *((ogg_uint32_t*)(op.packet+44)) = _le_32 (fp->preroll); /* preroll, for theora its 0 */
-    *(op.packet+48) = fp->granule_shift; /* granule shift */
-    memcpy((op.packet+FISBONE_SIZE), fp->message_header_fields, fp->current_header_size);
+    op->packet = _ogg_calloc (packet_size, sizeof(unsigned char));
+    if (!op->packet) return -1;
 
-    op.b_o_s = 0;
-    op.e_o_s = 0;
-    op.bytes = packet_size; /* size of the packet in bytes */
+    memset (op->packet, 0, packet_size);
+    memcpy (op->packet, FISBONE_IDENTIFIER, 8); /* identifier */
+    *((ogg_uint32_t*)(op->packet+8)) = _le_32 (FISBONE_MESSAGE_HEADER_OFFSET); /* offset of the message header fields */
+    *((ogg_uint32_t*)(op->packet+12)) = _le_32 (fp->serial_no); /* serialno of the respective stream */
+    *((ogg_uint32_t*)(op->packet+16)) = _le_32 (fp->nr_header_packet); /* number of header packets */
+    *((ogg_int64_t*)(op->packet+20)) = _le_64 (fp->granule_rate_n); /* granulrate numerator */
+    *((ogg_int64_t*)(op->packet+28)) = _le_64 (fp->granule_rate_d); /* granulrate denominator */
+    *((ogg_int64_t*)(op->packet+36)) = _le_64 (fp->start_granule); /* start granule */
+    *((ogg_uint32_t*)(op->packet+44)) = _le_32 (fp->preroll); /* preroll, for theora its 0 */
+    *(op->packet+48) = fp->granule_shift; /* granule shift */
+    memcpy((op->packet+FISBONE_SIZE), fp->message_header_fields, fp->current_header_size);
 
-    return op;
+    op->b_o_s = 0;
+    op->e_o_s = 0;
+    op->bytes = packet_size; /* size of the packet in bytes */
+
+    return 0;
 }
 
 /* fills up a fishead_packet from a fishead ogg_packet of a skeleton bistream */
-fishead_packet fishead_from_ogg(ogg_packet *op) {
+int fishead_from_ogg(ogg_packet *op, fishead_packet *fp) {
 	
-    fishead_packet fp;
+    if (!fp) return -1;
 
-    /*
     if (memcmp(op->packet, FISHEAD_IDENTIFIER, 8))
-	  ; invalid packet what do we do? 
-    */
+	  return -1;
     
-    fp.version_major = _le_16 (*((ogg_uint16_t*)(op->packet+8))); /* version major */
-    fp.version_minor = _le_16 (*((ogg_uint16_t*)(op->packet+10))); /* version minor */
-    fp.ptime_n = _le_64 (*((ogg_int64_t*)(op->packet+12))); /* presentationtime numerator */
-    fp.ptime_d = _le_64 (*((ogg_int64_t*)(op->packet+20))); /* presentationtime denominator */
-    fp.btime_n = _le_64 (*((ogg_int64_t*)(op->packet+28))); /* basetime numerator */
-    fp.btime_d = _le_64 (*((ogg_int64_t*)(op->packet+36))); /* basetime denominator */
-    memcpy(fp.UTC, op->packet+44, 20);
+    fp->version_major = _le_16 (*((ogg_uint16_t*)(op->packet+8))); /* version major */
+    fp->version_minor = _le_16 (*((ogg_uint16_t*)(op->packet+10))); /* version minor */
+    fp->ptime_n = _le_64 (*((ogg_int64_t*)(op->packet+12))); /* presentationtime numerator */
+    fp->ptime_d = _le_64 (*((ogg_int64_t*)(op->packet+20))); /* presentationtime denominator */
+    fp->btime_n = _le_64 (*((ogg_int64_t*)(op->packet+28))); /* basetime numerator */
+    fp->btime_d = _le_64 (*((ogg_int64_t*)(op->packet+36))); /* basetime denominator */
+    memcpy(fp->UTC, op->packet+44, 20);
 
-    return fp;
+    return 0;
 }
 
 /* fills up a fisbone_packet from a fisbone ogg_packet of a skeleton bitstream */
-fisbone_packet fisbone_from_ogg(ogg_packet *op) {
+int fisbone_from_ogg(ogg_packet *op, fisbone_packet *fp) {
 
-    fisbone_packet fp;
-    
-    /*
+    if (!fp) return -1;
+
     if (memcmp(op->packet, FISBONE_IDENTIFIER, 8))
-	  ; invalid value, what do we do? 
-    */
-    fp.serial_no = _le_32 (*((ogg_uint32_t*)(op->packet+12))); /* serialno of the stream represented by this fisbone packet */
-    fp.nr_header_packet = _le_32 (*((ogg_uint32_t*)(op->packet+16))); /* number of header packets */
-    fp.granule_rate_n = _le_64 (*((ogg_int64_t*)(op->packet+20))); /* granulrate numerator */
-    fp.granule_rate_d = _le_64 (*((ogg_int64_t*)(op->packet+28))); /* granulrate denominator */
-    fp.start_granule = _le_64 (*((ogg_int64_t*)(op->packet+36))); /* start granule */
-    fp.preroll = _le_32 (*((ogg_uint32_t*)(op->packet+44))); /* preroll, for theora its 0 */
-    fp.granule_shift = *(op->packet+48); /* granule shift */
-    fp.current_header_size = op->bytes - FISBONE_SIZE;
-    fp.message_header_fields = _ogg_calloc(fp.current_header_size+1, sizeof(char));
-    memcpy(fp.message_header_fields, op->packet+FISBONE_SIZE, fp.current_header_size);
+	  return -1;
 
-    return fp;
+    fp->serial_no = _le_32 (*((ogg_uint32_t*)(op->packet+12))); /* serialno of the stream represented by this fisbone packet */
+    fp->nr_header_packet = _le_32 (*((ogg_uint32_t*)(op->packet+16))); /* number of header packets */
+    fp->granule_rate_n = _le_64 (*((ogg_int64_t*)(op->packet+20))); /* granulrate numerator */
+    fp->granule_rate_d = _le_64 (*((ogg_int64_t*)(op->packet+28))); /* granulrate denominator */
+    fp->start_granule = _le_64 (*((ogg_int64_t*)(op->packet+36))); /* start granule */
+    fp->preroll = _le_32 (*((ogg_uint32_t*)(op->packet+44))); /* preroll, for theora its 0 */
+    fp->granule_shift = *(op->packet+48); /* granule shift */
+    fp->current_header_size = op->bytes - FISBONE_SIZE;
+    fp->message_header_fields = _ogg_calloc(fp->current_header_size+1, sizeof(char));
+    if (!fp->message_header_fields) return -1;
+    memcpy(fp->message_header_fields, op->packet+FISBONE_SIZE, fp->current_header_size);
+
+    return 0;
 }
 
 int add_fishead_to_stream(ogg_stream_state *os, fishead_packet *fp) {
 
     ogg_packet op;
+    int ret;
 
-    op = ogg_from_fishead(fp);
+    ret = ogg_from_fishead(fp, &op);
+    if (ret<0) return ret;
     ogg_stream_packetin(os, &op);
     _ogg_free(op.packet);
 
@@ -223,8 +230,10 @@ int add_fishead_to_stream(ogg_stream_state *os, fishead_packet *fp) {
 int add_fisbone_to_stream(ogg_stream_state *os, fisbone_packet *fp) {
 
     ogg_packet op;
+    int ret;
 
-    op = ogg_from_fisbone(fp);
+    ret = ogg_from_fisbone(fp, &op);
+    if (ret<0) return ret;
     ogg_stream_packetin(os, &op);
     _ogg_free(op.packet);
 
