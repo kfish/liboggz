@@ -115,7 +115,7 @@ int ogg_from_fishead(fishead_packet *fp,ogg_packet *op) {
 
     if (!fp || !op) return -1;
 
-    memset(&op, 0, sizeof(op));
+    memset(op, 0, sizeof(*op));
     op->packet = _ogg_calloc(FISHEAD_SIZE, sizeof(unsigned char));
     if (!op->packet) return -1;
 
@@ -149,7 +149,7 @@ int ogg_from_fisbone(fisbone_packet *fp,ogg_packet *op) {
 
     packet_size = FISBONE_SIZE + fp->current_header_size;
 
-    memset (&op, 0, sizeof (op));       
+    memset (op, 0, sizeof (*op));       
     op->packet = _ogg_calloc (packet_size, sizeof(unsigned char));
     if (!op->packet) return -1;
 
