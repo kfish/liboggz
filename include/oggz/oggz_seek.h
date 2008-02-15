@@ -37,7 +37,7 @@
  * Seeking within files
  */
 
-/** \defgroup seek_api OGGZ Seek API
+/** \defgroup seek_api Oggz Seek API
  *
  * Oggz can seek on multitrack, multicodec bitstreams.
  *
@@ -125,7 +125,7 @@ oggz_tell_granulepos (OGGZ * oggz);
  * \note When reading, the value returned by oggz_tell() reflects the
  * data offset of the start of the most recent packet processed, so that
  * when called from an OggzReadPacket callback it reflects the byte
- * offset of the start of the packet. As OGGZ may have internally read
+ * offset of the start of the packet. As Oggz may have internally read
  * ahead, this may differ from the current offset of the associated file
  * descriptor.
  */
@@ -176,7 +176,7 @@ long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
  * \link basics Ogg Basics \endlink section).
  *
  * For data such as media, for which it is possible to provide a mapping
- * such as 'time', OGGZ can efficiently navigate through an Ogg stream
+ * such as 'time', Oggz can efficiently navigate through an Ogg stream
  * by use of an OggzMetric callback, thus allowing automatic seeking to
  * points in 'time'.
  *
@@ -318,7 +318,7 @@ int oggz_set_granulerate (OGGZ * oggz, long serialno,
  * This is the signature of a function to correlate Ogg streams.
  * If every position in an Ogg stream can be described by a metric (eg. time)
  * then define this function that returns some arbitrary unit value.
- * This is the normal use of OGGZ for media streams. The meaning of units is
+ * This is the normal use of Oggz for media streams. The meaning of units is
  * arbitrary, but must be consistent across all logical bitstreams; for
  * example a conversion of the time offset of a given packet into nanoseconds
  * or a similar stream-specific subdivision may be appropriate.
@@ -431,7 +431,7 @@ long oggz_seek_byorder (OGGZ * oggz, void * target);
 #endif /* _UNIMPLEMENTED */
 
 /**
- * Tell OGGZ to remember the given offset as the start of data.
+ * Tell Oggz to remember the given offset as the start of data.
  * This informs the seeking mechanism that when seeking back to unit 0,
  * go to the given offset, not to the start of the file, which is usually
  * codec headers.

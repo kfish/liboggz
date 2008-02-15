@@ -37,18 +37,18 @@
  * Interfaces for reading Ogg files and streams
  */
 
-/** \defgroup read_api OGGZ Read API
+/** \defgroup read_api Oggz Read API
  *
- * OGGZ parses Ogg bitstreams, forming ogg_packet structures, and calling
+ * Oggz parses Ogg bitstreams, forming ogg_packet structures, and calling
  * your OggzReadPacket callback(s).
  *
- * You provide Ogg data to OGGZ with oggz_read() or oggz_read_input(), and
+ * You provide Ogg data to Oggz with oggz_read() or oggz_read_input(), and
  * independently process it in OggzReadPacket callbacks.
  * It is possible to set a different callback per \a serialno (ie. for each
  * logical bitstream in the Ogg bitstream - see the \ref basics section for
  * more detail).
  *
- * When using an OGGZ* opened with the OGGZ_AUTO flag set, OGGZ will
+ * When using an OGGZ* opened with the OGGZ_AUTO flag set, Oggz will
  * internally calculate the granulepos for each packet, even though these
  * are not all recorded in the file: only the last packet ending on a page
  * will have its granulepos recorded in the page header.
@@ -71,7 +71,7 @@
  * \param serialno Identify the logical bistream in \a oggz that contains
  *                 \a op
  * \param user_data A generic pointer you have provided earlier
- * \returns 0 to continue, non-zero to instruct OGGZ to stop.
+ * \returns 0 to continue, non-zero to instruct Oggz to stop.
  *
  * \note It is possible to provide different callbacks per logical
  * bitstream -- see oggz_set_read_callback() for more information.
@@ -113,7 +113,7 @@ int oggz_set_read_callback (OGGZ * oggz, long serialno,
  * \param oggz The OGGZ handle
  * \param op The full ogg_page (see <ogg/ogg.h>)
  * \param user_data A generic pointer you have provided earlier
- * \returns 0 to continue, non-zero to instruct OGGZ to stop.
+ * \returns 0 to continue, non-zero to instruct Oggz to stop.
  */
 typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og,
 			     long serialno, void * user_data);
@@ -178,7 +178,7 @@ long oggz_read_input (OGGZ * oggz, unsigned char * buf, long n);
  */
 
 /**
- * Erase any input buffered in OGGZ. This discards any input read from the
+ * Erase any input buffered in Oggz. This discards any input read from the
  * underlying IO system but not yet delivered as ogg_packets.
  *
  * \param oggz An OGGZ handle

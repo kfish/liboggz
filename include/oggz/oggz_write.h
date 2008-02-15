@@ -37,7 +37,7 @@
  * Interfaces for writing Ogg files and streams
  */
 
-/** \defgroup force_feed Writing by force feeding OGGZ
+/** \defgroup force_feed Writing by force feeding Oggz
  *
  * Force feeding involves synchronously:
  * - Creating an \a ogg_packet structure
@@ -48,7 +48,7 @@
  * This process is illustrated in the following diagram:
  *
  * \image html forcefeed.png
- * \image latex forcefeed.eps "Force Feeding OGGZ" width=10cm
+ * \image latex forcefeed.eps "Force Feeding Oggz" width=10cm
  *
  * The following example code generates a stream of ten packets, each
  * containing a single byte ('A', 'B', ... , 'J'):
@@ -58,7 +58,7 @@
 
 /** \defgroup hungry Writing with OggzHungry callbacks
  *
- * You can add packets to the OGGZ packet queue only when it is "hungry"
+ * You can add packets to the Oggz packet queue only when it is "hungry"
  * by providing an OggzHungry callback.
  *
  * An OggzHungry callback will:
@@ -66,7 +66,7 @@
  * - Add it to the packet queue with oggz_write_feed()
  *
  * Once you have set such a callback with oggz_write_set_hungry_callback(),
- * simply call oggz_write() or oggz_write_output() repeatedly, and OGGZ
+ * simply call oggz_write() or oggz_write_output() repeatedly, and Oggz
  * will call your callback to provide packets when it is hungry.
  *
  * This process is illustrated in the following diagram:
@@ -80,14 +80,14 @@
  * \include write-hungry.c
  */
 
-/** \defgroup write_api OGGZ Write API
+/** \defgroup write_api Oggz Write API
  *
- * OGGZ maintains a packet queue, such that you can independently add
+ * Oggz maintains a packet queue, such that you can independently add
  * packets to the queue and write an Ogg bitstream.
  * There are two complementary methods for adding packets to the
  * packet queue.
  *
- * - by \link force_feed force feeding OGGZ \endlink
+ * - by \link force_feed force feeding Oggz \endlink
  * - by using \link hungry OggzHungry \endlink callbacks
  *
  * As each packet is enqueued, its validity is checked against the framing
@@ -118,7 +118,7 @@
  *        empty. A value of 0 indicates that the packet queue is not empty.
  * \param user_data A generic pointer you have provided earlier
  * \retval 0 Continue
- * \retval non-zero Instruct OGGZ to stop.
+ * \retval non-zero Instruct Oggz to stop.
  */
 typedef int (*OggzWriteHungry) (OGGZ * oggz, int empty, void * user_data);
 
@@ -129,8 +129,8 @@ typedef int (*OggzWriteHungry) (OGGZ * oggz, int empty, void * user_data);
  * \param oggz An OGGZ handle previously opened for writing
  * \param hungry Your callback function
  * \param only_when_empty When to call: a value of 0 indicates that
- * OGGZ should call \a hungry() after each and every packet is written;
- * a value of 1 indicates that OGGZ should call \a hungry() only when
+ * Oggz should call \a hungry() after each and every packet is written;
+ * a value of 1 indicates that Oggz should call \a hungry() only when
  * its packet queue is empty
  * \param user_data Arbitrary data you wish to pass to your callback
  * \retval 0 Success
