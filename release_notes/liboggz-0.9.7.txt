@@ -2,7 +2,8 @@ Oggz 0.9.7 Release
 ------------------
 
 Oggz comprises liboggz and the command-line tools oggzinfo, oggzdump,
-oggzdiff, oggzmerge, oggzrip, oggz-comment, oggz-scan and oggz-validate.
+oggzdiff, oggzmerge, oggzrip, oggz-comment, oggz-scan, oggz-sort and
+oggz-validate.
 
 liboggz is a C library providing a simple programming interface for reading
 and writing Ogg files and streams. Ogg is an interleaving data container
