@@ -48,8 +48,7 @@ manpage.1: manpage.sgml
 
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>Resort the pages of an Ogg file in order of presentation
-time.
+    <refpurpose>Sort the pages of an Ogg file in order of presentation time.
     </refpurpose>
   </refnamediv>
 

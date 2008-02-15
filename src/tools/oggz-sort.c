@@ -48,7 +48,7 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
-  printf ("Resort the pages of an Ogg file in order of presentation time.\n");
+  printf ("Sort the pages of an Ogg file in order of presentation time.\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
