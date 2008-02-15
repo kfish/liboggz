@@ -48,7 +48,15 @@
  * logical bitstream in the Ogg bitstream - see the \ref basics section for
  * more detail).
  *
- * See \ref seek_api for information on seeking on interleaved Ogg data.
+ * When using an OGGZ* opened with the OGGZ_AUTO flag set, OGGZ will
+ * internally calculate the granulepos for each packet, even though these
+ * are not all recorded in the file: only the last packet ending on a page
+ * will have its granulepos recorded in the page header.
+ * Within a OggzReadPacket callback, calling oggz_tell_granulepos() will
+ * retrieve the calculated granulepos.
+ *
+ * See \ref seek_api for information on seeking on interleaved Ogg data,
+ * and for working with calculated granulepos values.
  *
  * \{
  */
