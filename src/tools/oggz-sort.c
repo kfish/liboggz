@@ -1,5 +1,5 @@
 /*
-   Copyright (C) 2007 Annodex Association
+   Copyright (C) 2008 Annodex Association
 
    Redistribution and use in source and binary forms, with or without
    modification, are permitted provided that the following conditions
@@ -163,9 +163,15 @@ read_page_add_input (OGGZ * oggz, const ogg_page * og, long serialno,
 {
   OSData * osdata = (OSData *)user_data;
   OSInput * input;
-  int nfiles;
+  int is_bos, nfiles;
 
-  if (ogg_page_bos(og)) {
+#ifdef OGG_PAGE_BOS_CONST
+  is_bos = ogg_page_bos (og);
+#else
+  is_bos = ogg_page_bos ((ogg_page *)og);
+#endif
+
+  if (is_bos) {
     input = (OSInput *) malloc (sizeof (OSInput));
     if (input == NULL) return -1;
 

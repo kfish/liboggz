@@ -285,6 +285,29 @@ fi
 
 AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
 
+dnl Check for type signature of ogg_page_bos(); In earlier libogg releases,
+dnl this was:
+dnl      ogg_page_bos (ogg_page * og);
+dnl but in more recent versions:
+dnl     ogg_page_bos (const ogg_page * og);
+dnl As we are compiling with -Werror, we need to know this
+if test "x$HAVE_OGG" = "xyes" ; then
+    AC_MSG_CHECKING([if ogg_page_bos() takes a const argument])
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS -Wall -Werror $OGG_CFLAGS"
+    LIBS="$LIBS $OGG_LIBS"
+
+    AC_TRY_COMPILE([#include <ogg/ogg.h>],
+                   [int f(const ogg_page * cog){return ogg_page_bos(cog);}],
+                   [ AC_DEFINE([OGG_PAGE_BOS_CONST], [], [Define if ogg_page_bos() takes a const argument.])
+                     AC_MSG_RESULT(yes) ],
+                   [ AC_MSG_RESULT(no) ])
+
+    CFLAGS="$ac_save_CFLAGS"
+    LIBS="$ac_save_LIBS"
+fi
+
 # Checks for header files.
 
 # Checks for typedefs, structures, and compiler characteristics.
