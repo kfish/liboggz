@@ -150,7 +150,13 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   /* If this is the serialno that this input is tracking, stash it;
    * otherwise continue scanning the file */
   if (serialno == input->serialno) {
-    input->og = _ogg_page_copy (og);
+    ogg_page *iog;
+    iog = _ogg_page_copy (og);
+    if(ogg_page_packets(iog)==0&&ogg_page_granulepos(iog)!=-1) {
+      memset(iog->header+6,0xFF,8);
+      ogg_page_checksum_set(iog);
+    }
+    input->og = iog;
     return OGGZ_STOP_OK;
   } else {
     return OGGZ_CONTINUE;
