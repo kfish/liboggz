@@ -152,6 +152,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (serialno == input->serialno) {
     ogg_page *iog;
     iog = _ogg_page_copy (og);
+    /* If this page's granulepos should be -1 but isn't then fix that before
+     * storing and sorting the page. */
     if(ogg_page_packets(iog)==0&&ogg_page_granulepos(iog)!=-1) {
       memset(iog->header+6,0xFF,8);
       ogg_page_checksum_set(iog);

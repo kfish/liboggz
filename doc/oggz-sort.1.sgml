@@ -96,9 +96,17 @@ manpage.1: manpage.sgml
       the files are viewed on low-memory devices.
     </para>
     <para>
+      Some older Ogg encoders also produce pages which incorrectly have
+      granulepos timestamps recorded that shouldn't be: pages which have no
+      completed packets must have a granulepos of -1.
+      <command>oggz-sort</command> will correct such granulepos during the
+      process of sorting.
+    </para>
+    <para>
       The tool <command>oggz-validate</command> can be used to check the
-      relative ordering of packets in a file. If out of order packets are
-      reported, use <command>oggz-sort</command> to fix the problem.
+      relative ordering of packets in a file, and also to detect incorrect
+      granulepos on pages with no completed packets. If either of these errors
+      are reported, or use <command>oggz-sort</command> to fix the problem.
     </para>
   </refsect1>
   
