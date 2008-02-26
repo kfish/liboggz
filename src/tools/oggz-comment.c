@@ -272,7 +272,6 @@ edit_comments (OCData * ocdata, char * outfilename)
   if ((ocdata->writer = oggz_new (OGGZ_WRITE)) == NULL) {
     printf ("Unable to create new writer\n");
   }
-  ocdata->outfile = fopen (outfilename, "w");
 
   /* Set a page reader to process bos pages */
   oggz_set_read_page (ocdata->reader, -1, read_bos, ocdata);
@@ -372,6 +371,8 @@ main (int argc, char ** argv)
   long serialno;
   long n;
   int i = 1;
+
+  ot_init ();
 
   progname = argv[0];
 
