@@ -61,6 +61,8 @@ typedef struct _OVData {
   OggzTable * missing_eos;
   int theora_count;
   int audio_count;
+
+  int chain_ended;
 } OVData;
 
 typedef struct {
@@ -71,8 +73,8 @@ typedef struct {
 static error_text errors[] = {
   {-20, "Packet belongs to unknown serialno"},
   {-24, "Granulepos decreasing within track"},
-  {-5, "Multiple bos packets"},
-  {-6, "Multiple eos packets"},
+  {-5, "Multiple bos pages"},
+  {-6, "Multiple eos pages"},
   {0, NULL}
 };
 
@@ -95,7 +97,8 @@ list_errors (void)
     printf ("  %s\n", errors[i].description);
   }
   printf ("  eos marked but no bos\n");
-  printf ("  Missing eos packets\n");
+  printf ("  Missing eos pages\n");
+  printf ("  eos marked on page with no completed packets\n");
   printf ("  Granulepos on page with no completed packets\n");
   printf ("  Theora video bos page after audio bos page\n");
 }
@@ -174,38 +177,6 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
   return (timestamp_t)((double)(granule * gr_d) / (double)gr_n);
 }
 
-static int
-read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
-{
-  OVData * ovdata = (OVData *)user_data;
-  ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
-  const char * content_type;
-  int ret = 0;
-
-  if (ogg_page_bos ((ogg_page *)og)) {
-    content_type = ot_page_identify (oggz, og, NULL);
-
-    if (content_type) {
-      if (!strcmp (content_type, "Theora")) {
-	ovdata->theora_count++;
-	if (ovdata->audio_count > 0) {
-	  log_error ();
-	  fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
-	}
-      } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
-	ovdata->audio_count++;
-      }
-    }
-  }
-
-  if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
-    ret = log_error ();
-    fprintf (stderr, "serialno %010ld: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
-  }
-
-  return ret;
-}
-
 static void
 ovdata_init (OVData * ovdata)
 {
@@ -225,6 +196,7 @@ ovdata_init (OVData * ovdata)
   ovdata->missing_eos = oggz_table_new ();
   ovdata->theora_count = 0;
   ovdata->audio_count = 0;
+  ovdata->chain_ended = 0;
 }
 
 static void
@@ -248,15 +220,37 @@ ovdata_clear (OVData * ovdata)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OVData * ovdata = (OVData *)user_data;
-  timestamp_t timestamp;
-  int flush;
-  int ret = 0, feed_err = 0, i;
+  ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
+  const char * content_type;
+  int ret = 0;
 
-  if (op->b_o_s) {
+  if (ovdata->chain_ended) {
+    ovdata_clear (ovdata);
+    ovdata_init (ovdata);
+    suffix = 0;
+  }
+
+  if (ogg_page_bos ((ogg_page *)og)) {
+    /* Register this serialno as needing eos */
     oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1);
+
+    /* Handle ordering of Theora vs. audio packets */
+    content_type = ot_page_identify (oggz, og, NULL);
+
+    if (content_type) {
+      if (!strcmp (content_type, "Theora")) {
+	ovdata->theora_count++;
+	if (ovdata->audio_count > 0) {
+	  log_error ();
+	  fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
+	}
+      } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
+	ovdata->audio_count++;
+      }
+    }
   }
 
   if (!suffix && oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
@@ -264,13 +258,41 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
   }
 
-  if (!suffix && op->e_o_s) {
-    if (oggz_table_remove (ovdata->missing_eos, serialno) == -1) {
+  if (ogg_page_eos((ogg_page *)og)) {
+    int removed = oggz_table_remove (ovdata->missing_eos, serialno);
+    if (!suffix && removed == -1) {
       ret = log_error ();
       fprintf (stderr, "serialno %010ld: *** eos marked but no bos\n",
-	       serialno);
+  	       serialno);
+    }
+
+    if (ogg_page_packets((ogg_page *)og) == 0) {
+      ret = log_error ();
+      fprintf (stderr, "serialno %010ld: *** eos marked on page with no completed packets\n",
+  	       serialno);
+    }
+
+    if (oggz_table_size (ovdata->missing_eos) == 0) {
+      ovdata->chain_ended = 1;
     }
   }
+
+
+  if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
+    ret = log_error ();
+    fprintf (stderr, "serialno %010ld: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
+  }
+
+  return ret;
+}
+
+static int
+read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  OVData * ovdata = (OVData *)user_data;
+  timestamp_t timestamp;
+  int flush;
+  int ret = 0, feed_err = 0, i;
 
   timestamp = gp_to_time (oggz, serialno, op->granulepos);
   if (timestamp != -1.0) {
@@ -310,13 +332,6 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 	       "Packet violates Ogg framing constraints: %d\n",
 	       feed_err);
     }
-  }
-
-  /* If this is the last packet in a chain, reset ovdata */
-  if (op->e_o_s && oggz_table_size (ovdata->missing_eos) == 0) {
-    ovdata_clear (ovdata);
-    ovdata_init (ovdata);
-    suffix = 0;
   }
 
   return ret;

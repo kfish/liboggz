@@ -100,10 +100,11 @@ manpage.1: manpage.sgml
 <listitem><para>Packets out of order</para></listitem>
 <listitem><para>Packet belongs to unknown serialno</para></listitem>
 <listitem><para>Granulepos decreasing within track</para></listitem>
-<listitem><para>Multiple bos packets</para></listitem>
-<listitem><para>Multiple eos packets</para></listitem>
+<listitem><para>Multiple bos pages</para></listitem>
+<listitem><para>Multiple eos pages</para></listitem>
 <listitem><para>eos marked but no bos</para></listitem>
 <listitem><para>Missing eos packets</para></listitem>
+<listitem><para>eos marked on page with no completed packets</para></listitem>
 <listitem><para>Granulepos on page with no completed packets</para></listitem>
 <listitem><para>Theora video bos page after audio bos page</para></listitem>
       </itemizedlist>
@@ -187,6 +188,10 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>SEE ALSO</title>
     <para>
+      <citerefentry>
+	<refentrytitle>oggz-sort</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
       <citerefentry>
 	<refentrytitle>oggzdump</refentrytitle>
 	<manvolnum>1</manvolnum>
