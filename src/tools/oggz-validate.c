@@ -224,7 +224,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OVData * ovdata = (OVData *)user_data;
   ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
-  const char * content_type;
+  OggzStreamContent content_type;
   int ret = 0;
 
   if (ovdata->chain_ended) {
@@ -238,18 +238,26 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1);
 
     /* Handle ordering of Theora vs. audio packets */
-    content_type = ot_page_identify (oggz, og, NULL);
+    content_type = oggz_stream_get_content (oggz, serialno);
 
-    if (content_type) {
-      if (!strcmp (content_type, "Theora")) {
+    switch (content_type) {
+      case OGGZ_CONTENT_THEORA:
 	ovdata->theora_count++;
 	if (ovdata->audio_count > 0) {
 	  log_error ();
 	  fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
 	}
-      } else if (!strcmp (content_type, "Vorbis") || !strcmp (content_type, "Speex")) {
+        break;
+      case OGGZ_CONTENT_VORBIS:
+      case OGGZ_CONTENT_SPEEX:
+      case OGGZ_CONTENT_PCM:
+      case OGGZ_CONTENT_FLAC0:
+      case OGGZ_CONTENT_FLAC:
+      case OGGZ_CONTENT_CELT:
 	ovdata->audio_count++;
-      }
+        break;
+      default:
+        break;
     }
   }
 
