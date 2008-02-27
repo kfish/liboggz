@@ -1,5 +1,7 @@
 ## Process this file with automake to produce Makefile.in
 
+SUBDIRS = oggz-chop
+
 EXTRA_DIST = oggzdiff
 
 bin_SCRIPTS = oggzdiff
@@ -14,7 +16,7 @@ oggz_read_programs = oggzdump oggzinfo oggz-scan
 oggz_read_noinst_programs =
 
 if OGGZ_CONFIG_WRITE
-oggz_rw_programs = oggzmerge oggzrip oggz-chop oggz-validate oggz-comment oggz-sort
+oggz_rw_programs = oggzmerge oggzrip oggz-validate oggz-comment oggz-sort
 oggz_rw_noinst_programs = oggz-basetime
 endif
 
@@ -28,9 +30,6 @@ noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
 oggzinfo_SOURCES = oggzinfo.c oggz_tools.c skeleton.c
 oggzinfo_LDADD = $(OGGZ_LIBS) -lm
-
-oggz_chop_SOURCES = oggz-chop.c oggz_tools.c
-oggz_chop_LDADD = $(OGGZ_LIBS)
 
 oggz_comment_SOURCES = oggz-comment.c oggz_tools.c
 oggz_comment_LDADD = $(OGGZ_LIBS)
