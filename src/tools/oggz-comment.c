@@ -55,6 +55,7 @@ static int flush_next = 0;
 typedef struct {
   int do_delete;
   int do_all;
+  int got_non_bos;
   OGGZ * reader;
   OGGZ * writer;
   OGGZ * storer; /* Just used for storing comments from commandline */
@@ -134,6 +135,9 @@ ocdata_delete (OCData *ocdata)
 static int
 filter_stream_p (const OCData *ocdata, long serialno)
 {
+  if (oggz_table_lookup (ocdata->seen_tracks, serialno) == NULL)
+    return 0;
+
   if (ocdata->do_all)
     return 1;
 
@@ -149,15 +153,23 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OCData * ocdata = (OCData *)user_data;
   const char * ident;
   int i, n;
+  OggzStreamContent content;
 
-  if (!ogg_page_bos ((ogg_page *)og))
+  if (ogg_page_bos ((ogg_page *)og)) {
+    ocdata->got_non_bos = 0;
+  } else {
+    ocdata->got_non_bos = 1;
     return OGGZ_CONTINUE;
+  }
 
-  /* Record this track in the seen_tracks table. We don't need to store any
-   * information about the track, just the fact that it exists.
+  /* Record this track in the seen_tracks table, unless it is skeleton.
+   * We don't need to store any information about the track, just the fact
+   * that it exists.
    * Store a dummy value (as NULL is not allowed in an OggzTable).
    */
-  oggz_table_insert (ocdata->seen_tracks, serialno, (void *)0x01);
+  content = oggz_stream_get_content (oggz, serialno);
+  if (content != OGGZ_CONTENT_SKELETON)
+    oggz_table_insert (ocdata->seen_tracks, serialno, (void *)0x01);
 
   ident = ot_page_identify (oggz, og, NULL);
   if (ident != NULL) {
@@ -176,6 +188,8 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 static int
 more_headers (OCData * ocdata, ogg_packet * op, long serialno)
 {
+  if (!ocdata->got_non_bos) return OGGZ_CONTINUE;
+
   /* Determine if we're finished processing headers */
   if (op->packetno+1 >= oggz_stream_get_numheaders (ocdata->reader, serialno)) {
     /* If this was the last header for this track, remove it from the
