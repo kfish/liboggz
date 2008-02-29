@@ -30,12 +30,10 @@ usage (char * progname)
 }
 
 int
-cmd_main (int argc, char * argv[])
+cmd_main (OCState * state, int argc, char * argv[])
 {
   int show_version = 0;
   int show_help = 0;
-  double start = 0.0, end = -1.0;
-  char * infilename = NULL, * outfilename = NULL;
   int i;
 
   progname = argv[0];
@@ -44,6 +42,11 @@ cmd_main (int argc, char * argv[])
     usage (progname);
     return (1);
   }
+
+  state->start = 0.0;
+  state->end = -1.0;
+  state->infilename = NULL;
+  state->outfilename = NULL;
 
   while (1) {
     char * optstring = "s:e:o:hv";
@@ -70,10 +73,10 @@ cmd_main (int argc, char * argv[])
 
     switch (i) {
     case 's': /* start */
-      start = atof (optarg);
+      state->start = atof (optarg);
       break;
     case 'e': /* end */
-      end = atof (optarg);
+      state->end = atof (optarg);
       break;
     case 'h': /* help */
       show_help = 1;
@@ -82,7 +85,7 @@ cmd_main (int argc, char * argv[])
       show_version = 1;
       break;
     case 'o': /* output */
-      outfilename = optarg;
+      state->outfilename = optarg;
       break;
     default:
       break;
@@ -106,9 +109,9 @@ cmd_main (int argc, char * argv[])
     goto exit_err;
   }
 
-  infilename = argv[optind++];
+  state->infilename = argv[optind++];
 
-  return chop (infilename, outfilename, start, end);
+  return chop (state);
 
 exit_ok:
   return 0;

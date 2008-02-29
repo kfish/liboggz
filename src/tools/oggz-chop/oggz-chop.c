@@ -278,35 +278,31 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 int
-chop (char * infilename, char * outfilename, double start, double end)
+chop (OCState * state)
 {
-  OCState state;
   OGGZ * oggz;
 
-  state.tracks = oggz_table_new ();
+  state->tracks = oggz_table_new ();
 
-  if (strcmp (infilename, "-") == 0) {
+  if (strcmp (state->infilename, "-") == 0) {
     oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
   } else {
-    oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO);
+    oggz = oggz_open (state->infilename, OGGZ_READ|OGGZ_AUTO);
   }
 
-  if (outfilename == NULL) {
-    state.outfile = stdout;
+  if (state->outfilename == NULL) {
+    state->outfile = stdout;
   } else {
-    state.outfile = fopen (outfilename, "wb");
-    if (state.outfile == NULL) {
+    state->outfile = fopen (state->outfilename, "wb");
+    if (state->outfile == NULL) {
       fprintf (stderr, "oggz-chop: unable to open output file %s\n",
-	       outfilename);
+	       state->outfilename);
       return -1;
     }
   }
 
-  state.start = start;
-  state.end = end;
-
   /* set up a demux filter */
-  oggz_set_read_page (oggz, -1, read_bos, &state);
+  oggz_set_read_page (oggz, -1, read_bos, state);
 
   oggz_run_set_blocksize (oggz, 1024*1024);
   oggz_run (oggz);

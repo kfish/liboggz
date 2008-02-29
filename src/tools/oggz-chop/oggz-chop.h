@@ -39,8 +39,12 @@
  */
 
 typedef struct _OCState {
+  char * infilename;
+  char * outfilename;
+
   OggzTable * tracks;
   FILE * outfile;
+
   double start;
   double end;
 } OCState;
@@ -61,6 +65,6 @@ typedef struct _OCTrackState {
 
 } OCTrackState;
 
-int chop (char * infilename, char * outfilename, double start, double end);
+int chop (OCState * state);
 
 #endif /* __OGGZ_CHOP_H__ */
