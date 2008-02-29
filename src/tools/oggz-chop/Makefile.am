@@ -20,9 +20,9 @@ TESTS_ENVIRONMENT = $(VALGRIND_ENVIRONMENT)
 
 TESTS = httpdate_test
 
-noinst_HEADERS = alloc_snprintf.h cgi.h cmd.h header.h httpdate.h memory.h oggz-chop.h tests.h
+noinst_HEADERS = alloc_snprintf.h cgi.h cmd.h header.h httpdate.h memory.h oggz-chop.h tests.h timespec.h
 
-oggz_chop_SOURCES = oggz-chop.c ../oggz_tools.c cmd.c cgi.c header.c httpdate.c main.c
+oggz_chop_SOURCES = oggz-chop.c ../oggz_tools.c cmd.c cgi.c header.c httpdate.c main.c timespec.c
 oggz_chop_LDADD = $(OGGZ_LIBS)
 
 httpdate_test_SOURCES = httpdate.c httpdate_test.c

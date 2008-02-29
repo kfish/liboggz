@@ -7,15 +7,16 @@
 #include "oggz-chop.h"
 #include "header.h"
 #include "httpdate.h"
+#include "timespec.h"
 
 static void
 set_param (OCState * state, char * key, char * val)
 {
-  if (!strncmp ("s", key, 2)) state->start = atof(val);
-  if (!strncmp ("start", key, 6)) state->start = atof(val);
+  if (!strncmp ("s", key, 2)) state->start = parse_timespec (val);
+  if (!strncmp ("start", key, 6)) state->start = parse_timespec (val);
 
-  if (!strncmp ("e", key, 2)) state->end = atof(val);
-  if (!strncmp ("end", key, 6)) state->end = atof(val);
+  if (!strncmp ("e", key, 2)) state->end = parse_timespec (val);
+  if (!strncmp ("end", key, 6)) state->end = parse_timespec (val);
 }
 
 /**
