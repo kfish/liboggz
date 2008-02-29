@@ -398,6 +398,13 @@ AC_MSG_ERROR([
 
 else
 
+AS_AC_EXPAND(LIBDIR, ${libdir})
+AS_AC_EXPAND(INCLUDEDIR, ${includedir})
+AS_AC_EXPAND(BINDIR, ${bindir})
+AS_AC_EXPAND(DOCDIR, ${datadir}/doc)
+
+AC_SUBST(BINDIR)
+
 AC_SUBST(SHLIB_VERSION_ARG)
 AC_SUBST(SHARED_VERSION_INFO)
 
@@ -416,14 +423,10 @@ src/tools/oggzdiff
 src/tools/oggz-chop/Makefile
 src/tests/Makefile
 src/examples/Makefile
+apache/oggz-chop.conf
 oggz.pc
 oggz-uninstalled.pc
 ])
-
-AS_AC_EXPAND(LIBDIR, ${libdir})
-AS_AC_EXPAND(INCLUDEDIR, ${includedir})
-AS_AC_EXPAND(BINDIR, ${bindir})
-AS_AC_EXPAND(DOCDIR, ${datadir}/doc)
 
 AC_MSG_RESULT([
 ------------------------------------------------------------------------

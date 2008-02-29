@@ -1,4 +1,4 @@
 <IfModule mod_actions.c>
-  ScriptAlias /oggz-chop /usr/local/bin/oggz-chop
+  ScriptAlias /oggz-chop @BINDIR@/oggz-chop
   Action application/ogg /oggz-chop
 </IfModule>
