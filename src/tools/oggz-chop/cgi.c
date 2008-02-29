@@ -12,11 +12,21 @@
 static void
 set_param (OCState * state, char * key, char * val)
 {
+  char * sep;
+
   if (!strncmp ("s", key, 2)) state->start = parse_timespec (val);
   if (!strncmp ("start", key, 6)) state->start = parse_timespec (val);
 
   if (!strncmp ("e", key, 2)) state->end = parse_timespec (val);
   if (!strncmp ("end", key, 6)) state->end = parse_timespec (val);
+
+  if (!strncmp ("t", key, 2)) {
+    if ((sep = strchr (val, '/')) != NULL) {
+      *sep++ = '\0';
+      state->end = parse_timespec (sep);
+    }
+    state->start = parse_timespec (val);
+  }
 }
 
 /**
