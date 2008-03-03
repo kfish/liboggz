@@ -1,6 +1,6 @@
 #include <stdio.h>
 
-#include "tests.h"
+#include "oggz_tests.h"
 
 #include "httpdate.h"
 
