@@ -397,8 +397,13 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
     int ret = fisbone_from_ogg(op, &fp);
     if (ret<0) return ret;
     oit = oggz_table_lookup (info->tracks, fp.serial_no);
-    oit->has_fisbone = 1;
-    oit->fbInfo = fp;
+    if (oit) {
+      oit->has_fisbone = 1;
+      oit->fbInfo = fp;
+    }
+    else {
+      fprintf(stderr, "Warning: logical stream %08x referenced by skeleton was not found\n",fp.serial_no);
+    }
   } else if (!op->e_o_s && !memcmp(op->packet, FISHEAD_IDENTIFIER, 8)) {
     fishead_packet fp;
     int ret = fishead_from_ogg(op, &fp);
