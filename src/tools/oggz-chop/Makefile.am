@@ -23,7 +23,7 @@ TESTS = httpdate_test
 noinst_HEADERS = cgi.h cmd.h header.h httpdate.h oggz-chop.h timespec.h
 
 oggz_chop_SOURCES = oggz-chop.c ../oggz_tools.c cmd.c cgi.c header.c httpdate.c main.c timespec.c
-oggz_chop_LDADD = $(OGGZ_LIBS)
+oggz_chop_LDADD = $(OGGZ_LIBS) -lm
 
 httpdate_test_SOURCES = httpdate.c httpdate_test.c
 
