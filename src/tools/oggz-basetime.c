@@ -174,6 +174,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OBData * ord = (OBData *)user_data;
   OBTrackData * ort;
   ogg_int64_t gr_n, gr_d;
+  int numheaders;
 
   if (ogg_page_bos ((ogg_page *)og)) {
     ort = or_track_data_new ();
@@ -186,12 +187,14 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   fprintf (stderr, "--------\n");
 #endif
 
+  numheaders = oggz_stream_get_numheaders (oggz, serialno);
+
   /* If this is the first data page of any track, use its timestamp
    * as the delta by which to shift all tracks. Hence this page will
    * get shifted to timestamp 0, and all other pages in the stream will
    * be shifted relatively.
    */
-  if (ord->base_units == -1 && ort->nr_packets >= 3) {
+  if (ord->base_units == -1 && ort->nr_packets >= numheaders) {
     ord->base_units = oggz_tell_units (oggz);
 #ifdef DEBUG
     fprintf (stderr, "BASE UNITS: %lld\n", ord->base_units);
@@ -200,7 +203,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   /* If this is the first data page of a track, calculate the delta
    * by which to shift all pages of this track */
-  if (ord->base_units != -1 && ort->nr_packets >= 3 && ort->delta == -1) {
+  if (ord->base_units != -1 && ort->nr_packets >= numheaders && ort->delta == -1) {
     oggz_get_granulerate (oggz, serialno, &gr_n, &gr_d);
     ort->delta = (ord->base_units * gr_n) / (gr_d);
 #ifdef DEBUG
