@@ -157,6 +157,31 @@ manpage.1: manpage.sgml
   </refsect1>
 
   <refsect1>
+    <title>Server configuration</title>
+
+    <para>
+The following configuration for Apache httpd will enable FastPhoto. As with
+most Apache directives, this may of course be restricted to particular
+Directories or Locations:
+</para>
+
+  <para>
+ScriptAlias /fastphoto /usr/local/bin/fastphoto
+  </para><para>
+Action image/jpeg /fastphoto
+  </para>
+
+    <refsect2>
+      <title>HTTP/1.1 Cacheability</title>
+      <para>
+      FastPhoto generates Last-Modified HTTP headers, and
+      responds correctly to If-Modified-Since conditional GET requests. 
+      </para>
+
+    </refsect2>
+  </refsect1>
+
+  <refsect1>
     <title>AUTHOR</title>
     <para>
       <author>
