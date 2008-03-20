@@ -127,7 +127,8 @@ cgi_main (OCState * state)
   char * path_translated;
   char * query_string;
   char * if_modified_since;
-  time_t since_time;
+  time_t since_time, last_time;
+  struct stat statbuf;
 
   httpdate_init ();
 
@@ -143,27 +144,29 @@ cgi_main (OCState * state)
 
   /*photo_init (&params->in, path_translated);*/
 
+  /* Get Last-Modified time */
+  if (stat (path_translated, &statbuf) == -1) {
+    switch (errno) {
+    case ENOENT:
+      return 0;
+    default:
+      fprintf (stderr, "oggz-chop: Error checking %s: %s\n",
+               path_translated, strerror(errno));
+      return -1;
+    }
+  }
+
+  last_time = statbuf.st_mtime;
+
   if (if_modified_since != NULL) {
-    struct stat statbuf;
     int len;
 
     fprintf (stderr, "If-Modified-Since: %s\n", if_modified_since);
 
-    if (stat (path_translated, &statbuf) == -1) {
-      switch (errno) {
-      case ENOENT:
-        return 0;
-      default:
-        fprintf (stderr, "oggz-chop: Error checking %s: %s\n",
-                 path_translated, strerror(errno));
-        return -1;
-      }
-    }
-
     len = strlen (if_modified_since) + 1;
     since_time = httpdate_parse (if_modified_since, len);
 
-    if (statbuf.st_mtime <= since_time) {
+    if (last_time <= since_time) {
       header_not_modified();
       header_end();
       return 1;
@@ -171,6 +174,8 @@ cgi_main (OCState * state)
   }
 
   header_content_type_ogg ();
+
+  header_last_modified (last_time);
 
   /*config_init (params);*/
 
