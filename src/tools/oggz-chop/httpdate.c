@@ -5,7 +5,7 @@
 #include <string.h>
 #include <time.h>
 
-#define HTTPDATE_FMT "%3s, %02d %s %4d %2d:%02d:%02d GMT"
+#define HTTPDATE_FMT "%3s, %02d %s %4d %02d:%02d:%02d GMT"
 
 static char * wdays[] = {"Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"};
 static char * months[] = {"Jan", "Feb", "Mar", "Apr", "May", "Jun",
