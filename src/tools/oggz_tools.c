@@ -239,6 +239,37 @@ ot_oggpcm2_info (unsigned char * data, long len)
 }
 
 static char *
+ot_kate_info (unsigned char * data, long len)
+{
+  char * buf;
+
+  static const size_t KATE_INFO_BUFFER_LEN =
+    1 /* tab */
+  +10 /* "Language: " */
+  +15 /* 15 chars + NUL for language */
+   +1 /* \n */
+   +1 /* tab */
+  +10 /* "Category: " */
+  +15 /* 15 chars + NUL for category */
+   +1 /* \n */
+   +1;/* terminating NUL */
+
+  if (len < 64) return NULL;
+
+  buf = malloc (KATE_INFO_BUFFER_LEN);
+
+  /* Are these headers coming from some standard ? If so, need to find what should these be for Kate */
+  snprintf (buf, KATE_INFO_BUFFER_LEN,
+	    "\tLanguage: %s\n"
+            "\tCategory: %s\n",
+	    &data[32], &data[48]);
+
+#undef KATE_INFO_BUFFER_LEN
+
+  return buf;
+}
+
+static char *
 ot_skeleton_info (unsigned char * data, long len)
 {
   char * buf;
@@ -283,6 +314,7 @@ static const OTCodecInfoFunc codec_ident[] = {
   ot_flac_info,     /* FLAC */
   NULL,             /* ANXDATA */
   ot_celt_info,     /* CELT */
+  ot_kate_info,     /* KATE */
   NULL              /* UNKOWN */
 };
 

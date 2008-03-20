@@ -140,6 +140,7 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   char keyframe_granule_shift = 0;
   int keyframe_shift;
 
+  /* TODO: this should check against 42 for the relevant version numbers */
   if (op->bytes < 41) return 0;
 
   fps_numerator = INT32_BE_AT(&header[22]);
@@ -157,7 +158,7 @@ auto_theora (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   keyframe_shift = intlog (keyframe_granule_shift - 1);
 #else
   keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
-  keyframe_granule_shift |= (header[41] & 0xe0) >> 5;
+  keyframe_granule_shift |= (header[41] & 0xe0) >> 5; /* see TODO above */
   keyframe_shift = keyframe_granule_shift;
 #endif
 
@@ -321,6 +322,36 @@ auto_cmml (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   oggz_set_granuleshift (oggz, serialno, granuleshift);
 
   oggz_stream_set_numheaders (oggz, serialno, 3);
+
+  return 1;
+}
+
+static int
+auto_kate (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  unsigned char * header = op->packet;
+  ogg_int32_t gps_numerator, gps_denominator;
+  unsigned char granule_shift = 0;
+  int numheaders;
+
+  if (op->bytes < 64) return 0;
+
+  gps_numerator = INT32_LE_AT(&header[24]);
+  gps_denominator = INT32_LE_AT(&header[28]);
+
+  granule_shift = (header[15]);
+  numheaders = (header[11]);
+
+#ifdef DEBUG
+  printf ("Got kate gps %d/%d, granule shift %d\n",
+	  gps_numerator, gps_denominator, granule_shift);
+#endif
+
+  oggz_set_granulerate (oggz, serialno, gps_numerator,
+			OGGZ_AUTO_MULT * gps_denominator);
+  oggz_set_granuleshift (oggz, serialno, granule_shift);
+ 
+  oggz_stream_set_numheaders (oggz, serialno, numheaders);
 
   return 1;
 }
@@ -1011,6 +1042,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
+  {"\200kate\0\0\0\0", 9, "Kate", auto_kate, NULL, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
@@ -1105,11 +1137,17 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
       if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)
         offset = 7;
       break;
+    case OGGZ_CONTENT_KATE:
+      if (op->bytes > 9 && memcmp (op->packet, "\201kate\0\0\0\0", 9) == 0) {
+        offset = 9;
+      }
+      break;
     case OGGZ_CONTENT_FLAC:
       if (op->bytes > 4 && (op->packet[0] & 0x7) == 4) {
         len = (op->packet[1]<<16) + (op->packet[2]<<8) + op->packet[3];
         offset = 4;
       }
+      break;
     default:
       break;
   }

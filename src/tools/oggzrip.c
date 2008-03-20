@@ -94,7 +94,7 @@ usage (char * progname)
   printf ("  -c content-type --content-type content-type\n");
   printf ("                         Filter by content-type.  The following codec\n");
   printf ("                         names are currently detected: \"theora\",\n");
-  printf ("                         \"vorbis\", \"speex\", \"cmml\"\n");
+  printf ("                         \"vorbis\", \"speex\", \"cmml\", \"kate\"\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
