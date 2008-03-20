@@ -3,6 +3,10 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <errno.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
 
 #include "oggz-chop.h"
 #include "header.h"
@@ -139,22 +143,32 @@ cgi_main (OCState * state)
 
   /*photo_init (&params->in, path_translated);*/
 
-#if 0
   if (if_modified_since != NULL) {
+    struct stat statbuf;
     int len;
 
     fprintf (stderr, "If-Modified-Since: %s\n", if_modified_since);
 
+    if (stat (path_translated, &statbuf) == -1) {
+      switch (errno) {
+      case ENOENT:
+        return 0;
+      default:
+        fprintf (stderr, "oggz-chop: Error checking %s: %s\n",
+                 path_translated, strerror(errno));
+        return -1;
+      }
+    }
+
     len = strlen (if_modified_since) + 1;
     since_time = httpdate_parse (if_modified_since, len);
 
-    if (state->in.mtime <= since_time) {
+    if (statbuf.st_mtime <= since_time) {
       header_not_modified();
       header_end();
       return 1;
     }
   }
-#endif
 
   header_content_type_ogg ();
 
