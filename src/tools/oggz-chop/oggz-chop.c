@@ -35,10 +35,27 @@
 #include <string.h>
 #include <getopt.h>
 #include <errno.h>
+#include <math.h>
 
 #include <oggz/oggz.h>
 
 #include "oggz-chop.h"
+
+/************************************************************
+ * OCTrackState
+ */
+
+typedef struct _OCTrackState {
+  OggzTable * page_accum;
+
+  int headers_remaining;
+
+  long start_granule;
+
+  /* Greatest previously inferred keyframe value */
+  ogg_int64_t prev_keyframe;
+
+} OCTrackState;
 
 static OCTrackState *
 track_state_new (void)
@@ -48,7 +65,6 @@ track_state_new (void)
   ts = (OCTrackState *) malloc (sizeof(*ts));
 
   memset (ts, 0, sizeof(*ts));
-  ts->page_accum = oggz_table_new();
 
   return ts;
 }
@@ -130,6 +146,51 @@ fwrite_ogg_page (FILE * outfile, ogg_page * og)
 }
 
 /************************************************************
+ * OCPageAccum
+ */
+
+typedef struct _OCPageAccum {
+  ogg_page * og;
+  double time;
+} OCPageAccum;
+
+static OCPageAccum *
+page_accum_new (ogg_page * og, double time)
+{
+  OCPageAccum * pa;
+
+  pa = malloc(sizeof (*pa));
+  pa->og = _ogg_page_copy (og);
+  pa->time = time;
+
+  return pa;
+}
+
+static void
+page_accum_delete (OCPageAccum * pa)
+{
+  if (pa == NULL) return;
+
+  _ogg_page_free (pa->og);
+  free (pa);
+}
+
+static void
+track_state_remove_page_accum (OCTrackState * ts)
+{
+  int i, accum_size;
+
+  if (ts == NULL || ts->page_accum == NULL) return;
+
+  accum_size = oggz_table_size (ts->page_accum);
+
+  for (i = accum_size; i >= 0; i--) {
+    page_accum_delete((OCPageAccum *)oggz_table_lookup (ts->page_accum, i));
+    oggz_table_remove (ts->page_accum, (long)i);
+  }
+}
+
+/************************************************************
  * chop
  */
 
@@ -170,6 +231,91 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   return OGGZ_CONTINUE;
 }
 
+static int
+write_accum (OCState * state)
+{
+  OCTrackState * ts;
+  OCPageAccum * pa;
+  OggzTable * candidates;
+  long serialno, min_serialno;
+  int i, ntracks, ncandidates=0, remaining=0, min_i, cn, min_cn;
+  ogg_page * og, * min_og;
+  double min_time;
+
+  if (state->written_accum) return -1;
+
+  /*
+   * We create a table of candidate tracks, which are all those which
+   * have a page_accum table, ie. for which granuleshift matters.
+   * We insert into this table the index of the next page_accum element
+   * to be merged for that track. All start at 0.
+   * The variable 'remaining' counts down the total number of accumulated
+   * pages to be written from all candidate tracks.
+   */
+
+  /* Prime candidates */
+  candidates = oggz_table_new ();
+  ntracks = oggz_table_size (state->tracks);
+  for (i=0; i < ntracks; i++) {
+    ts = oggz_table_nth (state->tracks, i, &serialno);
+    if (ts != NULL && ts->page_accum != NULL) {
+      ncandidates++;
+      /* XXX: we offset the candidate index by 7 to avoid storing 0, as
+       * OggzTable treats insertion of NULL as a deletion */
+      oggz_table_insert (candidates, serialno, (void *)0x7);
+      remaining += oggz_table_size (ts->page_accum);
+    }
+  }
+
+  /* Merge candidates */
+  while (remaining > 0) {
+    /* Find minimum page in all accum buffers */
+    min_time = 10e100;
+    min_cn = -1;
+    min_og = NULL;
+    min_serialno = -1;
+    for (i=0; i < ncandidates; i++) {
+      cn = ((int) oggz_table_nth (candidates, i, &serialno)) - 7;
+      ts = oggz_table_lookup (state->tracks, serialno);
+      if (ts && ts->page_accum) {
+        if (cn < oggz_table_size (ts->page_accum)) {
+          pa = oggz_table_nth (ts->page_accum, cn, NULL);
+
+          if (pa->time < min_time) {
+            min_i = i;
+            min_cn = cn;
+            min_og = pa->og;
+            min_serialno = serialno;
+            min_time = pa->time;
+          }
+        }
+      }
+    }
+
+    if (min_og) {
+      /* Increment index for minimum page */
+      oggz_table_insert (candidates, min_serialno, (void *)(min_cn+1+7));
+
+      /* Write out minimum page */
+      fwrite_ogg_page (state->outfile, min_og);
+    }
+
+    remaining--;
+  }
+
+  /* Cleanup */
+  for (i=0; i < ntracks; i++) {
+    ts = oggz_table_nth (state->tracks, i, &serialno);
+    track_state_remove_page_accum (ts);
+  }
+
+  oggz_table_delete (candidates);
+
+  state->written_accum = 1;
+ 
+  return 0;
+}
+
 /*
  * OggzReadPageCallback read_gs
  *
@@ -180,6 +326,7 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OCState * state = (OCState *)user_data;
   OCTrackState * ts;
+  OCPageAccum * pa;
   double page_time;
   ogg_int64_t granulepos, keyframe;
   int granuleshift, i, accum_size;
@@ -192,13 +339,7 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if (page_time >= state->start) {
     /* Write out accumulated pages */
-    for (i = 0; i < accum_size; i++) {
-      accum_og = (ogg_page *)oggz_table_lookup (ts->page_accum, i);
-      fwrite_ogg_page (state->outfile, accum_og);
-      _ogg_page_free (accum_og);
-    }
-    oggz_table_delete (ts->page_accum);
-    ts->page_accum = NULL;
+    write_accum (state);
 
     /* Switch to the plain page reader */
     oggz_set_read_page (oggz, serialno, read_plain, state);
@@ -212,10 +353,13 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
     if (keyframe != ts->prev_keyframe) {
       /* Clear the page accumulator */
+      track_state_remove_page_accum (ts);
+#if 0
       for (i = accum_size; i >= 0; i--) {
-        _ogg_page_free ((ogg_page *)oggz_table_lookup (ts->page_accum, i));
+        page_accum_delete((OCPageAccum *)oggz_table_lookup (ts->page_accum, i));
         oggz_table_remove (ts->page_accum, (long)i);
       }
+#endif
       accum_size = 0;
 
       /* Record this as prev_keyframe */
@@ -224,7 +368,8 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   }
 
   /* Add a copy of this to the page accumulator */
-  oggz_table_insert (ts->page_accum, accum_size, _ogg_page_copy (og));
+  pa = page_accum_new (og, page_time);
+  oggz_table_insert (ts->page_accum, accum_size, pa);
 
   return OGGZ_CONTINUE;
 }
@@ -249,6 +394,7 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     if (state->start == 0.0 || oggz_get_granuleshift (oggz, serialno) == 0) {
       oggz_set_read_page (oggz, serialno, read_plain, state);
     } else {
+      ts->page_accum = oggz_table_new();
       oggz_set_read_page (oggz, serialno, read_gs, state);
     }
   }
@@ -283,6 +429,7 @@ chop (OCState * state)
   OGGZ * oggz;
 
   state->tracks = oggz_table_new ();
+  state->written_accum = 0;
 
   if (strcmp (state->infilename, "-") == 0) {
     oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);

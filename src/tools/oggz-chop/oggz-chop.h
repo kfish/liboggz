@@ -47,23 +47,10 @@ typedef struct _OCState {
 
   double start;
   double end;
+
+  int written_accum;
 } OCState;
 
-/************************************************************
- * OCTrackState
- */
-
-typedef struct _OCTrackState {
-  OggzTable * page_accum;
-
-  int headers_remaining;
-
-  long start_granule;
-
-  /* Greatest previously inferred keyframe value */
-  ogg_int64_t prev_keyframe;
-
-} OCTrackState;
 
 int chop (OCState * state);
 
