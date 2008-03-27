@@ -97,6 +97,25 @@ track_state_add (OggzTable * state, long serialno)
   }
 }
 
+static void
+state_init (OCState * state)
+{
+  state->tracks = oggz_table_new ();
+  state->written_accum = 0;
+}
+
+static void
+state_clear (OCState * state)
+{
+  int i, ntracks;
+
+  ntracks = oggz_table_size (state->tracks);
+  for (i = 0; i < ntracks; i++) {
+    track_state_delete (oggz_table_nth(state->tracks, i, NULL));
+  }
+  oggz_table_delete (state->tracks);
+}
+
 /************************************************************
  * ogg_page helpers
  */
@@ -137,7 +156,7 @@ _ogg_page_set_eos (const ogg_page * og)
 }
 
 static void
-fwrite_ogg_page (FILE * outfile, ogg_page * og)
+fwrite_ogg_page (FILE * outfile, const ogg_page * og)
 {
   if (og == NULL) return;
 
@@ -428,8 +447,7 @@ chop (OCState * state)
 {
   OGGZ * oggz;
 
-  state->tracks = oggz_table_new ();
-  state->written_accum = 0;
+  state_init (state);
 
   if (strcmp (state->infilename, "-") == 0) {
     oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
@@ -455,6 +473,8 @@ chop (OCState * state)
   oggz_run (oggz);
 
   oggz_close (oggz);
+
+  state_clear (state);
 
   return 0; 
 }
