@@ -60,7 +60,8 @@ void
 oggz_table_delete (OggzTable * table);
 
 /**
- * Insert an element into a table.
+ * Insert an element into a table. If a previous value existed for this key,
+ * it is overwritten with the new data element.
  * \param table An OggzTable
  * \param key Key to access this data element
  * \param data The new element to add
