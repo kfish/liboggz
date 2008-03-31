@@ -163,6 +163,48 @@ if test "x${ac_enable_read}" = xno && test "x${ac_enable_write}" = xno ; then
 ])
 fi
 
+dnl
+dnl Detect Ogg
+dnl
+
+HAVE_OGG=no
+if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
+  PKG_CHECK_MODULES(OGG, ogg >= 1.0, HAVE_OGG=yes, HAVE_OGG=no)
+fi
+
+if test "x$HAVE_OGG" = "xno" ; then
+  XIPH_PATH_OGG(HAVE_OGG="yes", HAVE_OGG="no")
+  if test "x$HAVE_OGG" = xno ; then
+    oggz_config_ok="no"
+    AC_CHECK_LIB(ogg, ogg_stream_init, HAVE_OGG="maybe")
+  fi
+fi
+
+AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
+
+dnl Check for const-correct version of <ogg/ogg.h>
+dnl In libogg changeset:14463, function prototypes like:
+dnl      ogg_page_bos (ogg_page * og);
+dnl were changed to:
+dnl     ogg_page_bos (const ogg_page * og);
+dnl If we are compiling with -Werror, we need to know this.
+if test "x$HAVE_OGG" = "xyes" ; then
+    AC_MSG_CHECKING([if ogg_page_bos() takes a const argument])
+    ac_save_CFLAGS="$CFLAGS"
+    ac_save_LIBS="$LIBS"
+    CFLAGS="$CFLAGS -Wall -Werror $OGG_CFLAGS"
+    LIBS="$LIBS $OGG_LIBS"
+
+    AC_TRY_COMPILE([#include <ogg/ogg.h>],
+                   [int f(const ogg_page * cog){return ogg_page_bos(cog);}],
+                   [ AC_DEFINE([OGG_H_CONST_CORRECT], [], [Define if <ogg/ogg.h> is const-correct])
+                     AC_MSG_RESULT(yes) ],
+                   [ AC_MSG_RESULT(no) ])
+
+    CFLAGS="$ac_save_CFLAGS"
+    LIBS="$ac_save_LIBS"
+fi
+
 dnl Large file support
 dnl Adapted from: libsndfile by Erik de Castro Lopo
 dnl
@@ -265,48 +307,6 @@ AC_SUBST(OGGZ_OFF_MAX)
 AC_CHECK_TYPES(ssize_t)
 AC_CHECK_SIZEOF(ssize_t,4)
 
-
-dnl
-dnl Detect Ogg
-dnl
-
-HAVE_OGG=no
-if test "x$HAVE_PKG_CONFIG" = "xyes" ; then
-  PKG_CHECK_MODULES(OGG, ogg >= 1.0, HAVE_OGG=yes, HAVE_OGG=no)
-fi
-
-if test "x$HAVE_OGG" = "xno" ; then
-  XIPH_PATH_OGG(HAVE_OGG="yes", HAVE_OGG="no")
-  if test "x$HAVE_OGG" = xno ; then
-    oggz_config_ok="no"
-    AC_CHECK_LIB(ogg, ogg_stream_init, HAVE_OGG="maybe")
-  fi
-fi
-
-AM_CONDITIONAL(HAVE_OGG, [test "x$HAVE_OGG" = "xyes"])
-
-dnl Check for type signature of ogg_page_bos(); In earlier libogg releases,
-dnl this was:
-dnl      ogg_page_bos (ogg_page * og);
-dnl but in more recent versions:
-dnl     ogg_page_bos (const ogg_page * og);
-dnl As we are compiling with -Werror, we need to know this
-if test "x$HAVE_OGG" = "xyes" ; then
-    AC_MSG_CHECKING([if ogg_page_bos() takes a const argument])
-    ac_save_CFLAGS="$CFLAGS"
-    ac_save_LIBS="$LIBS"
-    CFLAGS="$CFLAGS -Wall -Werror $OGG_CFLAGS"
-    LIBS="$LIBS $OGG_LIBS"
-
-    AC_TRY_COMPILE([#include <ogg/ogg.h>],
-                   [int f(const ogg_page * cog){return ogg_page_bos(cog);}],
-                   [ AC_DEFINE([OGG_PAGE_BOS_CONST], [], [Define if ogg_page_bos() takes a const argument.])
-                     AC_MSG_RESULT(yes) ],
-                   [ AC_MSG_RESULT(no) ])
-
-    CFLAGS="$ac_save_CFLAGS"
-    LIBS="$ac_save_LIBS"
-fi
 
 # Checks for header files.
 

@@ -173,7 +173,7 @@ read_page_add_input (OGGZ * oggz, const ogg_page * og, long serialno,
   OSInput * input;
   int is_bos, nfiles;
 
-#ifdef OGG_PAGE_BOS_CONST
+#ifdef OGG_H_CONST_CORRECT
   is_bos = ogg_page_bos (og);
 #else
   is_bos = ogg_page_bos ((ogg_page *)og);

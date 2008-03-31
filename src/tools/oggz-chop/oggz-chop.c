@@ -41,6 +41,12 @@
 
 #include "oggz-chop.h"
 
+#ifdef OGG_H_CONST_CORRECT
+#define OGG_PAGE_CONST(x) (x)
+#else
+#define OGG_PAGE_CONST(x) ((ogg_page *)x)
+#endif
+
 /************************************************************
  * OCTrackState
  */
@@ -152,7 +158,7 @@ _ogg_page_set_eos (const ogg_page * og)
   if (og == NULL) return;
 
   og->header[5] |= 0x04;
-  ogg_page_checksum_set (og);
+  ogg_page_checksum_set (OGG_PAGE_CONST(og));
 }
 
 static void
@@ -174,7 +180,7 @@ typedef struct _OCPageAccum {
 } OCPageAccum;
 
 static OCPageAccum *
-page_accum_new (ogg_page * og, double time)
+page_accum_new (const ogg_page * og, double time)
 {
   OCPageAccum * pa;
 
@@ -365,7 +371,7 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     return read_plain (oggz, og, serialno, user_data);
   } /* else { ... */
 
-  granulepos = ogg_page_granulepos (og);
+  granulepos = ogg_page_granulepos (OGG_PAGE_CONST(og));
   if (granulepos != -1) {
     granuleshift = oggz_get_granuleshift (oggz, serialno);
     keyframe = granulepos >> granuleshift;
@@ -407,7 +413,7 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   fwrite_ogg_page (state->outfile, og);
 
   ts = oggz_table_lookup (state->tracks, serialno);
-  ts->headers_remaining -= ogg_page_packets (og);
+  ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
 
   if (ts->headers_remaining <= 0) {
     if (state->start == 0.0 || oggz_get_granuleshift (oggz, serialno) == 0) {
@@ -428,7 +434,7 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OCTrackState * ts;
   double page_time;
 
-  if (ogg_page_bos (og)) {
+  if (ogg_page_bos (OGG_PAGE_CONST(og))) {
     ts = track_state_add (state->tracks, serialno);
     ts->headers_remaining = oggz_stream_get_numheaders (oggz, serialno);
 
