@@ -108,7 +108,7 @@ struct _OI_Stats {
 
   /* Pass 2 */
   long length_avg;
-  long length_deviation_total;
+  ogg_int64_t length_deviation_total;
   double length_stddev;
 };
 
@@ -313,9 +313,13 @@ oi_stats_stddev (OI_Stats * stats)
 {
   double variance;
 
-  variance = (double)stats->length_deviation_total / (double)(stats->count - 1);
-  stats->length_stddev = sqrt (variance);
-
+  if (stats->count <= 1) {
+    stats->length_stddev = 0.0;
+  }
+  else {
+    variance = (double)stats->length_deviation_total / (double)(stats->count - 1);
+    stats->length_stddev = sqrt (variance);
+  }
 }
 
 static void
