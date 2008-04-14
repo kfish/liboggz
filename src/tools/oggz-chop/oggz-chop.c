@@ -209,10 +209,62 @@ track_state_remove_page_accum (OCTrackState * ts)
 
   accum_size = oggz_table_size (ts->page_accum);
 
-  for (i = accum_size; i >= 0; i--) {
+  for (i = accum_size-1; i >= 0; i--) {
     page_accum_delete((OCPageAccum *)oggz_table_lookup (ts->page_accum, i));
     oggz_table_remove (ts->page_accum, (long)i);
   }
+}
+
+/*
+ * Advance the page accumulator:
+ *   - Remove all pages that only contain packets from the previous GOP.
+ *   - Shift all remaining packets to start from index 0
+ * Returns: the new size of the page accumulator.
+ */
+static int
+track_state_advance_page_accum (OCTrackState * ts)
+{
+  int i, accum_size;
+  int e, earliest_new; /* Index into page accumulator of the earliest page that
+                        * contains a packet from the new GOP */
+  OCPageAccum * pa;
+
+  if (ts == NULL || ts->page_accum == NULL) return 0;
+
+  earliest_new = accum_size = oggz_table_size (ts->page_accum);
+
+  /* Working backwards through the page accumulator ... */
+  for (i = accum_size-1; i >= 0; i--) {
+    pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
+
+    /* If we have a page with granulepos, it is necessarily contains the end
+     * of a packet from an earlier GOP, and thus this is the last page that
+     * we need to recover.
+     */
+    if (ogg_page_granulepos (pa->og) != -1) {
+      earliest_new = i;
+      break;
+    }
+  }
+
+  if (earliest_new > accum_size)
+    earliest_new = accum_size;
+
+  /* Delete the rest */
+  for (i = earliest_new-1; i >= 0; i--) {
+    pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
+    page_accum_delete(pa);
+    oggz_table_remove (ts->page_accum, (long)i);
+  }
+
+  /* Shift the best */
+  for (i = 0, e = earliest_new; e < accum_size; i++, e++) {
+    pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, e);
+    oggz_table_insert (ts->page_accum, i, pa);
+    oggz_table_remove (ts->page_accum, (long)e);
+  }
+
+  return accum_size - earliest_new;
 }
 
 /************************************************************
@@ -377,15 +429,15 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     keyframe = granulepos >> granuleshift;
 
     if (keyframe != ts->prev_keyframe) {
-      /* Clear the page accumulator */
-      track_state_remove_page_accum (ts);
-#if 0
-      for (i = accum_size; i >= 0; i--) {
-        page_accum_delete((OCPageAccum *)oggz_table_lookup (ts->page_accum, i));
-        oggz_table_remove (ts->page_accum, (long)i);
+      if (ogg_page_continued(og)) {
+        /* If this new-keyframe page is continued, advance the page accumulator,
+         * ie. recover earlier pages from this new GOP */
+        accum_size = track_state_advance_page_accum (ts);
+      } else {
+        /* Otherwise, just clear the page accumulator */
+        track_state_remove_page_accum (ts);
+        accum_size = 0;
       }
-#endif
-      accum_size = 0;
 
       /* Record this as prev_keyframe */
       ts->prev_keyframe = keyframe;
@@ -479,6 +531,10 @@ chop (OCState * state)
   oggz_run (oggz);
 
   oggz_close (oggz);
+
+  if (state->outfilename != NULL) {
+    fclose (state->outfile);
+  }
 
   state_clear (state);
 
