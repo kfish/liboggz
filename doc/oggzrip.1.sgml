@@ -81,8 +81,27 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>Description</title>
     <para>
-      <command>&dhpackage;</command> extracts one or more logical bitstreams
+      <command>&dhpackage;</command> extracts one or more tracks
       from an Ogg file.
+      In Ogg terminology, <command>&dhpackage;</command> extracts one or
+      more logical bitstreams.
+    </para>
+    <para>
+      For example, to extract just the vorbis audio track from any Ogg file:
+    </para>
+    <para><command>oggzrip -c vorbis input.ogx > output.ogg</command>
+    </para>
+    </para>
+
+    <para>
+      This will removed any other tracks: Skeleton, Theora, image, etc.
+      The output will be a valid Ogg Vorbis I file, suitable for use on
+      hardware players that do not support multiplexed (ie. multi-track)
+      Ogg files. If the input file contains multiple Vorbis, the desired
+      once can be specified by serialno with the <command>-s</command>
+      option.
+      Use <command>oggzinfo</command> to view the serialno of
+      each track in a file.
     </para>
   </refsect1>
   
@@ -166,6 +185,10 @@ manpage.1: manpage.sgml
     <para>
       <citerefentry>
 	<refentrytitle>oggzmerge</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>oggz-chop</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>
