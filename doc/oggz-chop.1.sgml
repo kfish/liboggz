@@ -160,21 +160,21 @@ manpage.1: manpage.sgml
     <title>Server configuration</title>
 
     <para>
-The following configuration for Apache httpd will enable FastPhoto. As with
+The following configuration for Apache httpd will enable oggz-chop. As with
 most Apache directives, this may of course be restricted to particular
 Directories or Locations:
 </para>
 
   <para>
-ScriptAlias /fastphoto /usr/local/bin/fastphoto
+ScriptAlias /oggz-chop /usr/bin/oggz-chop
   </para><para>
-Action image/jpeg /fastphoto
+Action application/ogg /oggz-chop
   </para>
 
     <refsect2>
       <title>HTTP/1.1 Cacheability</title>
       <para>
-      FastPhoto generates Last-Modified HTTP headers, and
+      oggz-chop generates Last-Modified HTTP headers, and
       responds correctly to If-Modified-Since conditional GET requests. 
       </para>
 
