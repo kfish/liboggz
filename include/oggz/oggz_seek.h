@@ -44,11 +44,13 @@
  * \section seek_time Time seeking
  *
  * Support is built-in for seeking to time positions in
- * <a href="http://www.speex.org/">Speex</a>,
- * <a href="http://www.vorbis.com/">Vorbis</a>,
+ * <a href="http://www.celt-codec.org/">CELT</a>,
+ * <a href="http://www.annodex.net/">CMML</a>.
  * <a href="http://flac.sourceforge.net/">FLAC</a>,
- * <a href="http://www.theora.org/">Theora</a>,
- * and <a href="http://www.annodex.net/">CMML</a>.
+ * <a href="http://wiki.xiph.org/OggPCM">OggPCM</a>,
+ * <a href="http://www.speex.org/">Speex</a>,
+ * <a href="http://www.theora.org/">Theora</a>
+ * and <a href="http://www.vorbis.com/">Vorbis</a>.
  * Oggz is also compatible with 
  * <a href="http://www.annodex.net/">Annodex</a> streams, and supports seeking
  * on all tracks described in an
