@@ -7,6 +7,7 @@
 #include <getopt.h>
 
 #include "oggz-chop.h"
+#include "timespec.h"
 
 static char * progname;
 
@@ -73,10 +74,10 @@ cmd_main (OCState * state, int argc, char * argv[])
 
     switch (i) {
     case 's': /* start */
-      state->start = atof (optarg);
+      state->start = parse_timespec (optarg);
       break;
     case 'e': /* end */
-      state->end = atof (optarg);
+      state->end = parse_timespec (optarg);
       break;
     case 'h': /* help */
       show_help = 1;
