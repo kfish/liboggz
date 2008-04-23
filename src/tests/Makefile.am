@@ -1,6 +1,6 @@
 ## Process this file with automake to produce Makefile.in
 
-INCLUDES = -I$(top_srcdir)/include @OGG_CFLAGS@
+INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
