@@ -1,17 +1,12 @@
-liboggz (0.9.6-1) unstable; urgency=low
+liboggz (0.9.7-1) unstable; urgency=low
 
   * New upstream.
   * New maintainer.
   * Update to comply with standards version 7.2.3
   * Check debian/watch is up to date. closes: #449986
-
- -- John Ferlito <johnf@inodes.org>  Sun, 13 Jan 2008 23:46:18 +1100
-
-liboggz (0.9.5-5) unstable; urgency=low
-
   * update control to use $binary:Version
 
- -- John Ferlito <johnf@inodes.org>  Tue, 01 Jan 2008 23:10:12 +1100
+ -- John Ferlito <johnf@inodes.org>  Sun,  3 May 2008 23:11:18 +1100
 
 liboggz (0.9.5-4) unstable; urgency=low
 
