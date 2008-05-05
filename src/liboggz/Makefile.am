@@ -1,6 +1,9 @@
 ## Process this file with automake to produce Makefile.in
 
-INCLUDES = $(INCLTDL) -I$(top_srcdir)/include -I$(top_builddir)/include @OGG_CFLAGS@
+INCLUDES = $(INCLTDL) \
+           -I$(top_builddir) -I$(top_builddir)/include \
+           -I$(top_srcdir)/include \
+           @OGG_CFLAGS@
 
 EXTRA_DIST = Version_script.in
 

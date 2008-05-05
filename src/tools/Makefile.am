@@ -6,7 +6,9 @@ EXTRA_DIST = oggzdiff
 
 bin_SCRIPTS = oggzdiff
 
-INCLUDES = -I$(top_srcdir)/include -I$(top_builddir)/include @OGG_CFLAGS@
+INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
+           -I$(top_srcdir)/include \
+           @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
