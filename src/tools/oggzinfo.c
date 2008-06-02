@@ -220,7 +220,7 @@ ot_fishead_print(OI_TrackInfo *oit) {
 static void
 ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
 
-  char *messages, *token;
+  char *allocated, *messages, *token;
   
   if (oit->has_fisbone) {
     printf("\n\tExtra information from Ogg Skeleton track:\n");
@@ -232,7 +232,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
     ot_fprint_granulepos(stdout, info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule);
     printf ("\n");
     printf("\tPreroll: %d\n", oit->fbInfo.preroll);
-    messages = token = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
+    allocated = messages = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
     strcpy(messages, oit->fbInfo.message_header_fields);
     printf("\tMessage Header Fields:\n");
     while (1) {
@@ -242,6 +242,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
 	break;
     }
     printf("\n");
+    _ogg_free(allocated);
   }
 }
 
@@ -408,6 +409,7 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
     else {
       fprintf(stderr, "Warning: logical stream %08x referenced by skeleton was not found\n",fp.serial_no);
     }
+    fisbone_clear(&fp);
   } else if (!op->e_o_s && !memcmp(op->packet, FISHEAD_IDENTIFIER, 8)) {
     fishead_packet fp;
     int ret = fishead_from_ogg(op, &fp);
