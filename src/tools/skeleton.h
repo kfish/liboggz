@@ -54,6 +54,7 @@ extern int add_message_header_field(fisbone_packet *fp, char *header_key, char *
 /* remember to deallocate the returned ogg_packet properly */
 extern int ogg_from_fishead(fishead_packet *fp,ogg_packet *op);
 extern int ogg_from_fisbone(fisbone_packet *fp,ogg_packet *op);
+extern int fisbone_clear(fisbone_packet *fp);
 extern int fishead_from_ogg(ogg_packet *op,fishead_packet *fp);
 extern int fisbone_from_ogg(ogg_packet *op,fisbone_packet *fp);
 extern int add_fishead_to_stream(ogg_stream_state *os, fishead_packet *fp);

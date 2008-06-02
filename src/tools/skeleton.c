@@ -214,6 +214,13 @@ int fisbone_from_ogg(ogg_packet *op, fisbone_packet *fp) {
     return 0;
 }
 
+int fisbone_clear(fisbone_packet *fp)
+{
+    if (!fp) return -1;
+    _ogg_free(fp->message_header_fields);
+    return 0;
+}
+
 int add_fishead_to_stream(ogg_stream_state *os, fishead_packet *fp) {
 
     ogg_packet op;
