@@ -1042,7 +1042,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
-  {"\200kate\0\0\0\0", 9, "Kate", auto_kate, NULL, NULL},
+  {"\200kate\0\0\0", 8, "Kate", auto_kate, NULL, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 
@@ -1138,7 +1138,8 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
         offset = 7;
       break;
     case OGGZ_CONTENT_KATE:
-      if (op->bytes > 9 && memcmp (op->packet, "\201kate\0\0\0\0", 9) == 0) {
+      if (op->bytes > 9 && memcmp (op->packet, "\201kate\0\0\0", 8) == 0) {
+        /* we skip the reserved 0 byte after the signature */
         offset = 9;
       }
       break;

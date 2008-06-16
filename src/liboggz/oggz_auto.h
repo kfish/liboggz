@@ -437,11 +437,11 @@ This was the Theora header for theora-alpha2:
  0                   1                   2                   3
  0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1 2 3 4 5 6 7 8 9 0 1| Byte
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| packtype      | Identifier char[8]: 'kate\0\0\0\0'            | 0-3
+| packtype      | Identifier char[7]: 'kate\0\0\0'              | 0-3
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 | kate magic continued                                          | 4-7
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
-| kate magic    | version major | version minor | num headers   | 8-11
+| reserved - 0  | version major | version minor | num headers   | 8-11
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
 | text encoding | directionality| reserved - 0  | granule shift | 12-15
 +-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+-+
