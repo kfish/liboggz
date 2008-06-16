@@ -245,11 +245,11 @@ ot_kate_info (unsigned char * data, long len)
 
   static const size_t KATE_INFO_BUFFER_LEN =
     1 /* tab */
-  +10 /* "Language: " */
+  +18 /* "Content-Language: " */
   +15 /* 15 chars + NUL for language */
    +1 /* \n */
    +1 /* tab */
-  +10 /* "Category: " */
+  +18 /* "Content-Category: " */
   +15 /* 15 chars + NUL for category */
    +1 /* \n */
    +1;/* terminating NUL */
@@ -260,8 +260,8 @@ ot_kate_info (unsigned char * data, long len)
 
   /* Are these headers coming from some standard ? If so, need to find what should these be for Kate */
   snprintf (buf, KATE_INFO_BUFFER_LEN,
-	    "\tLanguage: %s\n"
-            "\tCategory: %s\n",
+	    "\tContent-Language: %s\n"
+            "\tContent-Category: %s\n",
 	    &data[32], &data[48]);
 
 #undef KATE_INFO_BUFFER_LEN
