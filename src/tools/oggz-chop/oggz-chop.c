@@ -247,6 +247,9 @@ track_state_advance_page_accum (OCTrackState * ts)
     }
   }
 
+  /* If all accumulated pages have no granulepos, keep them */
+  if (earliest_new == 0) return accum_size;
+
   if (earliest_new > accum_size)
     earliest_new = accum_size;
 
