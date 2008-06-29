@@ -288,8 +288,8 @@ ot_skeleton_info (unsigned char * data, long len)
     pres = 0.0;
   }
 
-  base_n = (double)INT64_LE_AT(&data[12]);
-  base_d = (double)INT64_LE_AT(&data[20]);
+  base_n = (double)INT64_LE_AT(&data[28]);
+  base_d = (double)INT64_LE_AT(&data[36]);
   if (base_d != 0.0) {
     base = base_n / base_d;
   } else {
