@@ -40,19 +40,32 @@
  * OCState
  */
 
+typedef enum {
+  OC_INIT = 0, /* Done nothing yet */
+  OC_HEADERS,  /* Done Skeleton BOS, copying media headers */
+  OC_SKIP,     /* Skipping pages before start */
+  OC_WRITTEN_ACCUM, /* Written accum pages */
+  OC_BLAT      /* Copying pages after start */
+} OCStatus;
+
 typedef struct _OCState {
+  OCStatus status;
+
   char * infilename;
   char * outfilename;
 
   fishead_packet fishead;
   OggzTable * tracks;
+
   FILE * outfile;
+  int do_skeleton; /* Boolean: should output contain skeleton? */
+  OGGZ * skeleton_writer;
+  long skeleton_serialno;
 
   double start;
   double end;
 
   int original_had_skeleton;
-  int written_accum;
 } OCState;
 
 

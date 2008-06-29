@@ -48,6 +48,10 @@
 #define OGG_PAGE_CONST(x) ((ogg_page *)x)
 #endif
 
+#ifdef WIN32                                                                   
+#define snprintf _snprintf
+#endif 
+
 /************************************************************
  * OCTrackState
  */
@@ -120,7 +124,7 @@ state_init (OCState * state)
 
   /* Initialize track table and page accumulator */
   state->tracks = oggz_table_new ();
-  state->written_accum = 0;
+  state->status = OC_INIT;
 }
 
 static void
@@ -352,7 +356,7 @@ write_accum (OCState * state)
   ogg_page * og, * min_og;
   double min_time;
 
-  if (state->written_accum) return -1;
+  if (state->status >= OC_WRITTEN_ACCUM) return -1;
 
   /*
    * We create a table of candidate tracks, which are all those which
@@ -421,7 +425,7 @@ write_accum (OCState * state)
 
   oggz_table_delete (candidates);
 
-  state->written_accum = 1;
+  state->status = OC_WRITTEN_ACCUM;
  
   return 0;
 }
@@ -505,8 +509,6 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   int content_type;
   fisbone_packet fisbone;
 
-  fwrite_ogg_page (state->outfile, og);
-
   content_type = oggz_stream_get_content(oggz, serialno);
   if(content_type == OGGZ_CONTENT_SKELETON) {
     if (fisbone_from_ogg_page (og, &fisbone) != -1) {
@@ -516,6 +518,8 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       }
     }
   } else {
+    fwrite_ogg_page (state->outfile, og);
+
     ts = oggz_table_lookup (state->tracks, serialno);
     ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
 
@@ -575,6 +579,30 @@ fishead_update (OCState * state, const ogg_page * og)
   return 0;
 }
 
+static long
+skeleton_write_packet (OCState * state, ogg_packet * op)
+{
+  oggz_write_feed (state->skeleton_writer, op, state->skeleton_serialno,
+                   OGGZ_FLUSH_BEFORE|OGGZ_FLUSH_AFTER, NULL);
+  return oggz_run (state->skeleton_writer);
+}
+
+static long
+fishead_write (OCState * state)
+{
+  ogg_packet op;
+  int ret = -1001;
+
+  if (state->do_skeleton) {
+    ogg_from_fishead (&state->fishead, &op);
+    ret = skeleton_write_packet (state, &op);
+    _ogg_free (op.packet);
+  }
+
+  return ret;
+}
+
+
 static int
 read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
@@ -586,12 +614,21 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (ogg_page_bos (OGG_PAGE_CONST(og))) {
     content_type = oggz_stream_get_content(oggz, serialno);
     if(content_type == OGGZ_CONTENT_SKELETON) {
-      state->original_had_skeleton = 1;
-      fishead_update (state, og);
+      if (state->do_skeleton) {
+        state->original_had_skeleton = 1;
+        state->skeleton_serialno = serialno;
+        fishead_update (state, og);
+      }
     } else {
       ts = track_state_add (state->tracks, serialno);
       fisbone_init (oggz, state, ts, serialno);
       ts->headers_remaining = ts->fisbone.nr_header_packet;
+    }
+
+    /* Write the Skeleton BOS page out */
+    if (state->status == OC_INIT) {
+      fishead_write (state);
+      state->status = OC_HEADERS;
     }
 
     oggz_set_read_page (oggz, serialno, read_headers, state);
@@ -628,7 +665,14 @@ chop (OCState * state)
     }
   }
 
-  /* set up a demux filter */
+  /* Only need the writer if creating skeleton */
+  if (state->do_skeleton) {
+    state->skeleton_writer = oggz_open_stdio (state->outfile, OGGZ_WRITE);
+    /* Choose a serialno that does not appear in the input stream. */
+    state->skeleton_serialno = oggz_serialno_new (oggz);
+  }
+
+  /* set up a demux filter on the reader */
   oggz_set_read_page (oggz, -1, read_bos, state);
 
   oggz_run_set_blocksize (oggz, 1024*1024);
