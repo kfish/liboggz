@@ -219,7 +219,7 @@ This was the Theora header for theora-alpha2:
 */
 
 /**
- * fishead (Annodex version 3.0)
+ * Skeleton BOS page ("fishead", Annodex version 3.0)
  *
  * Default field type: LITTLE ENDIAN unsigned integer
 
@@ -261,7 +261,7 @@ This was the Theora header for theora-alpha2:
 */
 
 /**
- * fisbone (Annodex version 3.0)
+ * Skeleton track info ("fisbone", Annodex version 3.0)
  *
  * Default field type: LITTLE ENDIAN unsigned integer
 
