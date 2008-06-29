@@ -42,10 +42,8 @@
 
 typedef enum {
   OC_INIT = 0, /* Done nothing yet */
-  OC_HEADERS,  /* Done Skeleton BOS, copying media headers */
-  OC_SKIP,     /* Skipping pages before start */
-  OC_WRITTEN_ACCUM, /* Written accum pages */
-  OC_BLAT      /* Copying pages after start */
+  OC_GLUING,  /* Done Skeleton BOS, copying media headers */
+  OC_GLUE_DONE /* Written accum pages, copy remaining data to end */
 } OCStatus;
 
 typedef struct _OCState {

@@ -65,8 +65,6 @@ typedef struct _OCTrackState {
 
   int headers_remaining;
 
-  int rec_skeleton;
-
   /* Greatest previously inferred keyframe value */
   ogg_int64_t prev_keyframe;
 
@@ -432,7 +430,7 @@ write_accum (OCState * state)
   ogg_page * og, * min_og;
   double min_time;
 
-  if (state->status >= OC_WRITTEN_ACCUM) return -1;
+  if (state->status >= OC_GLUE_DONE) return -1;
 
   /*
    * We create a table of candidate tracks, which are all those which
@@ -501,7 +499,7 @@ write_accum (OCState * state)
 
   oggz_table_delete (candidates);
 
-  state->status = OC_WRITTEN_ACCUM;
+  state->status = OC_GLUE_DONE;
  
   return 0;
 }
@@ -517,7 +515,7 @@ chop_glue (OCState * state, OGGZ * oggz)
   long serialno;
   OCTrackState * ts;
 
-  if (state->status < OC_WRITTEN_ACCUM) {
+  if (state->status < OC_GLUE_DONE) {
     /* Write in fisbones */
     fisbones_write (state);
 
@@ -532,7 +530,7 @@ chop_glue (OCState * state, OGGZ * oggz)
     }
   }
 
-  state->status = OC_WRITTEN_ACCUM;
+  state->status = OC_GLUE_DONE;
 
   return 0;
 }
@@ -566,17 +564,10 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   } else if (page_time >= state->start &&
       (state->end == -1 || page_time <= state->end)) {
 
-    if (state->status < OC_WRITTEN_ACCUM) {
+    if (state->status < OC_GLUE_DONE) {
       chop_glue (state, oggz);
     }
 
-    if (!ts->rec_skeleton) {
-#ifdef DEBUG
-      printf ("read_plain: start granule for serialno %010ld: %ld\n",
-              serialno, ts->fisbone.start_granule);
-#endif
-      ts->rec_skeleton = 1;
-    }
     fwrite_ogg_page (state->outfile, og);
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
@@ -614,14 +605,6 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (page_time >= state->start) {
     /* Glue in fisbones, write out accumulated pages */
     chop_glue (state, oggz);
-
-    if (!ts->rec_skeleton) {
-#ifdef DEBUG
-      printf ("read_gs: start granule for serialno %010ld: %ld\n",
-              serialno, ts->fisbone.start_granule);
-#endif
-      ts->rec_skeleton = 1;
-    }
 
     /* Switch to the plain page reader */
     oggz_set_read_page (oggz, serialno, read_plain, state);
@@ -721,7 +704,7 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     /* Write the Skeleton BOS page out */
     if (state->status == OC_INIT) {
       fishead_write (state);
-      state->status = OC_HEADERS;
+      state->status = OC_GLUING;
     }
 
     oggz_set_read_page (oggz, serialno, read_headers, state);
