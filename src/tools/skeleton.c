@@ -196,7 +196,7 @@ int fishead_from_ogg (ogg_packet *op, fishead_packet *fp) {
 }
 
 /* fills up a fishead_packet from a fishead ogg_page of a skeleton bistream */
-int fishead_from_ogg_page (ogg_page *og, fishead_packet *fp) {
+int fishead_from_ogg_page (const ogg_page *og, fishead_packet *fp) {
     return fishead_from_data (og->body, og->body_len, fp);
 }
 
@@ -229,7 +229,7 @@ int fisbone_from_ogg (ogg_packet *op, fisbone_packet *fp) {
 }
 
 /* fills up a fisbone_packet from a fisbone ogg_page of a skeleton bistream */
-int fisbone_from_ogg_page (ogg_page *og, fisbone_packet *fp) {
+int fisbone_from_ogg_page (const ogg_page *og, fisbone_packet *fp) {
     return fisbone_from_data (og->body, og->body_len, fp);
 }
 

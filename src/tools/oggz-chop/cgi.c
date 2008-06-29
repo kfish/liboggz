@@ -137,9 +137,8 @@ cgi_main (OCState * state)
   query_string = getenv ("QUERY_STRING");
   if_modified_since = getenv ("HTTP_IF_MODIFIED_SINCE");
 
+  memset (state, 0, sizeof(*state));
   state->infilename = path_translated;
-  state->outfilename = NULL;
-  state->start = 0.0;
   state->end = -1.0;
 
   /*photo_init (&params->in, path_translated);*/

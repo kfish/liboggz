@@ -44,10 +44,8 @@ cmd_main (OCState * state, int argc, char * argv[])
     return (1);
   }
 
-  state->start = 0.0;
+  memset (state, 0, sizeof(*state));
   state->end = -1.0;
-  state->infilename = NULL;
-  state->outfilename = NULL;
 
   while (1) {
     char * optstring = "s:e:o:hv";

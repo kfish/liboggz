@@ -34,6 +34,8 @@
 
 #include <oggz/oggz.h>
 
+#include "skeleton.h"
+
 /************************************************************
  * OCState
  */
@@ -42,12 +44,14 @@ typedef struct _OCState {
   char * infilename;
   char * outfilename;
 
+  fishead_packet fishead;
   OggzTable * tracks;
   FILE * outfile;
 
   double start;
   double end;
 
+  int original_had_skeleton;
   int written_accum;
 } OCState;
 
