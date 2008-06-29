@@ -140,6 +140,7 @@ cgi_main (OCState * state)
   memset (state, 0, sizeof(*state));
   state->infilename = path_translated;
   state->end = -1.0;
+  state->do_skeleton = 1;
 
   /*photo_init (&params->in, path_translated);*/
 

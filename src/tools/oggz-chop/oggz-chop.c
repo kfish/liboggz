@@ -722,7 +722,6 @@ chop (OCState * state)
 {
   OGGZ * oggz;
 
-  state->do_skeleton = 1;
   state_init (state);
 
   if (strcmp (state->infilename, "-") == 0) {

@@ -23,6 +23,7 @@ usage (char * progname)
   printf ("                         Specify start time\n");
   printf ("  -e end_time, --end end_time\n");
   printf ("                         Specify end time\n");
+  printf ("  -k , --no-skeleton     Do NOT include a Skeleton bitstream in the output");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
@@ -46,15 +47,17 @@ cmd_main (OCState * state, int argc, char * argv[])
 
   memset (state, 0, sizeof(*state));
   state->end = -1.0;
+  state->do_skeleton = 1;
 
   while (1) {
-    char * optstring = "s:e:o:hv";
+    char * optstring = "s:e:o:khv";
 
 #ifdef HAVE_GETOPT_LONG
     static struct option long_options[] = {
       {"start",   required_argument, 0, 's'},
       {"end",   required_argument, 0, 'e'},
       {"output",   required_argument, 0, 'o'},
+      {"no-skeleton",   no_argument, 0, 'k'},
       {"help",     no_argument, 0, 'h'},
       {"version",  no_argument, 0, 'v'},
       {0,0,0,0}
@@ -76,6 +79,9 @@ cmd_main (OCState * state, int argc, char * argv[])
       break;
     case 'e': /* end */
       state->end = parse_timespec (optarg);
+      break;
+    case 'k': /* no-skeleton */
+      state->do_skeleton = 0;
       break;
     case 'h': /* help */
       show_help = 1;

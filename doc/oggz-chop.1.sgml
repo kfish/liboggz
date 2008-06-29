@@ -77,6 +77,8 @@ manpage.1: manpage.sgml
 	<arg choice="opt">--end <parameter>end_time</parameter></arg>
       </group>
 
+      <group><arg choice="opt">-k</arg><arg choice="opt">--no-skeleton</arg></group>
+
       <arg choice="plain">filename</arg>
     </cmdsynopsis>
 
@@ -108,6 +110,10 @@ manpage.1: manpage.sgml
       data page included in the output. It does however ensure to set the
       end of stream flag on the last page of each logical bitstream.
     </para>
+    <para>
+      Skeleton handling: By default, the output will contain a Skeleton track
+      specifying the start of the chop as presentation time.
+    </para>
   </refsect1>
   
   <refsect1>
@@ -136,6 +142,12 @@ manpage.1: manpage.sgml
 	<varlistentry>
 	  <term>-e <parameter>end_time</parameter>, --end <parameter>end_time</parameter></term>
 	  <listitem><para>Specify the end time of the chopped section to output.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-k , --no-skeleton</term>
+	  <listitem><para>Do NOT include a Skeleton bitstream in the output.
 	    </para></listitem>
 	</varlistentry>
       </variablelist>
