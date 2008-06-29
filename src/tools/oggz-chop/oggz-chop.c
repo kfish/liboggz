@@ -509,10 +509,12 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   content_type = oggz_stream_get_content(oggz, serialno);
   if(content_type == OGGZ_CONTENT_SKELETON) {
-    fisbone_from_ogg_page (og, &fisbone);
-    ts = oggz_table_lookup (state->tracks, fisbone.serial_no);
-    ts->fisbone.current_header_size = fisbone.current_header_size;
-    ts->fisbone.message_header_fields = fisbone.message_header_fields;
+    if (fisbone_from_ogg_page (og, &fisbone) != -1) {
+      if ((ts = oggz_table_lookup (state->tracks, fisbone.serial_no)) != NULL) {
+        ts->fisbone.current_header_size = fisbone.current_header_size;
+        ts->fisbone.message_header_fields = fisbone.message_header_fields;
+      }
+    }
   } else {
     ts = oggz_table_lookup (state->tracks, serialno);
     ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
