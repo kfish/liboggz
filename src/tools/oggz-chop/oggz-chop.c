@@ -56,6 +56,7 @@ typedef struct _OCTrackState {
 
   int headers_remaining;
 
+  int rec_skeleton;
   long start_granule;
 
   /* Greatest previously inferred keyframe value */
@@ -237,7 +238,7 @@ track_state_advance_page_accum (OCTrackState * ts)
   for (i = accum_size-1; i >= 0; i--) {
     pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
 
-    /* If we have a page with granulepos, it is necessarily contains the end
+    /* If we have a page with granulepos, it necessarily contains the end
      * of a packet from an earlier GOP, and thus this is the last page that
      * we need to recover.
      */
@@ -247,7 +248,8 @@ track_state_advance_page_accum (OCTrackState * ts)
     }
   }
 
-  /* If all accumulated pages have no granulepos, keep them */
+  /* If all accumulated pages have no granulepos, keep them,
+   * and do not modify start_granule */
   if (earliest_new == 0) return accum_size;
 
   if (earliest_new > accum_size)
@@ -256,6 +258,11 @@ track_state_advance_page_accum (OCTrackState * ts)
   /* Delete the rest */
   for (i = earliest_new-1; i >= 0; i--) {
     pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
+    /* Record this track's start_granule as the granulepos of the page prior
+     * to earliest_new */
+    if (i == (earliest_new-1)) {
+      ts->start_granule = ogg_page_granulepos (pa->og);
+    }
     page_accum_delete(pa);
     oggz_table_remove (ts->page_accum, (long)i);
   }
@@ -285,19 +292,29 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OCState * state = (OCState *)user_data;
   OCTrackState * ts;
   double page_time;
+  long gp;
 
   ts = oggz_table_lookup (state->tracks, serialno);
 
   page_time = oggz_tell_units (oggz) / 1000.0;
 
-#if 0
+#ifdef DEBUG
   printf ("page_time: %g\tspan (%g, %g)\n", page_time, state->start, state->end);
   printf ("\tpageno: %d, numheaders %d\n", ogg_page_pageno(og),
           oggz_stream_get_numheaders (oggz, serialno));
 #endif
 
-  if (page_time >= state->start &&
+  if (page_time < state->start) {
+    if ((gp = ogg_page_granulepos (og)) != -1)
+      ts->start_granule = ogg_page_granulepos (og);
+  } else if (page_time >= state->start &&
       (state->end == -1 || page_time <= state->end)) {
+    if (!ts->rec_skeleton) {
+#ifdef DEBUG
+      printf ("read_plain: start granule for serialno %010ld: %ld\n", serialno, ts->start_granule);
+#endif
+      ts->rec_skeleton = 1;
+    }
     fwrite_ogg_page (state->outfile, og);
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
@@ -420,6 +437,13 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (page_time >= state->start) {
     /* Write out accumulated pages */
     write_accum (state);
+
+    if (!ts->rec_skeleton) {
+#ifdef DEBUG
+      printf ("read_gs: start granule for serialno %010ld: %ld\n", serialno, ts->start_granule);
+#endif
+      ts->rec_skeleton = 1;
+    }
 
     /* Switch to the plain page reader */
     oggz_set_read_page (oggz, serialno, read_plain, state);
