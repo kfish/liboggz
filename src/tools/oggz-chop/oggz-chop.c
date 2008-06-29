@@ -119,7 +119,7 @@ static void
 state_init (OCState * state)
 {
   /* Initialize fishead presentation time */
-  state->fishead.ptime_n = state->start / (ogg_int64_t)1000;
+  state->fishead.ptime_n = state->start * (ogg_int64_t)1000;
   state->fishead.ptime_d = 1000;
 
   /* Initialize track table and page accumulator */
@@ -294,56 +294,132 @@ track_state_advance_page_accum (OCTrackState * ts)
 }
 
 /************************************************************
- * chop
+ * Skeleton
  */
 
-/*
- * OggzReadPageCallback read_plain
- *
- * A page reading callback for tracks without granuleshift.
- */
-static int
-read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+static long
+skeleton_write_packet (OCState * state, ogg_packet * op)
 {
-  OCState * state = (OCState *)user_data;
-  OCTrackState * ts;
-  double page_time;
-  long gp;
+  int iret;
+  long ret;
 
-  ts = oggz_table_lookup (state->tracks, serialno);
+  op->packetno = -1;
+  iret = oggz_write_feed (state->skeleton_writer, op, state->skeleton_serialno,
+                          OGGZ_FLUSH_BEFORE|OGGZ_FLUSH_AFTER, NULL);
 
-  page_time = oggz_tell_units (oggz) / 1000.0;
+  ret = oggz_run (state->skeleton_writer);
+  fflush (state->outfile);
 
-#ifdef DEBUG
-  printf ("page_time: %g\tspan (%g, %g)\n", page_time, state->start, state->end);
-  printf ("\tpageno: %d, numheaders %d\n", ogg_page_pageno(og),
-          oggz_stream_get_numheaders (oggz, serialno));
-#endif
+  return ret;
+}
 
-  if (page_time < state->start) {
-    if ((gp = ogg_page_granulepos (og)) != -1)
-      ts->fisbone.start_granule = ogg_page_granulepos (og);
-  } else if (page_time >= state->start &&
-      (state->end == -1 || page_time <= state->end)) {
-    if (!ts->rec_skeleton) {
-#ifdef DEBUG
-      printf ("read_plain: start granule for serialno %010ld: %ld\n",
-              serialno, ts->fisbone.start_granule);
-#endif
-      ts->rec_skeleton = 1;
-    }
-    fwrite_ogg_page (state->outfile, og);
-  } else if (state->end != -1.0 && page_time > state->end) {
-    /* This is the first page past the end time; set EOS */
-    _ogg_page_set_eos (og);
-    fwrite_ogg_page (state->outfile, og);
+const char * type_names[] = {
+  "video/theora",
+  "audio/vorbis",
+  "audio/speex",
+  "audio/x-oggpcm",
+  "text/cmml",
+  "application/x-annodex-2",
+  NULL, /* Skeleton */
+  "audio/flac",
+  "audio/flac",
+  NULL, /* AnxData */
+  "audio/celt",
+  "application/x-kate",
+  NULL /* UNKNOWN */
+};
 
-    /* Stop handling this track */
-    oggz_set_read_page (oggz, serialno, NULL, NULL);
+static int
+fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
+{
+  OggzStreamContent content_type;
+  const char * name;
+  int len;
+
+  if (ts == NULL) return -1;
+
+  ts->fisbone.serial_no = serialno;
+  ts->fisbone.nr_header_packet = oggz_stream_get_numheaders (oggz, serialno);
+  oggz_get_granulerate (oggz, serialno, &ts->fisbone.granule_rate_n, &ts->fisbone.granule_rate_d);
+  ts->fisbone.start_granule = 0;
+  ts->fisbone.preroll = 0;
+  ts->fisbone.granule_shift = (unsigned char) oggz_get_granuleshift (oggz, serialno);
+  if (state->original_had_skeleton) {
+    /* Wait, and copy over message headers from original */
+    ts->fisbone.message_header_fields = NULL;
+    ts->fisbone.current_header_size = FISBONE_SIZE;
+  } else {
+    /* XXX: C99 */
+#define CONTENT_TYPE_FMT "Content-Type: %s\r\n"
+    content_type = oggz_stream_get_content (oggz, serialno);
+    name = type_names[content_type];
+    len = snprintf (NULL, 0, CONTENT_TYPE_FMT, name);
+    ts->fisbone.message_header_fields = malloc(len+1);
+    snprintf (ts->fisbone.message_header_fields, len+1, CONTENT_TYPE_FMT, name);
+    ts->fisbone.current_header_size = len+1;
   }
 
-  return OGGZ_CONTINUE;
+  return 0;
 }
+
+static long
+fisbones_write (OCState * state)
+{
+  OCTrackState * ts;
+  long serialno;
+  ogg_packet op;
+  int i, ntracks, ret = -1001;
+
+  if (!state->do_skeleton) return -1;
+
+  ntracks = oggz_table_size (state->tracks);
+
+  /* Write fisbones */
+  for (i=0; i < ntracks; i++) {
+    ts = oggz_table_nth (state->tracks, i, &serialno);
+    ret = ogg_from_fisbone (&ts->fisbone, &op);
+    ret = skeleton_write_packet (state, &op);
+    _ogg_free (op.packet);
+  }
+
+  /* Write Skeleton EOS page */
+  memset (&op, 0, sizeof(op));
+  op.e_o_s = 1;
+  ret = skeleton_write_packet (state, &op);
+
+  return ret;
+}
+
+static int
+fishead_update (OCState * state, const ogg_page * og)
+{
+  fishead_packet fishead;
+
+  fishead_from_ogg_page (og, &fishead);
+  state->fishead.btime_n = fishead.btime_n;
+  state->fishead.btime_d = fishead.btime_d;
+
+  return 0;
+}
+
+static long
+fishead_write (OCState * state)
+{
+  ogg_packet op;
+  int ret = -1001;
+
+  if (state->do_skeleton) {
+    ogg_from_fishead (&state->fishead, &op);
+    ret = skeleton_write_packet (state, &op);
+    _ogg_free (op.packet);
+  }
+
+  return ret;
+}
+
+/************************************************************
+ * chop
+ */
 
 static int
 write_accum (OCState * state)
@@ -430,6 +506,90 @@ write_accum (OCState * state)
   return 0;
 }
 
+/* Forward declaration */
+static int
+read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data);
+
+static int
+chop_glue (OCState * state, OGGZ * oggz)
+{
+  int i, ntracks;
+  long serialno;
+  OCTrackState * ts;
+
+  if (state->status < OC_WRITTEN_ACCUM) {
+    /* Write in fisbones */
+    fisbones_write (state);
+
+    /* Write out accumulated pages */
+    write_accum (state);
+
+    /* Switch all tracks to the plain page reader */
+    ntracks = oggz_table_size (state->tracks);
+    for (i=0; i < ntracks; i++) {
+      ts = oggz_table_nth (state->tracks, i, &serialno);
+      oggz_set_read_page (oggz, serialno, read_plain, state);
+    }
+  }
+
+  state->status = OC_WRITTEN_ACCUM;
+
+  return 0;
+}
+
+/*
+ * OggzReadPageCallback read_plain
+ *
+ * A page reading callback for tracks without granuleshift.
+ */
+static int
+read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  OCState * state = (OCState *)user_data;
+  OCTrackState * ts;
+  double page_time;
+  long gp;
+
+  ts = oggz_table_lookup (state->tracks, serialno);
+
+  page_time = oggz_tell_units (oggz) / 1000.0;
+
+#ifdef DEBUG
+  printf ("page_time: %g\tspan (%g, %g)\n", page_time, state->start, state->end);
+  printf ("\tpageno: %d, numheaders %d\n", ogg_page_pageno(og),
+          oggz_stream_get_numheaders (oggz, serialno));
+#endif
+
+  if (page_time < state->start) {
+    if ((gp = ogg_page_granulepos (og)) != -1)
+      ts->fisbone.start_granule = ogg_page_granulepos (og);
+  } else if (page_time >= state->start &&
+      (state->end == -1 || page_time <= state->end)) {
+
+    if (state->status < OC_WRITTEN_ACCUM) {
+      chop_glue (state, oggz);
+    }
+
+    if (!ts->rec_skeleton) {
+#ifdef DEBUG
+      printf ("read_plain: start granule for serialno %010ld: %ld\n",
+              serialno, ts->fisbone.start_granule);
+#endif
+      ts->rec_skeleton = 1;
+    }
+    fwrite_ogg_page (state->outfile, og);
+  } else if (state->end != -1.0 && page_time > state->end) {
+    /* This is the first page past the end time; set EOS */
+    _ogg_page_set_eos (og);
+    fwrite_ogg_page (state->outfile, og);
+
+    /* Stop handling this track */
+    oggz_set_read_page (oggz, serialno, NULL, NULL);
+  }
+
+  return OGGZ_CONTINUE;
+}
+
 /*
  * OggzReadPageCallback read_gs
  *
@@ -452,8 +612,8 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   accum_size = oggz_table_size (ts->page_accum);
 
   if (page_time >= state->start) {
-    /* Write out accumulated pages */
-    write_accum (state);
+    /* Glue in fisbones, write out accumulated pages */
+    chop_glue (state, oggz);
 
     if (!ts->rec_skeleton) {
 #ifdef DEBUG
@@ -506,7 +666,7 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OCState * state = (OCState *)user_data;
   OCTrackState * ts;
-  int content_type;
+  OggzStreamContent content_type;
   fisbone_packet fisbone;
 
   content_type = oggz_stream_get_content(oggz, serialno);
@@ -537,79 +697,12 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 static int
-fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
-{
-  const char * content_type;
-  int len;
-
-  if (ts == NULL) return -1;
-
-  ts->fisbone.serial_no = serialno;
-  ts->fisbone.nr_header_packet = oggz_stream_get_numheaders (oggz, serialno);
-  oggz_get_granulerate (oggz, serialno, &ts->fisbone.granule_rate_n, &ts->fisbone.granule_rate_d);
-  ts->fisbone.start_granule = 0;
-  ts->fisbone.preroll = 0;
-  ts->fisbone.granule_shift = (unsigned char) oggz_get_granuleshift (oggz, serialno);
-  if (state->original_had_skeleton) {
-    /* Wait, and copy over message headers from original */
-    ts->fisbone.message_header_fields = NULL;
-    ts->fisbone.current_header_size = FISBONE_SIZE;
-  } else {
-    /* XXX: C99 */
-#define CONTENT_TYPE_FMT "Content-Type: %s\r\n"
-    content_type = oggz_stream_get_content_type (oggz, serialno);
-    len = snprintf (NULL, 0, CONTENT_TYPE_FMT, content_type);
-    ts->fisbone.message_header_fields = malloc(len+1);
-    snprintf (ts->fisbone.message_header_fields, len+1, CONTENT_TYPE_FMT, content_type);
-    ts->fisbone.current_header_size = len+1;
-  }
-
-  return 0;
-}
-
-static int
-fishead_update (OCState * state, const ogg_page * og)
-{
-  fishead_packet fishead;
-
-  fishead_from_ogg_page (og, &fishead);
-  state->fishead.btime_n = fishead.btime_n;
-  state->fishead.btime_d = fishead.btime_d;
-
-  return 0;
-}
-
-static long
-skeleton_write_packet (OCState * state, ogg_packet * op)
-{
-  oggz_write_feed (state->skeleton_writer, op, state->skeleton_serialno,
-                   OGGZ_FLUSH_BEFORE|OGGZ_FLUSH_AFTER, NULL);
-  return oggz_run (state->skeleton_writer);
-}
-
-static long
-fishead_write (OCState * state)
-{
-  ogg_packet op;
-  int ret = -1001;
-
-  if (state->do_skeleton) {
-    ogg_from_fishead (&state->fishead, &op);
-    ret = skeleton_write_packet (state, &op);
-    _ogg_free (op.packet);
-  }
-
-  return ret;
-}
-
-
-static int
 read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OCState * state = (OCState *)user_data;
   OCTrackState * ts;
   double page_time;
-  int content_type;
+  OggzStreamContent content_type;
 
   if (ogg_page_bos (OGG_PAGE_CONST(og))) {
     content_type = oggz_stream_get_content(oggz, serialno);
@@ -646,6 +739,7 @@ chop (OCState * state)
 {
   OGGZ * oggz;
 
+  state->do_skeleton = 1;
   state_init (state);
 
   if (strcmp (state->infilename, "-") == 0) {
@@ -679,6 +773,11 @@ chop (OCState * state)
   oggz_run (oggz);
 
   oggz_close (oggz);
+
+#if 0
+  if (state->do_skeleton)
+    oggz_close (state->skeleton_writer);
+#endif
 
   if (state->outfilename != NULL) {
     fclose (state->outfile);
