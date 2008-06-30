@@ -441,7 +441,9 @@ read_packet_pass2 (OGGZ * oggz, ogg_packet * op, long serialno,
 static int
 oi_pass1 (OGGZ * oggz, OI_Info * info)
 {
-  long n;
+  long n, serialno;
+  int ntracks, i;
+  OI_TrackInfo * oit;
 
   oggz_seek (oggz, 0, SEEK_SET);
   oggz_set_read_page (oggz, -1, read_page_pass1, info);
@@ -450,6 +452,19 @@ oi_pass1 (OGGZ * oggz, OI_Info * info)
   while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
   oggzinfo_apply (oit_calc_average, info);
+
+  /* Now we are at the end of the file, calculate the duration */
+  info->duration = oggz_tell_units (oggz);
+
+  /* Find the Skeleton track if present, and subtract the presentation time */
+  ntracks = oggz_table_size (info->tracks);
+  for (i = 0; i < ntracks; i++) {
+    oit = oggz_table_nth (info->tracks, i, &serialno);
+    if (oit->has_fishead) {
+      info->duration -= 1000 * oit->fhInfo.ptime_n / oit->fhInfo.ptime_d;
+      break;
+    }
+  }
 
   return 0;
 }
@@ -597,8 +612,6 @@ main (int argc, char ** argv)
     
     oi_pass1 (oggz, &info);
 
-    info.duration = oggz_tell_units (oggz);
-    
     oi_pass2 (oggz, &info);
     
     /* Print summary information */
