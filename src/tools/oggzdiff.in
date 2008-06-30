@@ -180,8 +180,8 @@ if test "x$VERBOSE" != "x"; then
   echo >&2 "DIFF_OPTIONS: " $DIFFOPTS
 fi
 
-FIFO1="${TMPDIR:-/tmp}/`basename $1`.dump-$$"
-FIFO2="${TMPDIR:-/tmp}/`basename $2`.dump-$$"
+FIFO1="${TMPDIR:-/tmp}/`basename $1`.dump-1-$$"
+FIFO2="${TMPDIR:-/tmp}/`basename $2`.dump-2-$$"
 
 exec 5>$FIFO1
 exec 6>$FIFO2
