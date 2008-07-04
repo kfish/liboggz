@@ -2,6 +2,7 @@
 
 INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
            -I$(top_srcdir)/include -I$(top_srcdir)/src/tools \
+           -I$(top_srcdir)/src/tests \
            @OGG_CFLAGS@
 
 OGGZDIR = ../../liboggz
@@ -24,7 +25,7 @@ TESTS = httpdate_test
 
 noinst_HEADERS = cgi.h cmd.h header.h httpdate.h oggz-chop.h timespec.h
 
-oggz_chop_SOURCES = oggz-chop.c ../oggz_tools.c ../skeleton.c \
+oggz_chop_SOURCES = oggz-chop.c $(srcdir)/../oggz_tools.c $(srcdir)/../skeleton.c \
                     cmd.c cgi.c header.c httpdate.c main.c timespec.c
 oggz_chop_LDADD = $(OGGZ_LIBS) -lm
 

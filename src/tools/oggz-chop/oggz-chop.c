@@ -168,12 +168,12 @@ _ogg_page_free (const ogg_page * og)
 }
 
 static void
-_ogg_page_set_eos (const ogg_page * og)
+_ogg_page_set_eos (ogg_page * og)
 {
   if (og == NULL) return;
 
   og->header[5] |= 0x04;
-  ogg_page_checksum_set (OGG_PAGE_CONST(og));
+  ogg_page_checksum_set (og);
 }
 
 static void
@@ -571,7 +571,7 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     fwrite_ogg_page (state->outfile, og);
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
-    _ogg_page_set_eos (og);
+    _ogg_page_set_eos ((ogg_page *)og);
     fwrite_ogg_page (state->outfile, og);
 
     /* Stop handling this track */
