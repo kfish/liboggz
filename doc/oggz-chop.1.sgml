@@ -48,7 +48,7 @@ manpage.1: manpage.sgml
 
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>Chop an Ogg file.
+    <refpurpose>Extract the part of an Ogg file between given start and/or end times.
     </refpurpose>
   </refnamediv>
 

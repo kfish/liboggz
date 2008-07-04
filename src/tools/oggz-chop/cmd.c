@@ -15,7 +15,7 @@ static void
 usage (char * progname)
 {
   printf ("Usage: %s [options] filename\n", progname);
-  printf ("Chop an Ogg file.\n");
+  printf ("Extract the part of an Ogg file between given start and/or end times.\n");
   printf ("\nOutput options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");
