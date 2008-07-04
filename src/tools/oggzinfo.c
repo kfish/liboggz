@@ -53,7 +53,7 @@
 #define READ_BLOCKSIZE 1024000
 
 static void
-usage (char * progname)
+usage (const char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
   printf ("Display information about one or more Ogg files and their bitstreams\n");
@@ -97,6 +97,7 @@ struct _OI_Info {
   OggzTable * tracks;
   ogg_int64_t duration;
   long length_total;
+  long overhead_length_total;
 };
 
 struct _OI_Stats {
@@ -105,6 +106,7 @@ struct _OI_Stats {
   long length_total;
   long length_min;
   long length_max;
+  long overhead_length_total;
 
   /* Pass 2 */
   long length_avg;
@@ -151,6 +153,7 @@ oi_stats_clear (OI_Stats * stats)
   stats->length_total = 0;
   stats->length_min = LONG_MAX;
   stats->length_max = 0;
+  stats->overhead_length_total = 0;
 
   stats->length_avg = 0;
   stats->length_deviation_total = 0;
@@ -255,9 +258,10 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
   } else {
     printf ("\n???: serialno %010ld\n", serialno);
   }
-  printf ("\t%ld packets in %ld pages, %.1f packets/page\n",
+  printf ("\t%ld packets in %ld pages, %.1f packets/page, %.3f%% Ogg overhead\n",
 	  oit->packets.count, oit->pages.count,
-	  (double)oit->packets.count / (double)oit->pages.count);
+	  (double)oit->packets.count / (double)oit->pages.count,
+          oit->pages.length_stddev == 0 ? 0.0 : 100.0*oit->pages.overhead_length_total/oit->pages.length_total);
 
   if (show_length) {
     fputs("\tContent-Length: ", stdout);
@@ -351,6 +355,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
 
   /* Increment the total stream length */
   info->length_total += bytes;
+  info->overhead_length_total += og->header_len;
 
   /* Increment the page statistics */
   oit->pages.count++;
@@ -359,6 +364,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
     oit->pages.length_min = bytes;
   if (bytes > oit->pages.length_max)
     oit->pages.length_max = bytes;
+  oit->pages.overhead_length_total += og->header_len;
 
   return 0;
 }
@@ -609,6 +615,7 @@ main (int argc, char ** argv)
     info.oggz = oggz;
     info.tracks = oggz_table_new ();
     info.length_total = 0;
+    info.overhead_length_total = 0;
     
     oi_pass1 (oggz, &info);
 
