@@ -102,7 +102,7 @@
 #define TYPEOF_OGGZ_OFF_T off_t
 
 /* Version number of package */
-#define VERSION "0.9.4"
+#define VERSION "0.9.8"
 
 /* Define to 1 if your processor stores words with the most significant byte
    first (like Motorola and SPARC, unlike Intel and VAX). */
