@@ -1,8 +1,8 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
 if HAVE_DOCBOOKTOMAN
-man_MANS = oggzdiff.1 oggzdump.1 oggzinfo.1 oggzmerge.1 oggz-chop.1 \
-	oggz-sort.1 oggzrip.1 oggz-comment.1 oggz-scan.1 oggz-validate.1
+man_MANS = oggz-diff.1 oggz-dump.1 oggz-info.1 oggz-merge.1 oggz-chop.1 \
+	oggz-sort.1 oggz-rip.1 oggz-comment.1 oggz-scan.1 oggz-validate.1
 else
 man_MANS =
 check:
@@ -13,16 +13,16 @@ endif
 EXTRA_DIST = $(man_MANS) Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
-	oggzdiff.1.sgml oggzdump.1.sgml oggzinfo.1.sgml oggzmerge.1.sgml \
-	oggz-chop.1.sgml oggz-sort.1.sgml oggzrip.1.sgml oggz-comment.1.sgml \
+	oggz-diff.1.sgml oggz-dump.1.sgml oggz-info.1.sgml oggz-merge.1.sgml \
+	oggz-chop.1.sgml oggz-sort.1.sgml oggz-rip.1.sgml oggz-comment.1.sgml \
         oggz-scan.1.sgml oggz-validate.1.sgml
 
 # ensure doxygen-build.stamp is included,  or else the documentation will
 # not be built or distributed
 noinst_DATA = doxygen-build.stamp
 
-html: oggzdiff.1.html oggzdump.1.html oggzinfo.1.html oggzmerge.1.html \
-	oggz-chop.1.html oggz-sort.1.html oggzrip.1.html oggz-comment.1.html \
+html: oggz-diff.1.html oggz-dump.1.html oggz-info.1.html oggz-merge.1.html \
+	oggz-chop.1.html oggz-sort.1.html oggz-rip.1.html oggz-comment.1.html \
 	oggz-scan.1.html oggz-validate.1.html
 
 if HAVE_DOCBOOKTOMAN

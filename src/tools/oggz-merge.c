@@ -52,7 +52,7 @@
 #define READ_SIZE 4096
 
 #define ALL_VORBIS_WARNING \
-  "oggzmerge: WARNING: Merging Ogg Vorbis I files. The resulting file will\n" \
+  "oggz-merge: WARNING: Merging Ogg Vorbis I files. The resulting file will\n" \
   "  contain %d tracks in parallel, interleaved for simultaneous playback.\n"\
   "  If you want to sequence these files one after another, use cat instead.\n"
 

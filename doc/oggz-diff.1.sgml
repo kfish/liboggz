@@ -18,13 +18,13 @@ manpage.1: manpage.sgml
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
   <!ENTITY dhemail     "<email>conrad.parker@csiro.au</email>">
   <!ENTITY dhusername  "CSIRO Australia">
-  <!ENTITY dhucpackage "<refentrytitle>oggzdump</refentrytitle>">
-  <!ENTITY dhpackage   "oggzdump">
+  <!ENTITY dhucpackage "<refentrytitle>oggz-diff</refentrytitle>">
+  <!ENTITY dhpackage   "oggz-diff">
                                                                                  <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
   <!ENTITY gnu         "<acronym>GNU</acronym>">
 ]>
 
-<refentry id="oggzdump">
+<refentry id="oggz-diff">
 
   <refentryinfo>
     <address>
@@ -48,8 +48,7 @@ manpage.1: manpage.sgml
 
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>Hexdump packets of an Ogg file, or revert an Ogg file from
-      such a hexdump
+    <refpurpose>Hexdump the packets of two Ogg files and output differences
     </refpurpose>
   </refnamediv>
 
@@ -62,6 +61,27 @@ manpage.1: manpage.sgml
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>&dhpackage;</command>
+
+      <arg choice="opt">options</arg>
+      <arg choice="opt">OGGZDUMP_OPTIONS</arg>
+      <arg choice="opt">DIFF_OPTIONS</arg>
+
+      <arg choice="plain">file1.ogg</arg>
+      <arg choice="plain">file2.ogg</arg>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command><parameter>options:</parameter></command>
+
+      <group><arg choice="opt">--verbose</arg></group>
+      <group>
+	<arg choice="opt">-v</arg><arg choice="opt">--version</arg>
+      </group>
+      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
+    </cmdsynopsis>
+
+    <cmdsynopsis>
+      <command><parameter>OGGZDUMP_OPTIONS:</parameter></command>
       
       <group>
 	<arg choice="opt">-b</arg><arg choice="opt">--binary</arg>
@@ -69,23 +89,15 @@ manpage.1: manpage.sgml
       <group>
 	<arg choice="opt">-x</arg><arg choice="opt">--hexadecimal</arg>
       </group>
+
       <group>
-	<arg choice="opt">-n</arg><arg choice="opt">--new</arg>
+	<arg choice="opt">-c content-type</arg>
+	<arg choice="opt">--content-type content-type</arg>
       </group>
 
       <group>
-	<arg choice="opt">-o <parameter>filename</parameter></arg>
-	<arg choice="opt">--output <parameter>filename</parameter></arg>
-      </group>
-
-      <group>
-	<arg choice="opt">-c <parameter>content-type</parameter></arg>
-	<arg choice="opt">--content-type <parameter>content-type</parameter></arg>
-      </group>
-
-      <group>
-	<arg choice="opt">-s <parameter>serialno</parameter></arg>
-	<arg choice="opt">--serialno <parameter>serialno</parameter></arg>
+	<arg choice="opt">-s serialno</arg>
+	<arg choice="opt">--serialno serialno</arg>
       </group>
 
       <group>
@@ -100,49 +112,68 @@ manpage.1: manpage.sgml
       <group>
 	<arg choice="opt">-P</arg><arg choice="opt">--hide-packetno</arg>
       </group>
-
-      <arg choice="plain">filename</arg>
-    </cmdsynopsis>
-    <cmdsynopsis>
-      <command>&dhpackage;</command>
-
-      <group>
-	<arg choice="opt">-r</arg><arg choice="opt">--revert</arg>
-      </group>
-      
-      <group>
-	<arg choice="opt">-o <parameter>filename</parameter></arg>
-	<arg choice="opt">--output <parameter>filename</parameter></arg>
-      </group>
-      
-      <arg choice="plain">filename</arg>
     </cmdsynopsis>
 
     <cmdsynopsis>
-      <command>&dhpackage;</command>
-      <group><arg choice="opt">-h</arg><arg choice="opt">--help</arg></group>
-      <group><arg choice="opt">-v</arg><arg choice="opt">--version</arg></group>
+      <command><parameter>DIFF_OPTIONS:</parameter></command>
+
+      <group>
+	<arg choice="opt">-q</arg><arg choice="opt">--brief</arg>
+      </group>
+
+      <group>
+	<arg choice="opt">-C NUM</arg>
+	<arg choice="opt">--context[=NUM]</arg>
+      </group>
+
+      <group>
+	<arg choice="opt">-u</arg>
+	<arg choice="opt">-U NUM</arg>
+	<arg choice="opt">--unified[=NUM]</arg>
+      </group>
+
+      <group><arg choice="opt">-e</arg><arg choice="opt">--ed</arg></group>
+      <group><arg choice="opt">--normal</arg></group>
+      <group><arg choice="opt">--rcs</arg></group>
+      <group>
+	<arg choice="opt">-y</arg><arg choice="opt">--side-by-side</arg>
+      </group>
+      <group>
+	<arg choice="opt">-l</arg><arg choice="opt">--paginate</arg>
+      </group>
     </cmdsynopsis>
-    
+
+
   </refsynopsisdiv>
     
   <refsect1>
     <title>Description</title>
     <para>
-      <command>&dhpackage;</command> generates a hexadecimal or binary dump
-      of packets in an Ogg file, or creates an Ogg file from a hexadecimal
-      oggzdump file.
+      <command>&dhpackage;</command> is a <command>sh</command> script which
+      uses <command>oggzdump</command> to generate hexadecimal packet dumps
+      of each input file, then outputs the difference between these dumps
+      using <command>diff</command>.
     </para>
   </refsect1>
   
   <refsect1>
     <title>Options</title>
     <para>
-      <command>&dhpackage;</command> accepts the following options:
+      <command>&dhpackage;</command> forwards a subset of options
+      accepted by <command>oggzdump</command> and <command>diff</command>.
+      See
+      <citerefentry>
+	<refentrytitle>oggzdump</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry> and
+      <citerefentry>
+	<refentrytitle>diff</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry> for more detail.
     </para>
     
     <refsect2>
-      <title>Dump format options</title>
+      <title>oggzdump format options</title>
       <variablelist>
 	
 	<varlistentry>
@@ -152,7 +183,7 @@ manpage.1: manpage.sgml
 	</varlistentry>
 
 	<varlistentry>
-	  <term>-x, --hexadecimal</term>
+	  <term>-x, --hexadeciaml</term>
 	  <listitem><para>Generate a hexadecimal dump of each packet
 	    </para></listitem>
 	</varlistentry>
@@ -161,17 +192,9 @@ manpage.1: manpage.sgml
     </refsect2>
 
     <refsect2>
-      <title>Filtering options</title>
+      <title>oggzdump filtering options</title>
       <variablelist>
 	
-	<varlistentry>
-	  <term>-n, --new</term>
-	  <listitem><para>Only dump the first packet of each new logical
-	      bitstream found; for correctly formed Ogg files, this dumps
-	      only the beginning-of-stream packets.
-	    </para></listitem>
-	</varlistentry>
-
 	<varlistentry>
 	  <term>-c <parameter>content-type</parameter>, --content-type <parameter>content-type</parameter></term>
 	  <listitem><para>Dump only the logical bitstreams for a specific
@@ -190,26 +213,16 @@ manpage.1: manpage.sgml
 	<varlistentry>
 	  <term>-O, --hide-offset</term>
 	  <listitem><para>Hide the byte offset field of the preamble for
-	      each packet dumped. This is particularly useful in
-	      conjunction with
-	      <citerefentry>
-		<refentrytitle>oggzdiff</refentrytitle>
-		<manvolnum>1</manvolnum>
-	      </citerefentry> when comparing Ogg bitstreams that differ
-	      only in page structure.
+	      each packet dumped. This is particularly useful when comparing
+	      Ogg bitstreams that differ only in page structure.
 	    </para></listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>-S, --hide-serialno</term>
 	  <listitem><para>Hide the serialno field of the preamble for
-	      each packet dumped. This is particularly useful in
-	      conjunction with
-	      <citerefentry>
-		<refentrytitle>oggzdiff</refentrytitle>
-		<manvolnum>1</manvolnum>
-	      </citerefentry> when comparing Ogg bitstreams that differ
-	      only in serialno assignment.
+	      each packet dumped. This is particularly useful when comparing
+	      Ogg bitstreams that differ only in serialno assignment.
 	    </para></listitem>
 	</varlistentry>
 
@@ -231,53 +244,90 @@ manpage.1: manpage.sgml
     </refsect2>
 
     <refsect2>
-      <title>Mode options</title>
+      <title>diff options</title>
+      <para>The -w (--ignore-all-space) option to <command>diff</command>
+	is always implied.
+      </para>
+
       <variablelist>
-	
+
 	<varlistentry>
-	  <term>-r, --revert</term>
-	  <listitem>
-	    <para>
-	      Revert an oggzdump. Generates an Ogg bitstream as prescribed
-	      in the input oggzdump.
-	    </para>
-	    <para>
-	      The serialno, granulepos and packetno fields of the packet
-	      preambles in the oggzdump, as well as any bos or eos markers
-	      if present, are used to structure the packets into logical
-	      bitstreams. Hence it is advised that the original input
-	      oggzdump not be generated with any hiding filters.
-	    </para>
-	    <para>
-	      Only the hexadecimal data columns of the input oggzdump are
-	      parsed when generating Ogg packet data; the printable character
-	      representation is ignored.
-	    </para>
-	  </listitem>
+	  <term>-q, --brief</term>
+	  <listitem><para>Output only whether files differ.
+	    </para></listitem>
 	</varlistentry>
+
+	<varlistentry>
+	  <term>-C <parameter>NUM</parameter>, --context[=<parameter>NUM</parameter>]</term>
+	  <listitem><para>Output NUM lines of copied context.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-u, -U <parameter>NUM</parameter>, --unified[=<parameter>NUM</parameter>]</term>
+	  <listitem><para>Output NUM (default 3) lines of unified context.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-e, --ed</term>
+	  <listitem><para>Output an ed script.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>--normal</term>
+	  <listitem><para>Output a normal diff.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>--rcs</term>
+	  <listitem><para>Output an RCS format diff.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-y, --side-by-side</term>
+	  <listitem><para>Output in two columns.
+	    </para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-l, --paginate</term>
+	  <listitem><para>Pass the output through <command>pr</command> to
+	      paginate it.
+	    </para></listitem>
+	</varlistentry>
+
+	
 
       </variablelist>
     </refsect2>
-        
+
     <refsect2>
       <title>Miscellaneous options</title>
       <variablelist>
+
 	<varlistentry>
-	  <term>-o <parameter>filename</parameter>, --output <parameter>filename</parameter></term>
-	  <listitem><para>Write output to the specified
-	      <parameter>filename</parameter> instead of printing it to
-	      standard output.
-	    </para></listitem>
-	</varlistentry>
-	
-	<varlistentry>
-	  <term>-h, --help</term>
-	  <listitem><para>Display usage information and exit.</para></listitem>
+	  <term>--verbose</term>
+	  <listitem>
+	    <para>Display verbose messages.</para>
+	  </listitem>
 	</varlistentry>
 
 	<varlistentry>
 	  <term>-v, --version</term>
-	  <listitem><para>Output version information and exit.</para></listitem>
+	  <listitem>
+	    <para>Display version information and exit.</para>
+	  </listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-h, --help</term>
+	  <listitem>
+	    <para>Display usage information and exit.</para>
+	  </listitem>
 	</varlistentry>
 	
       </variablelist>
@@ -290,7 +340,6 @@ manpage.1: manpage.sgml
       <author>
 	&dhfirstname; &dhsurname;
       </author>
-      &dhdate
     </para>
   </refsect1>
 
@@ -305,19 +354,15 @@ manpage.1: manpage.sgml
     <title>SEE ALSO</title>
     <para>
       <citerefentry>
-	<refentrytitle>oggzdiff</refentrytitle>
+	<refentrytitle>oggzdump</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>
-	<refentrytitle>hogg</refentrytitle>
-	<manvolnum>1</manvolnum>
-      </citerefentry>
-      <citerefentry>
-	<refentrytitle>xxd</refentrytitle>
+	<refentrytitle>diff</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>
-	<refentrytitle>hexdump</refentrytitle>
+	<refentrytitle>patch</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>
     </para>

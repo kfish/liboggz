@@ -9,22 +9,22 @@ manpage.1: manpage.sgml
   -->
  
   <!-- Fill in your name for FIRSTNAME and SURNAME. -->
-  <!ENTITY dhfirstname "<firstname>David</firstname>">
-  <!ENTITY dhsurname   "<surname>Kuehling</surname>">
+  <!ENTITY dhfirstname "<firstname>Conrad</firstname>">
+  <!ENTITY dhsurname   "<surname>Parker</surname>">
   <!-- Please adjust the date whenever revising the manpage. -->
-  <!ENTITY dhdate      "<date>January  1, 2005</date>">
+  <!ENTITY dhdate      "<date>March 10, 2005</date>">
   <!-- SECTION should be 1-8, maybe w/ subsection other parameters are
        allowed: see man(7), man(1). -->
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
   <!ENTITY dhemail     "<email>conrad.parker@csiro.au</email>">
   <!ENTITY dhusername  "CSIRO Australia">
-  <!ENTITY dhucpackage "<refentrytitle>oggzrip</refentrytitle>">
-  <!ENTITY dhpackage   "oggzrip">
+  <!ENTITY dhucpackage "<refentrytitle>oggz-info</refentrytitle>">
+  <!ENTITY dhpackage   "oggz-info">
                                                                                  <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
   <!ENTITY gnu         "<acronym>GNU</acronym>">
 ]>
 
-<refentry id="oggzrip">
+<refentry id="oggz-info">
 
   <refentryinfo>
     <address>
@@ -48,7 +48,7 @@ manpage.1: manpage.sgml
 
   <refnamediv>
     <refname>&dhpackage;</refname>
-    <refpurpose>Extract one or more logical bitstreams from an Ogg file.
+    <refpurpose>Display information about one or more Ogg files and their bitstreams.
     </refpurpose>
   </refnamediv>
 
@@ -61,13 +61,13 @@ manpage.1: manpage.sgml
   <refsynopsisdiv>
     <cmdsynopsis>
       <command>&dhpackage;</command>
-      
-      <group>
-	<arg choice="opt">-o <parameter>filename</parameter></arg>
-	<arg choice="opt">--output <parameter>filename</parameter></arg>
-      </group>
-
-      <arg choice="plain">filename</arg>
+      <group><arg choice="opt">-l</arg><arg choice="opt">--length</arg></group>
+      <group><arg choice="opt">-b</arg><arg choice="opt">--bitrate</arg></group>
+      <group><arg choice="opt">-g</arg><arg choice="opt">--page-stats</arg></group>
+      <group><arg choice="opt">-p</arg><arg choice="opt">--packet-stats</arg></group>
+      <group><arg choice="opt">-k</arg><arg choice="opt">--skeleton</arg></group>
+      <group><arg choice="opt">-a</arg><arg choice="opt">--all</arg></group>
+      <arg choice="plain" rep="repeat">filename</arg>
     </cmdsynopsis>
 
     <cmdsynopsis>
@@ -81,27 +81,8 @@ manpage.1: manpage.sgml
   <refsect1>
     <title>Description</title>
     <para>
-      <command>&dhpackage;</command> extracts one or more tracks
-      from an Ogg file.
-      In Ogg terminology, <command>&dhpackage;</command> extracts one or
-      more logical bitstreams.
-    </para>
-    <para>
-      For example, to extract just the vorbis audio track from any Ogg file:
-    </para>
-    <para><command>oggzrip -c vorbis input.ogx > output.ogg</command>
-    </para>
-    </para>
-
-    <para>
-      This will removed any other tracks: Skeleton, Theora, image, etc.
-      The output will be a valid Ogg Vorbis I file, suitable for use on
-      hardware players that do not support multiplexed (ie. multi-track)
-      Ogg files. If the input file contains multiple Vorbis, the desired
-      once can be specified by serialno with the <command>-s</command>
-      option.
-      Use <command>oggzinfo</command> to view the serialno of
-      each track in a file.
+      <command>&dhpackage;</command> displays information about one or more
+      Ogg files and their bitstreams.
     </para>
   </refsect1>
   
@@ -110,18 +91,48 @@ manpage.1: manpage.sgml
     <para>
       <command>&dhpackage;</command> accepts the following options:
     </para>
+
+    <refsect2>
+      <title>Display options</title>
+      <variablelist>
+
+	<varlistentry>
+	  <term>-l, --length</term>
+	  <listitem><para>Display content lengths.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-b, --bitrate</term>
+	  <listitem><para>Display bitrate information.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-g, --page-stats</term>
+	  <listitem><para>Display Ogg page statistics.</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>-p, --packet-stats</term>
+	  <listitem><para>Display Ogg packet statistics.</para></listitem>
+	</varlistentry>
+  
+	<varlistentry>
+	  <term>-k, --skeleton</term>
+	  <listitem><para>Display Extra data from OggSkeleton bitstream.</para></listitem>
+	</varlistentry>
+	
+	<varlistentry>
+	  <term>-a, --all</term>
+	  <listitem><para>Display all information.</para></listitem>
+	</varlistentry>
+
+      </variablelist>
+    </refsect2>
             
     <refsect2>
       <title>Miscellaneous options</title>
       <variablelist>
-	<varlistentry>
-	  <term>-o <parameter>filename</parameter>, --output <parameter>filename</parameter></term>
-	  <listitem><para>Write output to the specified
-	      <parameter>filename</parameter> instead of printing it to
-	      standard output.
-	    </para></listitem>
-	</varlistentry>
-	
+
 	<varlistentry>
 	  <term>-h, --help</term>
 	  <listitem><para>Display usage information and exit.</para></listitem>
@@ -134,33 +145,69 @@ manpage.1: manpage.sgml
 	
       </variablelist>
     </refsect2>
+
+  </refsect1>
+
+  <refsect1>
+    <title>Units of measurement</title>
+
+    <para><command>&dhpackage;</command> displays information using the
+      following units:
+    </para>
+
     <refsect2>
-      <title>Filter options</title>
-      <para>
-        These options can be used multiple times. Pages matching ANY of
-        the filter options will be included into the output.
-      </para>
+      <title>Byte lengths</title>
       <variablelist>
-        <varlistentry>
-          <term>-s <parameter>serialno</parameter>, --serialno <parameter>serialno</parameter></term>
-          <listitem><para>Output streams with given serialno.</para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>-i <parameter>index</parameter>, --stream-index <parameter>index</parameter></term>
-          <listitem><para>Filter by stream index. These are assigned to
-                         streams in the order of their BOS pages,
-                         starting at 0.
-          </para></listitem>
-        </varlistentry>
-        <varlistentry>
-          <term>-c <parameter>content-type</parameter> --content-type <parameter>content-type</parameter></term>
-          <listitem><para>Filter by content-type.  The following codec names
-	      are currently detected: "cmml", "flac", "theora", "speex", "vorbis"
-          </para></listitem>
-        </varlistentry>
+
+	<varlistentry>
+	  <term>bytes</term>
+	  <listitem><para>(8 bits)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>kB</term>
+	  <listitem><para>kilobytes (1024 bytes)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>MB</term>
+	  <listitem><para>megabytes (1024*1024 bytes)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>GB</term>
+	  <listitem><para>gigabytes (1024*1024*1024 bytes)</para></listitem>
+	</varlistentry>
+
       </variablelist>
     </refsect2>
 
+    <refsect2>
+      <title>Bitrates</title>
+      <variablelist>
+	
+	<varlistentry>
+	  <term>bps</term>
+	  <listitem><para>bits per second (bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>kbps</term>
+	  <listitem><para>kilobits per second (1000 bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>Mbps</term>
+	  <listitem><para>megabits per second (1000000 bit/s)</para></listitem>
+	</varlistentry>
+
+	<varlistentry>
+	  <term>Gbps</term>
+	  <listitem><para>gigabits per second (1000000000 bit/s)</para></listitem>
+	</varlistentry>
+	
+      </variablelist>
+    </refsect2>
   </refsect1>
 
   <refsect1>
@@ -184,15 +231,11 @@ manpage.1: manpage.sgml
     <title>SEE ALSO</title>
     <para>
       <citerefentry>
-	<refentrytitle>oggzmerge</refentrytitle>
-	<manvolnum>1</manvolnum>
-      </citerefentry>,
-      <citerefentry>
-	<refentrytitle>oggz-chop</refentrytitle>
-	<manvolnum>1</manvolnum>
-      </citerefentry>,
-      <citerefentry>
 	<refentrytitle>oggzdump</refentrytitle>
+	<manvolnum>1</manvolnum>
+      </citerefentry>,
+      <citerefentry>
+	<refentrytitle>oggzrip</refentrytitle>
 	<manvolnum>1</manvolnum>
       </citerefentry>,
       <citerefentry>

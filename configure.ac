@@ -419,7 +419,7 @@ src/Makefile
 src/liboggz/Version_script
 src/liboggz/Makefile
 src/tools/Makefile
-src/tools/oggzdiff
+src/tools/oggz-diff
 src/tools/oggz-chop/Makefile
 src/tests/Makefile
 src/examples/Makefile

@@ -98,8 +98,8 @@ usage (char * progname)
   printf ("  -G, --hide-granulepos  Hide the granulepos field of each packet\n");
   printf ("  -P, --hide-packetno    Hide the packetno field of each packet\n");
   printf ("\nMode options\n");
-  printf ("  -r, --revert           Revert an oggzdump. Generates an Ogg bitstream\n");
-  printf ("                         as prescribed in the input oggzdump\n");
+  printf ("  -r, --revert           Revert an oggz-dump. Generates an Ogg bitstream\n");
+  printf ("                         as prescribed in the input oggz-dump\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");

@@ -31,18 +31,18 @@
 ## SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 version () {
-  echo >&2 "oggzdiff version "@VERSION@
+  echo >&2 "oggz-diff version "@VERSION@
   exit 1
 }
 
 usage () {
-  echo >&2 "oggzdiff, diff oggzdumps of two Ogg files."
+  echo >&2 "oggz-diff, diff oggz-dumps of two Ogg files."
   echo >&2
-  echo >&2 "Usage: oggzdiff [options] [OGGZDUMP_OPTIONS] [DIFF_OPTIONS] file1.ogg file2.ogg"
+  echo >&2 "Usage: oggz-diff [options] [OGGZDUMP_OPTIONS] [DIFF_OPTIONS] file1.ogg file2.ogg"
   echo >&2
   echo >&2 "options: [--verbose] [-v | --version] [-h | --help]"
   echo >&2
-  echo >&2 "Supported oggzdump and diff options:"
+  echo >&2 "Supported oggz-dump and diff options:"
   echo >&2
   echo >&2 "OGGZDUMP_OPTIONS: [-b | --binary] [-x | --hexadecimal]"
   echo >&2 "    [-O | --hide-offset] [-S | --hide-serialno] [-G | --hide-granulepos]"
@@ -186,12 +186,12 @@ FIFO2="${TMPDIR:-/tmp}/`basename $2`.dump-2-$$"
 exec 5>$FIFO1
 exec 6>$FIFO2
 
-oggzdump $DUMPOPTS $1 >&5
+oggz-dump $DUMPOPTS $1 >&5
 if test "$?" != "0"; then
   exit 1
 fi
 
-oggzdump $DUMPOPTS $2 >&6
+oggz-dump $DUMPOPTS $2 >&6
 if test "$?" != "0"; then
   exit 1
 fi

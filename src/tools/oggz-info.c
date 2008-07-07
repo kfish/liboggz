@@ -132,7 +132,7 @@ static int show_packet_stats = 0;
 static int show_extra_skeleton_info = 0;
 
 static void
-oggzinfo_apply (OI_TrackFunc func, OI_Info * info)
+oggz_info_apply (OI_TrackFunc func, OI_Info * info)
 {
   OI_TrackInfo * oit;
   long serialno;
@@ -161,7 +161,7 @@ oi_stats_clear (OI_Stats * stats)
 }
 
 static OI_TrackInfo *
-oggzinfo_trackinfo_new (void)
+oggz_info_trackinfo_new (void)
 {
   OI_TrackInfo * oit;
 
@@ -249,7 +249,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
   }
 }
 
-/* oggzinfo_trackinfo_print() */
+/* oggz_info_trackinfo_print() */
 static void
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
@@ -343,7 +343,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
 
   oit = oggz_table_lookup (info->tracks, serialno);
   if (oit == NULL) {
-    oit = oggzinfo_trackinfo_new ();
+    oit = oggz_info_trackinfo_new ();
     oggz_table_insert (info->tracks, serialno, oit);
   }
 
@@ -457,7 +457,7 @@ oi_pass1 (OGGZ * oggz, OI_Info * info)
 
   while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
-  oggzinfo_apply (oit_calc_average, info);
+  oggz_info_apply (oit_calc_average, info);
 
   /* Now we are at the end of the file, calculate the duration */
   info->duration = oggz_tell_units (oggz);
@@ -486,7 +486,7 @@ oi_pass2 (OGGZ * oggz, OI_Info * info)
 
   while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
-  oggzinfo_apply (oit_calc_stddev, info);
+  oggz_info_apply (oit_calc_stddev, info);
 
   return 0;
 }
@@ -640,9 +640,9 @@ main (int argc, char ** argv)
       putchar ('\n');
     }
 
-    oggzinfo_apply (oit_print, &info);
+    oggz_info_apply (oit_print, &info);
     
-    oggzinfo_apply (oit_delete, &info);
+    oggz_info_apply (oit_delete, &info);
     oggz_table_delete (info.tracks);
 
     oggz_close (oggz);

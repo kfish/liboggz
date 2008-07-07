@@ -18,13 +18,13 @@ manpage.1: manpage.sgml
   <!ENTITY dhsection   "<manvolnum>1</manvolnum>">
   <!ENTITY dhemail     "<email>conrad.parker@csiro.au</email>">
   <!ENTITY dhusername  "CSIRO Australia">
-  <!ENTITY dhucpackage "<refentrytitle>oggzmerge</refentrytitle>">
-  <!ENTITY dhpackage   "oggzmerge">
+  <!ENTITY dhucpackage "<refentrytitle>oggz-merge</refentrytitle>">
+  <!ENTITY dhpackage   "oggz-merge">
                                                                                  <!ENTITY debian      "<productname>Debian GNU/Linux</productname>">
   <!ENTITY gnu         "<acronym>GNU</acronym>">
 ]>
 
-<refentry id="oggzmerge">
+<refentry id="oggz-merge">
 
   <refentryinfo>
     <address>
