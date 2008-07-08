@@ -43,7 +43,7 @@
 int
 usage (char * progname)
 {
-  printf ("Usage: oggz [--help] COMMAND [ARGS]\n\n");
+  printf ("Usage: oggz [ -v | --version ] [ --help | -h ]  COMMAND  [ ARGS ]\n\n");
 
   printf ("The most commonly used oggz commands are:\n\n");
 
@@ -85,7 +85,9 @@ main (int argc, char ** argv)
   if (argc < 2) {
      usage (progname);
   } else {
-    if (!strncmp (argv[1], "help", 4) || !strncmp(argv[1], "--help", 6)) {
+    if (!strncmp (argv[1], "-v", 2) || !strncmp(argv[1], "version", 7) || !strncmp(argv[1], "--version", 9)) {
+      printf ("oggz version " VERSION "\n");
+    } else if (!strncmp(argv[1], "-h", 2) || !strncmp (argv[1], "help", 4) || !strncmp(argv[1], "--help", 6)) {
       if (argc == 2) {
         usage (progname);
       } else {
