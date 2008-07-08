@@ -13,6 +13,8 @@ INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
 OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
+oggz_any_programs = oggz
+
 if OGGZ_CONFIG_READ
 oggz_read_programs = oggz-dump oggz-info oggz-scan
 oggz_read_noinst_programs =
@@ -27,8 +29,11 @@ endif
 noinst_HEADERS = oggz_tools.h skeleton.h
 
 # Programs to build
-bin_PROGRAMS = $(oggz_read_programs) $(oggz_rw_programs)
+bin_PROGRAMS = $(oggz_any_programs) $(oggz_read_programs) $(oggz_rw_programs)
 noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
+
+oggz_SOURCES = oggz.c
+oggz_LDADD =
 
 oggz_info_SOURCES = oggz-info.c oggz_tools.c skeleton.c
 oggz_info_LDADD = $(OGGZ_LIBS) -lm
