@@ -73,6 +73,9 @@ usage (char * progname)
 
   printf ("  validate      Validate the Ogg framing of one or more files.\n");
 
+  printf ("\n");
+  printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+
   return 0;
 }
 
