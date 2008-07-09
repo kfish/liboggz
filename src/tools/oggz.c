@@ -84,6 +84,7 @@ main (int argc, char ** argv)
 {
   char * progname = argv[0];
   char toolname[TOOLNAME_LEN];
+  int ret;
 
   if (argc < 2) {
      usage (progname);
@@ -95,20 +96,29 @@ main (int argc, char ** argv)
         usage (progname);
       } else {
         sprintf (toolname, "oggz-%s", argv[2]);
-#ifdef _WIN32
-        argv[1] = toolname;
-        argv[2] = "--help";
-        execvp (toolname, &argv[1]);
-#else
+
+        /* Try running "man toolname" */
         argv[1] = "man";
         argv[2] = toolname;
-        execvp ("man", &argv[1]);
-#endif
+        ret = execvp ("man", &argv[1]);
+
+        /* If that fails (ie. "man" is not installed), try running "toolname --help" */
+        argv[1] = toolname;
+        argv[2] = "--help";
+        ret = execvp (toolname, &argv[1]);
+
+        if (ret == -1) {
+          perror (toolname);
+        }
       }
     } else {
       sprintf (toolname, "oggz-%s", argv[1]);
       argv[1] = toolname;
-      execvp (toolname, &argv[1]);
+      ret = execvp (toolname, &argv[1]);
+
+      if (ret == -1) {
+        perror (toolname);
+      }
     }
   }
 
