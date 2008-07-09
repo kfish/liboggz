@@ -617,3 +617,11 @@ oggz_map_return_value_to_error (int cb_ret)
   }
 }
 
+const char *
+oggz_content_type (OggzStreamContent content)
+{
+  if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN)
+    return NULL;
+
+  return oggz_auto_codec_ident[content].content_type;
+}

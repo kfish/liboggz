@@ -88,6 +88,8 @@
 
                 oggz_packet_destroy;
 
+		oggz_content_type;
+
         local:
                 *;
 };
