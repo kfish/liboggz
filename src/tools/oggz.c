@@ -43,35 +43,44 @@
 int
 usage (char * progname)
 {
-  printf ("Usage: oggz [ -v | --version ] [ --help | -h ]  COMMAND  [ ARGS ]\n\n");
+  printf ("Usage: oggz <subcommand> [options] filename ...\n\n");
 
-  printf ("The most commonly used oggz commands are:\n\n");
+  printf ("oggz is a commandline tool for manipulating Ogg files. It supports\n"
+          "multiplexed files conformant with RFC3533. Oggz can parse headers for\n"
+          "CELT, CMML, FLAC, PCM, Speex, Theora and Vorbis, and can read and write Ogg\n"
+          "Skeleton logical bitstreams.\n");
 
-  printf ("  chop          Extract the part of an Ogg file between given start\n"
-          "                and/or end times.\n");
+  printf ("\nCommands:\n");
+  printf ("  help          Display help for a specific subcommand (eg. \"oggz help chop\")\n");
 
-  printf ("  comment       List or edit comments in an Ogg file.\n");
+  printf ("\nReporting:\n");
+  printf ("  diff          Hexdump the packets of two Ogg files and output differences.\n");
+  printf ("  dump          Hexdump packets of an Ogg file, or revert an Ogg file from\n"
+          "                such a hexdump.\n");
 
-  printf ("  diff          Hexdump the packets of two Ogg files and output\n"
-          "                differences.\n");
-
-  printf ("  dump          Hexdump packets of an Ogg file, or revert an Ogg file\n"
-          "                from such a hexdump.\n");
-
-  printf ("  info          Display information about one or more Ogg files and\n"
-          "                their bitstreams.\n");
-
-  printf ("  merge         Merge Ogg files together, interleaving pages in order\n"
-          "                of presentation time.\n");
-
-  printf ("  rip           Extract one or more logical bitstreams from an Ogg file.\n");
+  printf ("  info          Display information about one or more Ogg files and their\n"
+          "                bitstreams.\n");
 
   printf ("  scan          Scan an Ogg file and output characteristic landmarks.\n");
 
-  printf ("  sort          Sort the pages of an Ogg file in order of presentation\n"
-          "                time.\n");
-
   printf ("  validate      Validate the Ogg framing of one or more files.\n");
+
+
+  printf ("\nExtraction\n");
+  printf ("  rip           Extract one or more logical bitstreams from an Ogg file.\n");
+
+  printf ("\nEditing\n");
+  printf ("  chop          Extract the part of an Ogg file between given start and/or\n"
+          "                end times.\n");
+  printf ("  comment       List or edit comments in an Ogg file.\n");
+  printf ("  merge         Merge Ogg files together, interleaving pages in order of\n"
+          "                presentation time.\n");
+  printf ("  sort          Sort the pages of an Ogg file in order of presentation time.\n");
+
+/*
+  printf ("Miscellaneous\n");
+  printf ("  known-codecs  List codecs known by this version of oggz\n");
+*/
 
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
