@@ -13,7 +13,7 @@ INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
 OGGZDIR = ../liboggz
 OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
 
-oggz_any_programs = oggz
+oggz_any_programs = oggz oggz-known-codecs
 
 if OGGZ_CONFIG_READ
 oggz_read_programs = oggz-dump oggz-info oggz-scan
@@ -34,6 +34,9 @@ noinst_PROGRAMS = $(oggz_read_noinst_programs) $(oggz_rw_noinst_programs)
 
 oggz_SOURCES = oggz.c
 oggz_LDADD =
+
+oggz_known_codecs_SOURCES = oggz-known-codecs.c
+oggz_known_codecs_LDADD = $(OGGZ_LIBS)
 
 oggz_info_SOURCES = oggz-info.c oggz_tools.c skeleton.c
 oggz_info_LDADD = $(OGGZ_LIBS) -lm
