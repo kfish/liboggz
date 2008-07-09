@@ -47,8 +47,8 @@ usage (char * progname)
 
   printf ("oggz is a commandline tool for manipulating Ogg files. It supports\n"
           "multiplexed files conformant with RFC3533. Oggz can parse headers for\n"
-          "CELT, CMML, FLAC, PCM, Speex, Theora and Vorbis, and can read and write Ogg\n"
-          "Skeleton logical bitstreams.\n");
+          "CELT, CMML, FLAC, Kate, PCM, Speex, Theora and Vorbis, and can read and write\n"
+          "Ogg Skeleton logical bitstreams.\n");
 
   printf ("\nCommands:\n");
   printf ("  help          Display help for a specific subcommand (eg. \"oggz help chop\")\n");
