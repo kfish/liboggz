@@ -66,10 +66,10 @@ usage (char * progname)
   printf ("  validate      Validate the Ogg framing of one or more files.\n");
 
 
-  printf ("\nExtraction\n");
+  printf ("\nExtraction:\n");
   printf ("  rip           Extract one or more logical bitstreams from an Ogg file.\n");
 
-  printf ("\nEditing\n");
+  printf ("\nEditing:\n");
   printf ("  chop          Extract the part of an Ogg file between given start and/or\n"
           "                end times.\n");
   printf ("  comment       List or edit comments in an Ogg file.\n");
@@ -77,10 +77,8 @@ usage (char * progname)
           "                presentation time.\n");
   printf ("  sort          Sort the pages of an Ogg file in order of presentation time.\n");
 
-/*
-  printf ("Miscellaneous\n");
+  printf ("Miscellaneous:\n");
   printf ("  known-codecs  List codecs known by this version of oggz\n");
-*/
 
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
