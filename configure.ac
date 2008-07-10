@@ -127,7 +127,7 @@ AC_ARG_ENABLE(read,
 
 if test "x${ac_enable_read}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_READ, [1], [Build reading support])
-    oggz_read_programs="oggzdump oggzinfo oggz-scan"
+    oggz_read_programs="oggz-dump oggz-info oggz-scan"
 else
     AC_DEFINE(OGGZ_CONFIG_READ, [0], [Do not build reading support]) 
 fi
@@ -145,7 +145,7 @@ AC_ARG_ENABLE(write,
 if test "x${ac_enable_write}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_WRITE, [1], [Build writing support])
     if test "x${ac_enable_read}" = xyes ; then
-      oggz_rw_programs="oggzrip oggzmerge oggz-chop oggz-comment oggz-sort oggz-validate"
+      oggz_rw_programs="oggz-rip oggz-merge oggz-chop oggz-comment oggz-sort oggz-validate"
     fi
 else
     AC_DEFINE(OGGZ_CONFIG_WRITE, [0], [Do not build writing support])
