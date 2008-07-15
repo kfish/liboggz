@@ -414,8 +414,8 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
     }
     else {
       fprintf(stderr, "Warning: logical stream %08x referenced by skeleton was not found\n",fp.serial_no);
+      fisbone_clear(&fp);
     }
-    fisbone_clear(&fp);
   } else if (!op->e_o_s && !memcmp(op->packet, FISHEAD_IDENTIFIER, 8)) {
     fishead_packet fp;
     int ret = fishead_from_ogg(op, &fp);
@@ -494,7 +494,11 @@ oi_pass2 (OGGZ * oggz, OI_Info * info)
 static void
 oit_delete (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
-  if (oit->codec_info) free (oit->codec_info);
+  if (oit->codec_info) {
+    if (oit->has_fisbone)
+      fisbone_clear (&oit->fbInfo);
+    free (oit->codec_info);
+  }
 }
 
 int
