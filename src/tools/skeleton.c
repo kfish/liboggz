@@ -163,7 +163,9 @@ int ogg_from_fisbone(fisbone_packet *fp,ogg_packet *op) {
     *((ogg_int64_t*)(op->packet+36)) = _le_64 (fp->start_granule); /* start granule */
     *((ogg_uint32_t*)(op->packet+44)) = _le_32 (fp->preroll); /* preroll, for theora its 0 */
     *(op->packet+48) = fp->granule_shift; /* granule shift */
-    memcpy((op->packet+FISBONE_SIZE), fp->message_header_fields, fp->current_header_size);
+    if (fp->message_header_fields)
+      memcpy((op->packet+FISBONE_SIZE), fp->message_header_fields, fp->current_header_size);
+
 
     op->b_o_s = 0;
     op->e_o_s = 0;
