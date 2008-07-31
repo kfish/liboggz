@@ -331,7 +331,7 @@ ot_skeleton_info (unsigned char * data, long len)
 }
 
 static const OTCodecInfoFunc codec_ident[] = {
-  ot_theora_info, 
+  ot_theora_info,
   ot_vorbis_info,
   ot_speex_info,
   ot_oggpcm2_info,
@@ -343,8 +343,8 @@ static const OTCodecInfoFunc codec_ident[] = {
   NULL,             /* ANXDATA */
   ot_celt_info,     /* CELT */
   ot_kate_info,     /* KATE */
-  ot_dirac_info,    /* DIRAC */
-  NULL              /* UNKOWN */
+  ot_dirac_info,    /* BBCD */
+  NULL              /* UNKNOWN */
 };
 
 const char *
