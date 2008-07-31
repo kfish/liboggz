@@ -22,7 +22,8 @@ liboggz_la_SOURCES = \
 	oggz_table.c \
 	oggz_vector.c oggz_vector.h \
 	oggz_dlist.c oggz_dlist.h \
-	metric_internal.c
+	metric_internal.c \
+	dirac.c dirac.h
 
 liboggz_la_LDFLAGS = -version-info @SHARED_VERSION_INFO@ @SHLIB_VERSION_ARG@
 liboggz_la_LIBADD = @OGG_LIBS@

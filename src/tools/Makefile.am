@@ -8,10 +8,11 @@ bin_SCRIPTS = oggz-diff
 
 INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
            -I$(top_srcdir)/include \
+           -I$(top_srcdir)/src/liboggz \
            @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz
-OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
+OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@ $(srcdir)/../liboggz/dirac.c
 
 oggz_any_programs = oggz oggz-known-codecs
 
@@ -38,7 +39,7 @@ oggz_LDADD =
 oggz_known_codecs_SOURCES = oggz-known-codecs.c
 oggz_known_codecs_LDADD = $(OGGZ_LIBS)
 
-oggz_info_SOURCES = oggz-info.c oggz_tools.c skeleton.c
+oggz_info_SOURCES = oggz-info.c oggz_tools.c skeleton.c 
 oggz_info_LDADD = $(OGGZ_LIBS) -lm
 
 oggz_comment_SOURCES = oggz-comment.c oggz_tools.c

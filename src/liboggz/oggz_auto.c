@@ -43,6 +43,7 @@
 
 #include "oggz_private.h"
 #include "oggz_byteorder.h"
+#include "dirac.h"
 
 #include <oggz/oggz_stream.h>
 
@@ -353,6 +354,40 @@ auto_kate (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
  
   oggz_stream_set_numheaders (oggz, serialno, numheaders);
 
+  return 1;
+}
+
+static int
+auto_dirac (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+{
+  char keyframe_granule_shift = 32;
+  int keyframe_shift;
+  dirac_info *info;
+
+  info = malloc(sizeof(dirac_info));
+
+  dirac_parse_info(info, op->packet, op->bytes);
+
+
+  /*
+  FIXME: where is this in Ogg Dirac?
+  keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
+  keyframe_granule_shift |= (header[41] & 0xe0) >> 5; 
+  */
+  keyframe_shift = keyframe_granule_shift;
+
+#ifdef DEBUG
+  printf ("Got dirac fps %d/%d, keyframe_shift %d\n",
+	  fps_numerator, fps_denominator, keyframe_shift);
+#endif
+
+  oggz_set_granulerate (oggz, serialno, (ogg_int64_t)info->fps_numerator,
+                        OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
+  oggz_set_granuleshift (oggz, serialno, keyframe_shift);
+
+  oggz_stream_set_numheaders (oggz, serialno, 3);
+
+  free(info);
   return 1;
 }
 
@@ -1043,6 +1078,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
   {"\200kate\0\0\0", 8, "Kate", auto_kate, NULL, NULL},
+  {"BBCD\0", 5, "Dirac", auto_dirac, NULL, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 }; 
 

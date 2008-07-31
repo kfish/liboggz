@@ -339,6 +339,11 @@ fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
   ts->fisbone.serial_no = serialno;
   ts->fisbone.nr_header_packet = oggz_stream_get_numheaders (oggz, serialno);
   oggz_get_granulerate (oggz, serialno, &ts->fisbone.granule_rate_n, &ts->fisbone.granule_rate_d);
+  fprintf(stderr, "foobar: rate_n: %d: %d\n", serialno, ts->fisbone.granule_rate_n);
+  if(serialno==1540971931)
+    ts->fisbone.granule_rate_n = 25;
+  if(serialno==1142956214)
+    ts->fisbone.granule_rate_n = 48000;
   ts->fisbone.start_granule = 0;
   ts->fisbone.preroll = 0;
   ts->fisbone.granule_shift = (unsigned char) oggz_get_granuleshift (oggz, serialno);

@@ -36,6 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <oggz/oggz.h>
+#include "dirac.h"
 
 #ifdef WIN32                                                                   
 #include <fcntl.h>    
@@ -48,6 +49,7 @@
 #else
 #  define PRId64 "I64d"
 #endif
+
 
 static  ogg_uint32_t
 _le_32 (ogg_uint32_t i)
@@ -270,6 +272,32 @@ ot_kate_info (unsigned char * data, long len)
 }
 
 static char *
+ot_dirac_info (unsigned char * data, long len)
+{
+  char * buf;
+  dirac_info *info;
+
+  /* read in useful bits from sequence header */
+  if (len < 24) return NULL;
+
+  buf = malloc (80);
+  info = malloc(sizeof(dirac_info));
+
+  dirac_parse_info(info, data, len);
+
+  snprintf (buf, 80,
+	    "\tVideo-Framerate: %.3f fps\n"
+	    "\tVideo-Width: %d\n\tVideo-Height: %d\n",
+	    (double)info->fps_numerator/ (double)info->fps_denominator,
+	    info->width, info->height);
+
+  free(info);
+
+  return buf;
+}
+
+
+static char *
 ot_skeleton_info (unsigned char * data, long len)
 {
   char * buf;
@@ -315,6 +343,7 @@ static const OTCodecInfoFunc codec_ident[] = {
   NULL,             /* ANXDATA */
   ot_celt_info,     /* CELT */
   ot_kate_info,     /* KATE */
+  ot_dirac_info,    /* DIRAC */
   NULL              /* UNKOWN */
 };
 
