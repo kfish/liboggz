@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <unistd.h>
 
 #include "httpdate.h"
 
@@ -25,7 +26,7 @@ header_not_modified (void)
 }
 
 int
-header_content_type_ogg ()
+header_content_type_ogg (void)
 {
   return printf (CONTENT_TYPE_OGG);
 }
