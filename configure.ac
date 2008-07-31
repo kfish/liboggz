@@ -326,7 +326,8 @@ AC_COMPILE_IFELSE(
     ]),
    dnl _XOPEN_SOURCE is required
     AC_MSG_RESULT([ok])
-    AC_DEFINE([_XOPEN_SOURCE], [1], [we need _XOPEN for timezone]),
+    AC_DEFINE([_XOPEN_SOURCE], [1], 
+      [Some systems need _XOPEN_SOURCE for timezone]),
    dnl it didn't work even with _XOPEN_SOURCE; httpdate will break 
     AC_MSG_RESULT([no])
   )
