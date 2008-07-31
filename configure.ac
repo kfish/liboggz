@@ -307,8 +307,30 @@ AC_SUBST(OGGZ_OFF_MAX)
 AC_CHECK_TYPES(ssize_t)
 AC_CHECK_SIZEOF(ssize_t,4)
 
-
-# Checks for header files.
+# MacOS 10.4 only declares timezone for _XOPEN_SOURCE. Check for this.
+AC_MSG_CHECKING([for timezone])
+AC_COMPILE_IFELSE(
+  AC_LANG_PROGRAM([#include <time.h>], [
+    int seconds = 1234567;
+    seconds -= timezone;
+  ]), AC_MSG_RESULT([ok]),
+  AC_MSG_RESULT([no])
+  AC_MSG_CHECKING([for timezone with _XOPEN_SOURCE])
+  AC_COMPILE_IFELSE(
+    AC_LANG_PROGRAM([
+#define _XOPEN_SOURCE
+#include <time.h>
+    ], [
+      int seconds = 1234567;
+      seconds -= timezone;
+    ]),
+   dnl _XOPEN_SOURCE is required
+    AC_MSG_RESULT([ok])
+    AC_DEFINE([_XOPEN_SOURCE], [1], [we need _XOPEN for timezone]),
+   dnl it didn't work even with _XOPEN_SOURCE; httpdate will break 
+    AC_MSG_RESULT([no])
+  )
+)
 
 # Checks for typedefs, structures, and compiler characteristics.
 
