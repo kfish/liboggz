@@ -22,6 +22,8 @@ pkgconfig_DATA = oggz.pc
 
 # Extra files to distribute in the source tarball.
 EXTRA_DIST = oggz.pc.in oggz-uninstalled.pc.in \
+	apache-install.sh \
+	bash-completion/oggz \
 	$(SYMBIAN_extra_dist) $(WIN32_extra_dist)
 
 # Extra files to distribute for the Symbian build.

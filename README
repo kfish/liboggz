@@ -124,6 +124,10 @@ which are useful for debugging and testing Ogg bitstreams:
 
     * oggz-validate: Validate the Ogg framing of one or more files.
 
+The script bash-completion/oggz enables completion of tool options and codec
+names when using the bash shell. Source it from your .profile, or install it
+in /etc/bash_completion.d to enable it system-wide.
+
 License
 -------
 
