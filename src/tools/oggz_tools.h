@@ -34,6 +34,7 @@
 #define __OGGZ_TOOLS_H__
 
 #include "config.h"
+#include <getopt.h>
 
 const char *
 ot_page_identify (OGGZ *oggz, const ogg_page * og, char ** info);
@@ -60,5 +61,13 @@ int ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
  * Call this at the beginning of main().
  */
 void ot_init (void);
+
+/*
+ * Print options. Must use these in response to -? for each command,
+ * for bash completion.
+ */
+void ot_print_short_options (char * optstring);
+
+void ot_print_options (struct option long_options[], char * optstring);
 
 #endif /* __OGGZ_TOOLS_H__ */

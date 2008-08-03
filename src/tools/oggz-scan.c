@@ -207,6 +207,19 @@ main (int argc, char ** argv)
   char * infilename = NULL, * outfilename = NULL;
   int i;
 
+  char * optstring = "f:khvo:";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"output",   required_argument, 0, 'o'},
+    {"format",   required_argument, 0, 'f'},
+    {"keyframe", no_argument, 0, 'k'},
+    {"help",     no_argument, 0, 'h'},
+    {"version",  no_argument, 0, 'v'},
+    {0,0,0,0}
+  };
+#endif
+
   progname = argv[0];
 
   if (argc < 2) {
@@ -214,19 +227,17 @@ main (int argc, char ** argv)
     return (1);
   }
 
-  while (1) {
-    char * optstring = "f:khvo:";
-
+  if (!strncmp (argv[1], "-?", 2)) {
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"output",   required_argument, 0, 'o'},
-      {"format",   required_argument, 0, 'f'},
-      {"keyframe", no_argument, 0, 'k'},
-      {"help",     no_argument, 0, 'h'},
-      {"version",  no_argument, 0, 'v'},
-      {0,0,0,0}
-    };
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
 
+  while (1) {
+#ifdef HAVE_GETOPT_LONG
     i = getopt_long(argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

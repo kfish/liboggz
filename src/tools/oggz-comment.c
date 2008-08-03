@@ -386,9 +386,34 @@ main (int argc, char ** argv)
   long n;
   int i = 1;
 
+  char * optstring = "lo:dac:s:hv";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"list",     no_argument, 0, 'l'},
+    {"output",   required_argument, 0, 'o'},
+    {"delete",   no_argument, 0, 'd'},
+    {"all",      no_argument, 0, 'a'},
+    {"content-type", required_argument, 0, 'c'},
+    {"serialno", required_argument, 0, 's'},
+    {"help",     no_argument, 0, 'h'},
+    {"version",  no_argument, 0, 'v'},
+    {0,0,0,0}
+  };
+#endif
+
   ot_init ();
 
   progname = argv[0];
+
+  if (argc == 2 && !strncmp (argv[1], "-?", 2)) {
+#ifdef HAVE_GETOPT_LONG
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
 
   if (argc < 3) {
     usage (progname);
@@ -398,21 +423,7 @@ main (int argc, char ** argv)
   ocdata = ocdata_new ();
 
   while (1) {
-    char * optstring = "lo:dac:s:hv";
-
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"list",     no_argument, 0, 'l'},
-      {"output",   required_argument, 0, 'o'},
-      {"delete",   no_argument, 0, 'd'},
-      {"all",      no_argument, 0, 'a'},
-      {"content-type", required_argument, 0, 'c'},
-      {"serialno", required_argument, 0, 's'},
-      {"help",     no_argument, 0, 'h'},
-      {"version",  no_argument, 0, 'v'},
-      {0,0,0,0}
-    };
-
     i = getopt_long(argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

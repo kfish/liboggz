@@ -59,12 +59,25 @@ usage () {
 GETOPTEST=`getopt --version`
 case $GETOPTEST in
 getopt*) # GNU getopt
-  TEMP=`getopt -l verbose -l version -l brief -l context:: -l unified:: -l ed -l normal -l rcs -l side-by-side -l paginate -l binary -l hexadecimal -l serialno: -l content-type: -l hide-offset -l hide-serialno -l hide-granulepos -l hide-packetno -l help -- +qC:uU:eylbxs:c:OSGPhv "$@"`
+  GETOPTARGS="-l verbose -l version -l brief -l context:: -l unified:: -l ed -l normal -l rcs -l side-by-side -l paginate -l binary -l hexadecimal -l serialno: -l content-type: -l hide-offset -l hide-serialno -l hide-granulepos -l hide-packetno -l help -- +qC:uU:eylbxs:c:OSGPhv"
+  QARGS="--verbose --version --brief --context --unified --ed --normal --rcs --side-by-side --paginate --binary --hexadecimal --serialno --content-type --hide-offset --hide-serialno --hide-granulepos --hide-packetno --help -q -C -u -U -e -y -l -b -x -s -c -O -S -G -P -h -v"
   ;;
 *) # POSIX getopt ?
-  TEMP=`getopt qC:uU:eylbxs:c:OSGPhv "$@"`
+  GETOPTARGS="qC:uU:eylbxs:c:OSGPhv"
+  QARGS="-q -C -u -U -e -y -l -b -x -s -c -O -S -G -P -h -v"
   ;;
 esac
+
+# First check for -? option
+if test "X$1" = "X-?"; then
+  echo $QARGS
+  exit 0
+fi
+
+echo $GETOPTARGS
+
+TEMP=`getopt $GETOPTARGS "$@"`
+echo $TEMP
 
 if test "$?" != "0"; then
   usage

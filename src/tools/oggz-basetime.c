@@ -251,6 +251,11 @@ main (int argc, char ** argv)
     return (1);
   }
 
+  if (!strncmp (argv[1], "-?", 2)) {
+    printf ("-h --help\n");
+    exit (0);
+  }
+
   if (!strcmp (argv[1], "-h") || !strcmp (argv[1], "--help")) {
     usage (progname);
     return (0);

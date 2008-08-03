@@ -78,7 +78,10 @@ main (int argc, char ** argv)
   char * progname = argv[0];
 
   if (argc == 2) {
-    if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
+    if (!strncmp (argv[1], "-?", 2)) {
+      printf ("-v --version -h --help\n");
+      exit (0);
+    } else if (!strncmp (argv[1], "-v", 2) || !strncmp (argv[1], "--version", 9)) {
       printf ("%s version " VERSION "\n", progname);
       exit (0);
     } else if (!strncmp (argv[1], "-h", 2) || !strncmp (argv[1], "--help", 6)) {

@@ -35,6 +35,8 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <getopt.h>
+
 #include <oggz/oggz.h>
 #include "dirac.h"
 
@@ -468,3 +470,28 @@ ot_init (void)
   _setmode( _fileno( stdout ), _O_BINARY );
 #endif
 }
+
+void
+ot_print_short_options (char * optstring)
+{
+  char *c;
+
+  for (c=optstring; *c; c++) {
+    if (*c != ':') printf ("-%c ", *c);
+  }
+
+  printf ("\n");
+}
+
+#ifdef HAVE_GETOPT_LONG
+void
+ot_print_options (struct option long_options[], char * optstring)
+{
+  int i;
+  for (i=0; long_options[i].name != NULL; i++)  {
+    printf ("--%s ", long_options[i].name);
+  }
+
+  ot_print_short_options (optstring);
+}
+#endif

@@ -38,6 +38,20 @@ cmd_main (OCState * state, int argc, char * argv[])
   int show_help = 0;
   int i;
 
+  char * optstring = "s:e:o:khv";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"start",   required_argument, 0, 's'},
+    {"end",   required_argument, 0, 'e'},
+    {"output",   required_argument, 0, 'o'},
+    {"no-skeleton",   no_argument, 0, 'k'},
+    {"help",     no_argument, 0, 'h'},
+    {"version",  no_argument, 0, 'v'},
+    {0,0,0,0}
+  };
+#endif
+
   progname = argv[0];
 
   if (argc < 2) {
@@ -45,24 +59,21 @@ cmd_main (OCState * state, int argc, char * argv[])
     return (1);
   }
 
+  if (!strncmp (argv[1], "-?", 2)) {
+#ifdef HAVE_GETOPT_LONG
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
+
   memset (state, 0, sizeof(*state));
   state->end = -1.0;
   state->do_skeleton = 1;
 
   while (1) {
-    char * optstring = "s:e:o:khv";
-
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"start",   required_argument, 0, 's'},
-      {"end",   required_argument, 0, 'e'},
-      {"output",   required_argument, 0, 'o'},
-      {"no-skeleton",   no_argument, 0, 'k'},
-      {"help",     no_argument, 0, 'h'},
-      {"version",  no_argument, 0, 'v'},
-      {0,0,0,0}
-    };
-
     i = getopt_long(argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

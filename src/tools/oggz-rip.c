@@ -306,6 +306,21 @@ main (int argc, char * argv[])
   long l;
   int i, n;
 
+  char * optstring = "hvVo:s:i:c:";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'v'},
+    {"output", required_argument, 0, 'o'},
+    {"verbose", no_argument, 0, 'V'},
+    {"serialno", required_argument, 0, 's'},
+    {"stream-index", required_argument, 0, 'i'},
+    {"content-type", required_argument, 0, 'c'},
+    {0,0,0,0}
+  };
+#endif
+
   ot_init();
 
   progname = argv[0];
@@ -315,23 +330,19 @@ main (int argc, char * argv[])
     return (1);
   }
 
+  if (!strncmp (argv[1], "-?", 2)) {
+#ifdef HAVE_GETOPT_LONG
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
+
   ordata = ordata_new ();
 
   while (1) {
-    char * optstring = "hvVo:s:i:c:";
-
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"help", no_argument, 0, 'h'},
-      {"version", no_argument, 0, 'v'},
-      {"output", required_argument, 0, 'o'},
-      {"verbose", no_argument, 0, 'V'},
-      {"serialno", required_argument, 0, 's'},
-      {"stream-index", required_argument, 0, 'i'},
-      {"content-type", required_argument, 0, 'c'},
-      {0,0,0,0}
-    };
-
     i = getopt_long (argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

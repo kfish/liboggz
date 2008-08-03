@@ -505,6 +505,27 @@ main (int argc, char ** argv)
   int filter_serialnos = 0;
   int filter_content_types = 0;
 
+  char * optstring = "hvbxnro:s:c:OSGP";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'v'},
+    {"binary", no_argument, 0, 'b'},
+    {"hexadecimal", no_argument, 0, 'x'},
+    {"new", no_argument, 0, 'n'},
+    {"revert", no_argument, 0, 'r'},
+    {"output", required_argument, 0, 'o'},
+    {"serialno", required_argument, 0, 's'},
+    {"content-type", required_argument, 0, 'c'},
+    {"hide-offset", no_argument, 0, 'O'},
+    {"hide-serialno", no_argument, 0, 'S'},
+    {"hide-granulepos", no_argument, 0, 'G'},
+    {"hide-packetno", no_argument, 0, 'P'},
+    {0,0,0,0}
+  };
+#endif
+
   ot_init ();
 
   progname = argv[0];
@@ -514,31 +535,21 @@ main (int argc, char ** argv)
     return (1);
   }
 
+  if (!strncmp (argv[1], "-?", 2)) {
+#ifdef HAVE_GETOPT_LONG
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
+
   oddata = oddata_new ();
 
   oddata->read_packet = read_packet;
 
   while (1) {
-    char * optstring = "hvbxnro:s:c:OSGP";
-
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"help", no_argument, 0, 'h'},
-      {"version", no_argument, 0, 'v'},
-      {"binary", no_argument, 0, 'b'},
-      {"hexadecimal", no_argument, 0, 'x'},
-      {"new", no_argument, 0, 'n'},
-      {"revert", no_argument, 0, 'r'},
-      {"output", required_argument, 0, 'o'},
-      {"serialno", required_argument, 0, 's'},
-      {"content-type", required_argument, 0, 'c'},
-      {"hide-offset", no_argument, 0, 'O'},
-      {"hide-serialno", no_argument, 0, 'S'},
-      {"hide-granulepos", no_argument, 0, 'G'},
-      {"hide-packetno", no_argument, 0, 'P'},
-      {0,0,0,0}
-    };
-
     i = getopt_long(argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

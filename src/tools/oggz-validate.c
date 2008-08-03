@@ -419,6 +419,21 @@ main (int argc, char ** argv)
   char * filename;
   int i = 1;
 
+  char * optstring = "M:psPhvE";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"max-errors", required_argument, 0, 'M'},
+    {"prefix", no_argument, 0, 'p'},
+    {"suffix", no_argument, 0, 's'},
+    {"partial", no_argument, 0, 'P'},
+    {"help", no_argument, 0, 'h'},
+    {"help-errors", no_argument, 0, 'E'},
+    {"version", no_argument, 0, 'v'},
+    {0,0,0,0}
+  };
+#endif
+
   ot_init();
 
   progname = argv[0];
@@ -428,21 +443,17 @@ main (int argc, char ** argv)
     return (1);
   }
 
-  while (1) {
-    char * optstring = "M:psPhvE";
-
+  if (!strncmp (argv[1], "-?", 2)) {
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"max-errors", required_argument, 0, 'M'},
-      {"prefix", no_argument, 0, 'p'},
-      {"suffix", no_argument, 0, 's'},
-      {"partial", no_argument, 0, 'P'},
-      {"help", no_argument, 0, 'h'},
-      {"help-errors", no_argument, 0, 'E'},
-      {"version", no_argument, 0, 'v'},
-      {0,0,0,0}
-    };
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
 
+  while (1) {
+#ifdef HAVE_GETOPT_LONG
     i = getopt_long(argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);

@@ -516,6 +516,22 @@ main (int argc, char ** argv)
   OGGZ * oggz;
   OI_Info info;
 
+  char * optstring = "hvlbgpka";
+
+#ifdef HAVE_GETOPT_LONG
+  static struct option long_options[] = {
+    {"help", no_argument, 0, 'h'},
+    {"version", no_argument, 0, 'v'},
+    {"length", no_argument, 0, 'l'},
+    {"bitrate", no_argument, 0, 'b'},
+    {"page-stats", no_argument, 0, 'g'},
+    {"packet-stats", no_argument, 0, 'p'},
+    {"skeleton", no_argument, 0, 'k'},
+    {"all", no_argument, 0, 'a'},
+    {NULL,0,0,0}
+  };
+#endif
+
   progname = argv[0];
 
   if (argc < 2) {
@@ -523,22 +539,17 @@ main (int argc, char ** argv)
     return (1);
   }
 
-  while (1) {
-    char * optstring = "hvlbgpka";
-
+  if (!strncmp (argv[1], "-?", 2)) {
 #ifdef HAVE_GETOPT_LONG
-    static struct option long_options[] = {
-      {"help", no_argument, 0, 'h'},
-      {"version", no_argument, 0, 'v'},
-      {"length", no_argument, 0, 'l'},
-      {"bitrate", no_argument, 0, 'b'},
-      {"page-stats", no_argument, 0, 'g'},
-      {"packet-stats", no_argument, 0, 'p'},
-      {"skeleton", no_argument, 0, 'k'},
-      {"all", no_argument, 0, 'a'},
-      {0,0,0,0}
-    };
+    ot_print_options (long_options, optstring);
+#else
+    ot_print_short_options (optstring);
+#endif
+    exit (0);
+  }
 
+  while (1) {
+#ifdef HAVE_GETOPT_LONG
     i = getopt_long (argc, argv, optstring, long_options, NULL);
 #else
     i = getopt (argc, argv, optstring);
