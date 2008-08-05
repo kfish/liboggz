@@ -8,6 +8,7 @@
 #include "httpdate.h"
 
 #define CONTENT_TYPE_OGG "Content-Type: application/ogg\n"
+#define ACCEPT_TIMEURI_OGG "X-Accept-TimeURI: application/ogg\n"
 
 int
 header_last_modified (time_t mtime)
@@ -29,6 +30,12 @@ int
 header_content_type_ogg (void)
 {
   return printf (CONTENT_TYPE_OGG);
+}
+
+int
+header_accept_timeuri_ogg (void)
+{
+  return printf (ACCEPT_TIMEURI_OGG);
 }
 
 int
