@@ -7,6 +7,7 @@
 #include <getopt.h>
 
 #include "oggz-chop.h"
+#include "oggz_tools.h"
 #include "timespec.h"
 
 static char * progname;

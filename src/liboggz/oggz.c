@@ -620,6 +620,23 @@ oggz_map_return_value_to_error (int cb_ret)
 const char *
 oggz_content_type (OggzStreamContent content)
 {
+  /* 20080805:
+   * Re: http://lists.xiph.org/pipermail/ogg-dev/2008-July/001108.html
+   *
+   * "The ISO C standard, in section 6.7.2.2 "enumeration specifiers",
+   * paragraph 4, says
+   *
+   *   Each enumerated type shall be compatible with *char*, a signed
+   *   integer type, or an unsigned integer type.  The choice of type is
+   *   implementation-defined, but shall be capable of representing the
+   *   values of all the members of the declaration."
+   *
+   * -- http://gcc.gnu.org/ml/gcc-bugs/2000-09/msg00271.html
+   *
+   *  Hence, we cannot remove the (content < 0) guard, even though current
+   *  GCC gives a warning for it -- other compilers (including earlier GCC
+   *  versions) may use a signed type for enum OggzStreamContent.
+   */
   if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN)
     return NULL;
 

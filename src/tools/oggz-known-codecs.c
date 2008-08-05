@@ -40,6 +40,8 @@
 
 /* #define DEBUG */
 
+typedef int (*qsort_func) (const void * p1, const void * p2);
+
 int
 usage (char * progname)
 {
@@ -57,23 +59,23 @@ usage (char * progname)
 }
 
 static int
-cmpstringp (const char **p1, const char **p2)
+cmpstringp (char * const * p1, char * const * p2)
 {
    /* The actual arguments to this function are "pointers to
       pointers to char", but strcmp(3) arguments are "pointers
-      to char", hence the following cast plus dereference */
+      to char", hence the function cast plus dereference */
 
    if (!(*p1)) return -1;
    if (!(*p2)) return 1;
 
-   return strcmp(* (char * const *) p1, * (char * const *) p2);
+   return strcmp (*p1, *p2);
 }
 
 int
 main (int argc, char ** argv)
 {
   OggzStreamContent content;
-  char * content_types[OGGZ_CONTENT_UNKNOWN];
+  const char * content_types[OGGZ_CONTENT_UNKNOWN];
 
   char * progname = argv[0];
 
@@ -111,7 +113,8 @@ main (int argc, char ** argv)
   }
 
   /* Sort them */
-  qsort (content_types, OGGZ_CONTENT_UNKNOWN, sizeof (char *), cmpstringp);
+  qsort (content_types, OGGZ_CONTENT_UNKNOWN, sizeof (char *),
+         (qsort_func) cmpstringp);
 
   /* Print them */
   for (content = 0; content < OGGZ_CONTENT_UNKNOWN; content++) {

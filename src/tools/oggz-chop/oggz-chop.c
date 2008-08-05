@@ -168,12 +168,12 @@ _ogg_page_free (const ogg_page * og)
 }
 
 static void
-_ogg_page_set_eos (ogg_page * og)
+_ogg_page_set_eos (const ogg_page * og)
 {
   if (og == NULL) return;
 
   og->header[5] |= 0x04;
-  ogg_page_checksum_set (og);
+  ogg_page_checksum_set (OGG_PAGE_CONST(og));
 }
 
 static void
@@ -559,8 +559,8 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 #endif
 
   if (page_time < state->start) {
-    if ((gp = ogg_page_granulepos (og)) != -1)
-      ts->fisbone.start_granule = ogg_page_granulepos (og);
+    if ((gp = ogg_page_granulepos (OGG_PAGE_CONST(og))) != -1)
+      ts->fisbone.start_granule = ogg_page_granulepos (OGG_PAGE_CONST(og));
   } else if (page_time >= state->start &&
       (state->end == -1 || page_time <= state->end)) {
 
@@ -571,7 +571,7 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     fwrite_ogg_page (state->outfile, og);
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
-    _ogg_page_set_eos ((ogg_page *)og);
+    _ogg_page_set_eos (og);
     fwrite_ogg_page (state->outfile, og);
 
     /* Stop handling this track */
@@ -617,7 +617,7 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     keyframe = granulepos >> granuleshift;
 
     if (keyframe != ts->prev_keyframe) {
-      if (ogg_page_continued(og)) {
+      if (ogg_page_continued(OGG_PAGE_CONST(og))) {
         /* If this new-keyframe page is continued, advance the page accumulator,
          * ie. recover earlier pages from this new GOP */
         accum_size = track_state_advance_page_accum (ts);

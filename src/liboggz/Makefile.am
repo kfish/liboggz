@@ -3,6 +3,7 @@
 INCLUDES = $(INCLTDL) \
            -I$(top_builddir) -I$(top_builddir)/include \
            -I$(top_srcdir)/include \
+           -I$(top_srcdir)/src/liboggz \
            @OGG_CFLAGS@
 
 EXTRA_DIST = Version_script.in
