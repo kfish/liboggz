@@ -737,6 +737,7 @@ chop (OCState * state)
     if (state->outfile == NULL) {
       fprintf (stderr, "oggz-chop: unable to open output file %s\n",
 	       state->outfilename);
+      oggz_close(oggz);
       return -1;
     }
   }
