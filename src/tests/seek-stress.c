@@ -117,6 +117,7 @@ main (int argc, char * argv[])
 
   if (filename == NULL) {
     printf ("usage: %s [--verbose] filename\n", argv[0]);
+    exit(1);
   }
 
   if ((oggz = oggz_open (filename, OGGZ_READ | OGGZ_AUTO)) == NULL) {
