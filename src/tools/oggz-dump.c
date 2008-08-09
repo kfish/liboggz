@@ -485,6 +485,7 @@ revert_file (char * infilename)
     revert_packet (oggz, &op, current_serialno, flush);
   }
 
+  oggz_close(oggz);
   fclose (infile);
 }
 
