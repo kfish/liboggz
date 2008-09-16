@@ -40,7 +40,7 @@
 #include <oggz/oggz.h>
 #include "dirac.h"
 
-#ifdef WIN32                                                                   
+#if defined (WIN32) || defined (__EMX__)
 #include <fcntl.h>    
 #include <io.h>
 #define snprintf _snprintf
@@ -464,10 +464,16 @@ void
 ot_init (void)
 {
 #ifdef _WIN32
-  /* We need to set stdin/stdout to binary mode */
+  /* We need to set stdin/stdout to binary mode on Win32 */
 
   _setmode( _fileno( stdin ), _O_BINARY );
   _setmode( _fileno( stdout ), _O_BINARY );
+#endif
+#ifdef __EMX__
+  /* We need to set stdin/stdout to binary mode on OS/2*/
+
+  setmode( fileno( stdin ), O_BINARY );
+  setmode( fileno( stdout ), O_BINARY );
 #endif
 }
 
