@@ -28,7 +28,7 @@ AC_SUBST(ACLOCAL_AMFLAGS, "-I m4")
 
 # Checks for header files.
 AC_HEADER_STDC
-AC_CHECK_HEADERS([fcntl.h inttypes.h stdlib.h string.h unistd.h])
+AC_CHECK_HEADERS([fcntl.h inttypes.h stdlib.h string.h sys/types.h unistd.h])
 
 # Checks for typedefs, structures, and compiler characteristics.
 AC_TYPE_OFF_T
