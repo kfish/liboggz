@@ -63,8 +63,6 @@ int oggz_set_metric_linear (OGGZ * oggz, long serialno,
 #define INT32_BE_AT(x) _be_32((*(ogg_int32_t *)(x)))
 #define INT64_LE_AT(x) _le_64((*(ogg_int64_t *)(x)))
 
-#define OGGZ_AUTO_MULT 1000Ull
-
 static int
 oggz_stream_set_numheaders (OGGZ * oggz, long serialno, int numheaders)
 {
@@ -1111,8 +1109,24 @@ oggz_auto_identify_packet (OGGZ * oggz, ogg_packet * op, long serialno)
 }
 
 int
-oggz_auto_get_granulerate (OGGZ * oggz, ogg_packet * op, long serialno, 
-                void * user_data)
+oggz_auto_read_bos_page (OGGZ * oggz, ogg_page * og, long serialno,
+                         void * user_data)
+{
+  int content = 0;
+
+  content = oggz_stream_get_content(oggz, serialno);
+  if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN) {
+    return 0;
+  } else if (content == OGGZ_CONTENT_SKELETON && !ogg_page_bos(og)) {
+    return auto_fisbone(oggz, serialno, og->body, og->body_len, user_data);
+  } else {
+    return oggz_auto_codec_ident[content].reader(oggz, serialno, og->body, og->body_len, user_data);
+  }
+}
+
+int
+oggz_auto_read_bos_packet (OGGZ * oggz, ogg_packet * op, long serialno, 
+                           void * user_data)
 {
   int content = 0;
 

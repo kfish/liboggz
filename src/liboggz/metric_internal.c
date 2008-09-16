@@ -158,7 +158,7 @@ oggz_get_granulerate (OGGZ * oggz, long serialno,
   if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
   *granulerate_n = stream->granulerate_n;
-  *granulerate_d = stream->granulerate_d;
+  *granulerate_d = stream->granulerate_d / OGGZ_AUTO_MULT;
 
   return 0;
 }

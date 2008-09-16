@@ -290,7 +290,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   /* OK -- Update stream's memory of packet details */
 
   if (!stream->metric && (oggz->flags & OGGZ_AUTO)) {
-    oggz_auto_get_granulerate (oggz, op, serialno, NULL);
+    oggz_auto_read_bos_packet (oggz, op, serialno, NULL);
   }
 
   stream->b_o_s = 0; /* The stream is henceforth no longer at bos */

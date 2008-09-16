@@ -414,7 +414,7 @@ oggz_read_sync (OGGZ * oggz)
             (oggz->flags & OGGZ_AUTO)
           ) 
           {
-            oggz_auto_get_granulerate (oggz, op, serialno, NULL);
+            oggz_auto_read_bos_packet (oggz, op, serialno, NULL);
           }
 
           /* attempt to determine granulepos for this packet */
@@ -524,6 +524,10 @@ oggz_read_sync (OGGZ * oggz)
 
       /* identify stream type */
       oggz_auto_identify_page (oggz, &og, serialno);
+
+      /* read bos data */
+      if (oggz->flags & OGGZ_AUTO)
+        oggz_auto_read_bos_page (oggz, &og, serialno, NULL);
     }
     else if (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_ANXDATA)
     {
