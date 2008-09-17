@@ -135,8 +135,8 @@ ot_theora_info (unsigned char * data, long len)
 
   buf = malloc (80);
 
-  width = INT16_BE_AT(&data[10]) << 4;
-  height = INT16_BE_AT(&data[12]) << 4;
+  width = INT16_BE_AT(&data[15]);
+  height = INT16_BE_AT(&data[18]);
 
   snprintf (buf, 80,
 	    "\tVideo-Framerate: %.3f fps\n"
