@@ -293,8 +293,9 @@ edit_comments (OCData * ocdata, char * outfilename)
   /* First, process headers packet-by-packet. */
   oggz_set_read_callback (ocdata->reader, -1, read_packet, ocdata);
   while ((n = oggz_read (ocdata->reader, 1024)) > 0) {
-    while (oggz_write_output (ocdata->writer, buf, n) > 0) {
-      fwrite (buf, 1, n, ocdata->outfile);
+    long nn;
+    while ((nn=oggz_write_output (ocdata->writer, buf, n)) > 0) {
+      fwrite (buf, 1, nn, ocdata->outfile);
     }
   }
 
