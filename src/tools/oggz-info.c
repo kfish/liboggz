@@ -623,7 +623,7 @@ main (int argc, char ** argv)
     infilename = argv[optind++];
 
     if ((oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
-      printf ("unable to open file %s\n", argv[1]);
+      perror (infilename);
       return (1);
     }
 
