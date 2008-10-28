@@ -1066,7 +1066,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"Annodex", 8, "Annodex", auto_annodex, NULL, NULL},
   {"fishead", 7, "Skeleton", auto_fishead, NULL, NULL},
   {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac, NULL},
-  {"\177FLAC", 4, "Flac", auto_flac, auto_calc_flac, NULL},
+  {"\177FLAC", 5, "Flac", auto_flac, auto_calc_flac, NULL},
   {"AnxData", 7, "AnxData", auto_anxdata, NULL, NULL},
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
   {"\200kate\0\0\0", 8, "Kate", auto_kate, NULL, NULL},
