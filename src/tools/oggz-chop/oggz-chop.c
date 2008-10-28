@@ -311,6 +311,8 @@ skeleton_write_packet (OCState * state, ogg_packet * op)
   return ret;
 }
 
+/* MIME types, for use in Skeleton. This must be in the same order as
+ * enum OggzStreamContent defined in <oggz/oggz_constants.h> */
 const char * type_names[] = {
   "video/theora",
   "audio/vorbis",
@@ -324,6 +326,7 @@ const char * type_names[] = {
   NULL, /* AnxData */
   "audio/celt",
   "application/x-kate",
+  "video/dirac",
   NULL /* UNKNOWN */
 };
 
