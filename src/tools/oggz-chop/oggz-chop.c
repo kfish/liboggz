@@ -266,6 +266,8 @@ track_state_advance_page_accum (OCTrackState * ts)
    * and do not modify start_granule */
   if (earliest_new == 0) return accum_size;
 
+  /* WTF: This check is from my original implementation of this function in
+   * changeset:3557. How can it arise? -Conrad 20081028 */
   if (earliest_new > accum_size)
     earliest_new = accum_size;
 
@@ -446,14 +448,17 @@ write_accum (OCState * state)
 
   /* Prime candidates */
   candidates = oggz_table_new ();
+
+  /* XXX: we offset the candidate indices by some small positive number to
+   * avoid storing 0, as OggzTable treats insertion of NULL as a deletion */
+#define CN_OFFSET (0x7)
+
   ntracks = oggz_table_size (state->tracks);
   for (i=0; i < ntracks; i++) {
     ts = oggz_table_nth (state->tracks, i, &serialno);
     if (ts != NULL && ts->page_accum != NULL) {
       ncandidates++;
-      /* XXX: we offset the candidate index by 7 to avoid storing 0, as
-       * OggzTable treats insertion of NULL as a deletion */
-      oggz_table_insert (candidates, serialno, (void *)0x7);
+      oggz_table_insert (candidates, serialno, (void *)CN_OFFSET);
       remaining += oggz_table_size (ts->page_accum);
     }
   }
@@ -466,7 +471,7 @@ write_accum (OCState * state)
     min_og = NULL;
     min_serialno = -1;
     for (i=0; i < ncandidates; i++) {
-      cn = ((int) oggz_table_nth (candidates, i, &serialno)) - 7;
+      cn = ((int) oggz_table_nth (candidates, i, &serialno)) - CN_OFFSET;
       ts = oggz_table_lookup (state->tracks, serialno);
       if (ts && ts->page_accum) {
         if (cn < oggz_table_size (ts->page_accum)) {
@@ -485,11 +490,15 @@ write_accum (OCState * state)
 
     if (min_og) {
       /* Increment index for minimum page */
-      oggz_table_insert (candidates, min_serialno, (void *)(min_cn+1+7));
+      oggz_table_insert (candidates, min_serialno,
+                         (void *)(min_cn+1+CN_OFFSET));
 
       /* Write out minimum page */
       fwrite_ogg_page (state->outfile, min_og);
     }
+
+    /* Let's lexically forget about this CN_OFFSET silliness */
+#undef CN_OFFSET
 
     remaining--;
   }
@@ -511,6 +520,9 @@ write_accum (OCState * state)
 static int
 read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data);
 
+/* Write out the fisbones and accumulated pages before the chop point.
+ * This is called once by read_plain() below as soon as a page beyond the
+ * chop start is read. */
 static int
 chop_glue (OCState * state, OGGZ * oggz)
 {
@@ -759,11 +771,6 @@ chop (OCState * state)
   oggz_run (oggz);
 
   oggz_close (oggz);
-
-#if 0
-  if (state->do_skeleton)
-    oggz_close (state->skeleton_writer);
-#endif
 
   if (state->outfilename != NULL) {
     fclose (state->outfile);
