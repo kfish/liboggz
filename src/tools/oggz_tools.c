@@ -41,10 +41,10 @@
 #include "dirac.h"
 
 #if defined (WIN32) || defined (__EMX__)
-#include <fcntl.h>    
+#include <fcntl.h>
 #include <io.h>
 #define snprintf _snprintf
-#endif  
+#endif
 
 #ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>
@@ -211,7 +211,7 @@ ot_flac_info (unsigned char * data, long len)
   version_major = data[5];
   version_minor = data[6];
 
-  samplerate = (ogg_int64_t) (data[27] << 12) | (data[28] << 4) | 
+  samplerate = (ogg_int64_t) (data[27] << 12) | (data[28] << 4) |
                ((data[29] >> 4)&0xf);
   channels = 1 + ((data[29] >> 1)&0x7);
 
@@ -360,9 +360,9 @@ ot_page_identify (OGGZ *oggz, const ogg_page * og, char ** info)
    * identify stream content using oggz_stream_get_content, identify
    * stream content name using oggz_stream_get_content_type
    */
-  
+
   serial_no = ogg_page_serialno((ogg_page *)og);
-  
+
   content = oggz_stream_get_content(oggz, serial_no);
   if (content == OGGZ_ERR_BAD_SERIALNO) return NULL;
 
