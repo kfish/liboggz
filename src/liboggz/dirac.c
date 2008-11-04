@@ -115,11 +115,18 @@ dirac_parse_info (dirac_info *info, unsigned char * data, long len)
   } dirac_frate_tbl[] = { /* table 10.3 */
     {1,1}, /* this first value is never used */
     {24000,1001}, {24,1}, {25,1}, {30000,1001}, {30,1},
-    {50,1}, {60000,1001}, {60,1}, {15000,1001}, {25,2},
+    {50,1}, {60000,1001}, {60,1}, {15000,1001}, {25,2}
   };
 
   static const ogg_uint32_t dirac_vidfmt_frate[] = { /* table C.1 */
-    1, 9, 10, 9, 10, 9, 10, 4, 3, 7, 6, 4, 3, 7, 6, 2, 2, 7, 6, 7, 6,
+    1, 9, 10, 9, 10, 9, 10, 4, 3, 7, 6, 4, 3, 7, 6, 2, 2, 7, 6, 7, 6
+  };
+
+  static const int dirac_source_sampling[] = { /* extracted from table C.1 */
+    0, 0, 0, 0, 0, 0, 0, 1, 1, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0
+  };
+  static const int dirac_top_field_first[] = { /* from table C.1 */
+    0, 0, 1, 0, 1, 0, 1, 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1
   };
 
   static const struct {
@@ -150,13 +157,19 @@ dirac_parse_info (dirac_info *info, unsigned char * data, long len)
   if (dirac_bool( &bs )) {
     info->chroma_format = dirac_uint( &bs ); /* chroma_format */
   }
-  if (dirac_bool( &bs )) {
-    info->interlaced = 0;
-    if (dirac_bool( &bs )) { /* interlaced */
-        info->interlaced = 1;
-        info->top_field_first = dirac_bool( &bs ); /* top_field_first */
+
+  if (dirac_bool( &bs )) { /* custom_scan_format_flag */
+    int scan_format = dirac_uint( &bs ); /* scan_format */
+    if (scan_format < 2) {
+      info->interlaced = scan_format;
+    } else { /* other scan_format values are reserved */
+      info->interlaced = 0;
     }
+  } else { /* no custom scan_format, use the preset value */
+    info->interlaced = dirac_source_sampling[video_format];
   }
+  /* field order is set by video_format and cannot be custom */
+  info->top_field_first = dirac_top_field_first[video_format];
 
   info->fps_numerator = dirac_frate_tbl[dirac_vidfmt_frate[video_format]].fps_numerator;
   info->fps_denominator = dirac_frate_tbl[dirac_vidfmt_frate[video_format]].fps_denominator;
