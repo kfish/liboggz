@@ -375,8 +375,8 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
    * it is also multiplied by (1<<9) since the decode time is stored in
    * the top 32bits of granulepos, but the granule_shift is 22. */
   oggz_set_granulerate (oggz, serialno,
- 	2*(1<<9)*(ogg_int64_t)info->fps_numerator,
-        OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
+	2*(1<<9)*(ogg_int64_t)info->fps_numerator,
+	OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
   oggz_set_granuleshift (oggz, serialno, granule_shift);
 
   oggz_stream_set_numheaders (oggz, serialno, 0);
