@@ -359,31 +359,27 @@ auto_kate (OGGZ * oggz, long serialno, unsigned char * data, long length, void *
 static int
 auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
 {
-  char keyframe_granule_shift = 32;
-  int keyframe_shift;
+  int granule_shift = 22; /* not a typo */
   dirac_info *info;
 
   info = malloc(sizeof(dirac_info));
 
   dirac_parse_info(info, data, length);
 
-  /*
-  FIXME: where is this in Ogg Dirac?
-  keyframe_granule_shift = (char) ((header[40] & 0x03) << 3);
-  keyframe_granule_shift |= (header[41] & 0xe0) >> 5;
-  */
-  keyframe_shift = keyframe_granule_shift;
-
 #ifdef DEBUG
-  printf ("Got dirac fps %d/%d, keyframe_shift %d\n",
-	  fps_numerator, fps_denominator, keyframe_shift);
+  printf ("Got dirac fps %d/%d granule_shift %d\n",
+    fps_numerator, fps_denominator, granule_shift);
 #endif
 
-  oggz_set_granulerate (oggz, serialno, (ogg_int64_t)info->fps_numerator,
-                        OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
-  oggz_set_granuleshift (oggz, serialno, keyframe_shift);
+  /* the granulerate is twice the frame rate (in order to handle interlace)
+   * it is also multiplied by (1<<9) since the decode time is stored in
+   * the top 32bits of granulepos, but the granule_shift is 22. */
+  oggz_set_granulerate (oggz, serialno,
+ 	2*(1<<9)*(ogg_int64_t)info->fps_numerator,
+        OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
+  oggz_set_granuleshift (oggz, serialno, granule_shift);
 
-  oggz_stream_set_numheaders (oggz, serialno, 3);
+  oggz_stream_set_numheaders (oggz, serialno, 0);
 
   free(info);
   return 1;
