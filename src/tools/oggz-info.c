@@ -131,6 +131,34 @@ static int show_page_stats = 0;
 static int show_packet_stats = 0;
 static int show_extra_skeleton_info = 0;
 
+static ogg_int64_t
+gp_to_granule (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
+{
+  int granuleshift;
+  ogg_int64_t iframe, pframe;
+
+  granuleshift = oggz_get_granuleshift (oggz, serialno);
+
+  iframe = granulepos >> granuleshift;
+  pframe = granulepos - (iframe << granuleshift);
+
+  return (iframe + pframe);
+}
+
+static double
+gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
+{
+  ogg_int64_t gr_n, gr_d;
+  ogg_int64_t granule;
+
+  if (granulepos == -1) return -1.0;
+  if (oggz_get_granulerate (oggz, serialno, &gr_n, &gr_d) != 0) return -1.0;
+
+  granule = gp_to_granule (oggz, serialno, granulepos);
+
+  return (double)((double)(granule * gr_d) / (double)gr_n);
+}
+
 static void
 oggz_info_apply (OI_TrackFunc func, OI_Info * info)
 {
@@ -233,6 +261,8 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
     printf("\tGranule shift: %d\n", (int)oit->fbInfo.granule_shift);
     printf("\tStart granule: ");
     ot_fprint_granulepos(stdout, info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule);
+    printf (" ; ");
+    ot_fprint_time (stdout, gp_to_time (info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule));
     printf ("\n");
     printf("\tPreroll: %d\n", oit->fbInfo.preroll);
     allocated = messages = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
