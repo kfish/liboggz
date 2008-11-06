@@ -25,13 +25,15 @@ described in an Ogg Skeleton track.
 Installation
 ------------
 
-This library can be installed using the conventional commands:
+Release archives can be installed using the conventional commands:
 
     $ ./configure
     $ make check
     $ sudo make install
 
-sequence. Full details in the file INSTALL.
+sequence. Configuration details are in the file INSTALL. If you obtained
+this source by svn, first run "./autogen.sh" to create the configure script,
+then run the above commands.
 
 Read the file README.win32 for installing under MS Windows, and
 README.symbian for information about building for Symbian devices.
