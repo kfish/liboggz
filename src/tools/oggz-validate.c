@@ -174,7 +174,7 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 
   granule = gp_to_granule (oggz, serialno, granulepos);
 
-  return (timestamp_t)((double)(granule * gr_d) / (double)gr_n);
+  return (timestamp_t)((double)(SUBSECONDS * granule * gr_d) / (double)gr_n);
 }
 
 static void
