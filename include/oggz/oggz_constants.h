@@ -41,7 +41,7 @@
  * Flags to oggz_new(), oggz_open(), and oggz_openfd().
  * Can be or'ed together in the following combinations:
  * - OGGZ_READ | OGGZ_AUTO
- * - OGGZ_WRITE | OGGZ_NONSTRICT
+ * - OGGZ_WRITE | OGGZ_NONSTRICT | OGGZ_PREFIX | OGGZ_SUFFIX
  */
 enum OggzFlags {
   /** Read only */
@@ -63,12 +63,16 @@ enum OggzFlags {
   OGGZ_AUTO         = 0x20,
 
   /**
-   * Prefix
+   * Write Prefix: Assume that we are only writing the prefix of an
+   * Ogg stream, ie. disable checking for conformance with end-of-stream
+   * constraints.
    */
   OGGZ_PREFIX       = 0x40,
 
   /**
-   * Suffix
+   * Write Suffix: Assume that we are only writing the suffix of an
+   * Ogg stream, ie. disable checking for conformance with
+   * beginning-of-stream constraints.
    */
   OGGZ_SUFFIX       = 0x80
 
