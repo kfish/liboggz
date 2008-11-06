@@ -382,7 +382,8 @@ validate (char * filename)
     
     if (max_errors && nr_errors > max_errors) {
       fprintf (stderr,
-	       "oggz-validate: maximum error count reached, bailing out ...\n");
+	       "oggz-validate --max-errors %d: maximum error count reached, bailing out ...\n",
+               max_errors);
       active = 0;
     } else while ((nout = oggz_write_output (ovdata.writer, buf, n)) > 0) {
 #ifdef DEBUG
