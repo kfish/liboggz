@@ -374,23 +374,29 @@ oggz_read_sync (OGGZ * oggz)
 
         result = ogg_stream_packetout(os, op);
 
+        /*
+         * libogg flags "holes in the data" (which are really inconsistencies
+         * in the page sequence number) by returning -1.
+         */
         if(result == -1) {
 #ifdef DEBUG
           printf ("oggz_read_sync: hole in the data\n");
 #endif
+          /* We can't tolerate holes in headers, so bail out. */
+          if (stream->packetno < 3) return OGGZ_ERR_HOLE_IN_DATA;
+
+          /* Holes in content occur in some files and pretty much don't matter,
+           * so we silently swallow the notification and reget the packet.
+           */
           result = ogg_stream_packetout(os, op);
           if (result == -1) {
-#ifdef DEBUG
-            /*
-             * libogg flags "holes in the data" (which are really 
-             * inconsistencies in the page sequence number) by returning
-             * -1.  This occurs in some files and pretty much doesn't matter,
-             *  so we silently swallow the notification and reget the packet.
-             *  If the result is *still* -1 then something strange is happening.
+            /* If the result is *still* -1 then something strange is
+             * happening.
              */
-            printf ("shouldn't get here");
+#ifdef DEBUG
+            printf ("Multiple holes in data!");
 #endif
-            return -7;
+            return OGGZ_ERR_HOLE_IN_DATA;
           }
         }
 
