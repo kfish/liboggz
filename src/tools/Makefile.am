@@ -66,3 +66,21 @@ oggz_scan_LDADD = $(OGGZ_LIBS)
 oggz_sort_SOURCES = oggz-sort.c oggz_tools.c
 oggz_sort_LDADD = $(OGGZ_LIBS)
 
+# Add symlinks for deprecated tool names, if they are already installed;
+# see http://lists.xiph.org/pipermail/ogg-dev/2008-July/001083.html
+install-exec-local:
+	for p in dump diff info merge rip ; do \
+	  if test -e $(exec_prefix)/bin/oggz$$p ; then \
+	    rm $(exec_prefix)/bin/oggz$$p ; \
+	    ln -s $(exec_prefix)/bin/oggz-$$p $(exec_prefix)/bin/oggz$$p ; \
+	  fi ; \
+	done
+
+# On 'make uninstall', remove the deprecated tool -- but only if it is a
+# symlink, to keep to the policy of only uninstalling what we installed.
+uninstall-local:
+	for p in dump diff info merge rip ; do \
+	  if test -L $(exec_prefix)/bin/oggz$$p ; then \
+	    rm $(exec_prefix)/bin/oggz$$p ; \
+	  fi ; \
+	done
