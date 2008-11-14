@@ -460,7 +460,7 @@ ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
       uint32_t pt = (iframe + pframe) >> 9;
       uint16_t dist = ((iframe & 0xff) << 8) | (pframe & 0xff);
       uint16_t delay = pframe >> 9;
-      int64_t dt = pt - delay;
+      int64_t dt = (int64_t)pt - delay;
       ret = fprintf (stream,
 		     "(pt:%u,dt:%" PRId64 ",dist:%hu,delay:%hu)",
 		     pt, dt, dist, delay);
