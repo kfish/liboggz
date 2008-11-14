@@ -342,7 +342,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   int ret = 0, feed_err = 0, i;
 
   timestamp = gp_to_time (oggz, serialno, op->granulepos);
-  if (timestamp != -1.0) {
+  if (timestamp != -1.0 && oggz_stream_get_content (oggz, serialno) != OGGZ_CONTENT_DIRAC) {
     if (timestamp < current_timestamp) {
       ret = log_error();
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
