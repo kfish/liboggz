@@ -71,16 +71,20 @@ oggz_sort_LDADD = $(OGGZ_LIBS)
 install-exec-local:
 	for p in dump diff info merge rip ; do \
 	  if test -e $(exec_prefix)/bin/oggz$$p ; then \
-	    rm $(exec_prefix)/bin/oggz$$p ; \
-	    ln -s $(exec_prefix)/bin/oggz-$$p $(exec_prefix)/bin/oggz$$p ; \
+	    $(RM) $(exec_prefix)/bin/oggz$$p ; \
+	    $(LN_S) $(exec_prefix)/bin/oggz-$$p $(exec_prefix)/bin/oggz$$p ; \
 	  fi ; \
 	done
 
 # On 'make uninstall', remove the deprecated tool -- but only if it is a
 # symlink, to keep to the policy of only uninstalling what we installed.
+# Note that the $(LN_S) above may be substitued with "cp -p" on systems that
+# do not have ln, so the test below will fail. As a result, 'make uninstall'
+# will fail to uninstall the copied versions of oggzdump, oggzdiff etc. on
+# such systems.
 uninstall-local:
 	for p in dump diff info merge rip ; do \
 	  if test -L $(exec_prefix)/bin/oggz$$p ; then \
-	    rm $(exec_prefix)/bin/oggz$$p ; \
+	    $(RM) $(exec_prefix)/bin/oggz$$p ; \
 	  fi ; \
 	done
