@@ -107,6 +107,9 @@ manpage.1: manpage.sgml
 <listitem><para>eos marked on page with no completed packets</para></listitem>
 <listitem><para>Granulepos on page with no completed packets</para></listitem>
 <listitem><para>Theora video bos page after audio bos page</para></listitem>
+<listitem><para>Terminal header page has non-zero granulepos</para></listitem>
+<listitem><para>Terminal header page contains non-header packet</para></listitem>
+<listitem><para>Terminal header page contains non-header segment</para></listitem>
       </itemizedlist>
     </para>
     <para>

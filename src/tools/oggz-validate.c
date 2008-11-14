@@ -59,6 +59,8 @@ typedef ogg_int64_t timestamp_t;
 typedef struct _OVData {
   OGGZ * writer;
   OggzTable * missing_eos;
+  OggzTable * packetno;
+
   int theora_count;
   int audio_count;
 
@@ -101,7 +103,11 @@ list_errors (void)
   printf ("  eos marked on page with no completed packets\n");
   printf ("  Granulepos on page with no completed packets\n");
   printf ("  Theora video bos page after audio bos page\n");
+  printf ("  Terminal header page has non-zero granulepos\n");
+  printf ("  Terminal header page contains non-header packet\n");
+  printf ("  Terminal header page contains non-header segment\n");
 }
+
 static void
 usage (char * progname)
 {
@@ -194,6 +200,7 @@ ovdata_init (OVData * ovdata)
   }
 
   ovdata->missing_eos = oggz_table_new ();
+  ovdata->packetno = oggz_table_new ();
   ovdata->theora_count = 0;
   ovdata->audio_count = 0;
   ovdata->chain_ended = 0;
@@ -217,6 +224,7 @@ ovdata_clear (OVData * ovdata)
   }
 
   oggz_table_delete (ovdata->missing_eos);
+  oggz_table_delete (ovdata->packetno);
 }
 
 static int
@@ -225,7 +233,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OVData * ovdata = (OVData *)user_data;
   ogg_int64_t gpos = ogg_page_granulepos((ogg_page *)og);
   OggzStreamContent content_type;
-  int ret = 0;
+  int packets, packetno, headers, ret = 0;
 
   if (ovdata->chain_ended) {
     ovdata_clear (ovdata);
@@ -261,11 +269,42 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     }
   }
 
-  if (!suffix && oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
-    ret = log_error ();
-    fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
+  packets = ogg_page_packets ((ogg_page *)og);
+
+  /* Check header constraints */
+  if (!suffix) {
+    if (oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
+      ret = log_error ();
+      fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
+    }
+
+    packetno = (int)oggz_table_lookup (ovdata->packetno, serialno);
+    headers = oggz_stream_get_numheaders (oggz, serialno);
+    if (packetno < headers) {
+      /* The previous page was headers, and more are expected */
+      packetno += packets;
+      oggz_table_insert (ovdata->packetno, serialno, (void *)packetno);
+      if (packetno == headers && gpos != 0) {
+        ret = log_error ();
+        fprintf (stderr, "serialno %010ld: Terminal header page has non-zero granulepos\n", serialno);
+      } else if (packetno > headers) {
+        ret = log_error ();
+        fprintf (stderr, "serialno %010ld: Terminal header page contains non-header packet\n", serialno);
+      }
+    } else if (packetno == headers) {
+      /* This is the next page after the page on which the last header finished */
+      if (ogg_page_continued (og)) {
+        ret = log_error ();
+        fprintf (stderr, "serialno %010ld: Terminal header page contains non-header segment\n", serialno);
+      }
+
+      /* Mark packetno as greater than headers to avoid these checks for this serialno */
+      oggz_table_insert (ovdata->packetno, serialno, (void *)(headers+1));
+    }
+
   }
 
+  /* Check EOS */
   if (ogg_page_eos((ogg_page *)og)) {
     int removed = oggz_table_remove (ovdata->missing_eos, serialno);
     if (!suffix && removed == -1) {
@@ -274,7 +313,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   	       serialno);
     }
 
-    if (ogg_page_packets((ogg_page *)og) == 0) {
+    if (packets == 0) {
       ret = log_error ();
       fprintf (stderr, "serialno %010ld: *** eos marked on page with no completed packets\n",
   	       serialno);
@@ -286,7 +325,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   }
 
 
-  if(gpos != -1 && ogg_page_packets((ogg_page *)og) == 0) {
+  if(gpos != -1 && packets == 0) {
     ret = log_error ();
     fprintf (stderr, "serialno %010ld: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
   }
