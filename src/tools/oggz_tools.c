@@ -38,7 +38,9 @@
 #include <getopt.h>
 
 #include <oggz/oggz.h>
+
 #include "dirac.h"
+#include "oggz_tools_dirac.h"
 
 #if defined (WIN32) || defined (__EMX__)
 #include <fcntl.h>
@@ -441,6 +443,16 @@ ot_fprint_time (FILE * stream, double seconds)
   return fprintf (stream, "%s%02d:%02d:%06.3f", sign, hrs, min, sec);
 }
 
+void
+ot_dirac_gpos_parse (ogg_int64_t iframe, ogg_int64_t pframe,
+                     struct ot_dirac_gpos * dg)
+{
+  dg->pt = (iframe + pframe) >> 9;
+  dg->dist = ((iframe & 0xff) << 8) | (pframe & 0xff);
+  dg->delay = pframe >> 9;
+  dg->dt = (int64_t)dg->pt - dg->delay;
+}
+
 int
 ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
                       ogg_int64_t granulepos)
@@ -457,13 +469,11 @@ ot_fprint_granulepos (FILE * stream, OGGZ * oggz, long serialno,
     if (oggz_stream_get_content (oggz, serialno) != OGGZ_CONTENT_DIRAC) {
       ret = fprintf (stream, "%" PRId64 "|%" PRId64, iframe, pframe);
     } else {
-      uint32_t pt = (iframe + pframe) >> 9;
-      uint16_t dist = ((iframe & 0xff) << 8) | (pframe & 0xff);
-      uint16_t delay = pframe >> 9;
-      int64_t dt = (int64_t)pt - delay;
+      struct ot_dirac_gpos dg;
+      ot_dirac_gpos_parse (iframe, pframe, &dg);
       ret = fprintf (stream,
 		     "(pt:%u,dt:%" PRId64 ",dist:%hu,delay:%hu)",
-		     pt, dt, dist, delay);
+		     dg.pt, dg.dt, dg.dist, dg.delay);
     }
 
 }
