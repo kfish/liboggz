@@ -271,7 +271,9 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   if (strict) {
     if (op->bytes < 0) return OGGZ_ERR_BAD_BYTES;
     if (!suffix && b_o_s != stream->b_o_s) return OGGZ_ERR_BAD_B_O_S;
-    if (op->granulepos != -1 && op->granulepos < stream->granulepos)
+    if (op->granulepos != -1 && op->granulepos < stream->granulepos &&
+        /* Allow negative granulepos immediately after headers, for Dirac: */
+        !(stream->granulepos == 0 && op->granulepos < 0))
       return OGGZ_ERR_BAD_GRANULEPOS;
 
     /* Allow packetno == -1 to indicate oggz should fill it in; otherwise:
