@@ -328,6 +328,7 @@ main (int argc, char * argv[])
   char * progname;
   char * infilename = NULL, * outfilename = NULL;
   FILE * infile = NULL, * outfile = NULL;
+  int used_stdin = 0; /* Flag usage of stdin, only use it once */
   OMData * omdata;
   int i;
 
@@ -416,7 +417,15 @@ main (int argc, char * argv[])
 
   while (optind < argc) {
     infilename = argv[optind++];
-    infile = fopen (infilename, "rb");
+    if (strcmp (infilename, "-") == 0) {
+      if (used_stdin) continue;
+
+      infile = stdin;
+      used_stdin = 1;
+    } else {
+      infile = fopen (infilename, "rb");
+    }
+
     if (infile == NULL) {
       fprintf (stderr, "%s: unable to open input file %s\n", progname,
 	       infilename);
