@@ -414,11 +414,6 @@ main (int argc, char * argv[])
     goto exit_err;
   }
 
-  if (optind >= argc) {
-    usage (progname);
-    goto exit_err;
-  }
-
   infilename = argv[optind++];
   osdata_add_file (osdata, infilename);
 
