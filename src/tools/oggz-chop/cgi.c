@@ -28,6 +28,8 @@ set_param (OCState * state, char * key, char * val)
     if (val && (sep = strchr (val, '/')) != NULL) {
       *sep++ = '\0';
       state->end = parse_timespec (sep);
+    } else {
+      state->end = -1.0;
     }
     state->start = parse_timespec (val);
   }
