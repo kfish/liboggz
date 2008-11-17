@@ -359,13 +359,17 @@ list_comments (OCData * ocdata)
 static void
 store_comment (OCData * ocdata, char * s)
 {
-  char * c, * name, * value;
+  char * c, * name, * value = NULL;
 
-  c = strchr (s, '=');
-  *c = '\0';
+  if (s == NULL) return;
 
   name = s;
-  value = c+1;
+
+  c = strchr (s, '=');
+  if (c != NULL) {
+    *c = '\0';
+    value = c+1;
+  }
 
   oggz_comment_add_byname (ocdata->storer, S_SERIALNO, name, value);
 }

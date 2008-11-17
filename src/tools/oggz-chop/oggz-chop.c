@@ -745,6 +745,8 @@ chop (OCState * state)
     oggz = oggz_open (state->infilename, OGGZ_READ|OGGZ_AUTO);
   }
 
+  if (oggz == NULL) return -1;
+
   if (state->outfilename == NULL) {
     state->outfile = stdout;
   } else {

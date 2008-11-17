@@ -594,6 +594,8 @@ oggz_set_order (OGGZ * oggz, long serialno,
     oggz->order_user_data = user_data;
   } else {
     stream = oggz_get_stream (oggz, serialno);
+    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
+
     stream->order = order;
     stream->order_user_data = user_data;
   }

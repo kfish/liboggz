@@ -424,6 +424,8 @@ typedef int (*OggzOrder) (OGGZ * oggz, ogg_packet * op, void * target,
  * \retval 0 Success
  * \retval OGGZ_ERR_BAD_OGGZ \a oggz does not refer to an existing OGGZ
  * \retval OGGZ_ERR_INVALID Operation not suitable for this OGGZ
+ * \retval OGGZ_ERR_BAD_SERIALNO \a serialno does not identify an existing
+ *                               logical bitstream in \a oggz, and is not -1
  */
 int oggz_set_order (OGGZ * oggz, long serialno, OggzOrder order,
 		    void * user_data);
