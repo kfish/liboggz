@@ -656,7 +656,7 @@ oggz_writer_make_packet (OGGZ * oggz)
 #ifdef DEBUG
   printf("oggz_writer_make_packet: cb_ret is %d\n", cb_ret);
 #endif
-  
+
   if (cb_ret == 0 && next_zpacket == NULL) return OGGZ_WRITE_EMPTY;
 
   return cb_ret;
@@ -670,7 +670,7 @@ oggz_write_output (OGGZ * oggz, unsigned char * buf, long n)
   int active = 1, cb_ret = 0;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
- 
+
   writer = &oggz->x.writer;
 
   if (!(oggz->flags & OGGZ_WRITE)) {
@@ -822,7 +822,7 @@ oggz_write (OGGZ * oggz, long n)
          * if we're out of packets because we're at the end of the file,
          * we can't finish just yet.  Instead we need to force a page flush,
          * and write the page out.  So we set flushing and no_more_packets to
-         * 1.  This causes oggz_page_init to flush the page, then we 
+         * 1.  This causes oggz_page_init to flush the page, then we
          * will switch the state to OGGZ_WRITING_PAGES, which will trigger
          * the writing code below.
          */
