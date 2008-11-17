@@ -25,7 +25,7 @@ set_param (OCState * state, char * key, char * val)
   if (!strncmp ("end", key, 6)) state->end = parse_timespec (val);
 
   if (!strncmp ("t", key, 2)) {
-    if ((sep = strchr (val, '/')) != NULL) {
+    if (val && (sep = strchr (val, '/')) != NULL) {
       *sep++ = '\0';
       state->end = parse_timespec (sep);
     }
