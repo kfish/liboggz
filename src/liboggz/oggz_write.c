@@ -373,13 +373,14 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 static long
 oggz_page_init (OGGZ * oggz)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   ogg_stream_state * os;
   ogg_page * og;
   int ret;
 
   if (oggz == NULL) return -1;
 
+  writer = &oggz->x.writer;
   os = writer->current_stream;
   og = &oggz->current_page;
 
@@ -414,13 +415,14 @@ oggz_page_init (OGGZ * oggz)
 static long
 oggz_packet_init (OGGZ * oggz, oggz_writer_packet_t * next_zpacket)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   oggz_stream_t * stream;
   ogg_stream_state * os;
   ogg_packet * op;
 
   if (oggz == NULL) return -1L;
 
+  writer = &oggz->x.writer;
   writer->current_zpacket = next_zpacket;
   op = &next_zpacket->op;
 
@@ -449,12 +451,13 @@ oggz_packet_init (OGGZ * oggz, oggz_writer_packet_t * next_zpacket)
 static long
 oggz_page_copyout (OGGZ * oggz, unsigned char * buf, long n)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   long h, b;
   ogg_page * og;
 
   if (oggz == NULL) return -1L;
 
+  writer = &oggz->x.writer;
   og = &oggz->current_page;
 
   h = MIN (n, og->header_len - writer->page_offset);
@@ -491,7 +494,7 @@ oggz_page_copyout (OGGZ * oggz, unsigned char * buf, long n)
 static long
 oggz_page_writeout (OGGZ * oggz, long n)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   long h, b, nwritten;
   ogg_page * og;
 
@@ -501,6 +504,7 @@ oggz_page_writeout (OGGZ * oggz, long n)
 
   if (oggz == NULL) return -1L;
 
+  writer = &oggz->x.writer;
   og = &oggz->current_page;
 
 #ifdef OGGZ_WRITE_DIRECT
@@ -901,10 +905,12 @@ oggz_write (OGGZ * oggz, long n)
 long
 oggz_write_get_next_page_size (OGGZ * oggz)
 {
-  OggzWriter * writer = &oggz->x.writer;
+  OggzWriter * writer;
   ogg_page * og;
 
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
+
+  writer = &oggz->x.writer;
 
   if (!(oggz->flags & OGGZ_WRITE)) {
     return OGGZ_ERR_INVALID;
