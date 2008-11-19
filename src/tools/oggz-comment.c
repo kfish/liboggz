@@ -72,6 +72,8 @@ usage (char * progname)
 {
   printf ("Usage: %s filename [options] tagname=tagvalue ...\n", progname);
   printf ("List or edit comments in an Ogg file.\n");
+  printf ("\nSee http://wiki.xiph.org/index.php/VorbisComment for usage recommendations.\n");
+  printf ("Note that VorbisComment metadata cannot be used with Dirac video tracks.\n");
   printf ("\nOutput options\n");
   printf ("  -l, --list             List the comments in the given file.\n");
   printf ("\nEditing options\n");
@@ -132,6 +134,16 @@ ocdata_delete (OCData *ocdata)
   free (ocdata);
 }
 
+static void
+fail_dirac (OCData *ocdata)
+{
+  fprintf (stderr, "oggz-comment: Error: Comments cannot be stored in Dirac\n");
+
+  ocdata_delete (ocdata);
+
+  exit (1);
+}
+
 static int
 filter_stream_p (const OCData *ocdata, long serialno)
 {
@@ -162,14 +174,30 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     return OGGZ_CONTINUE;
   }
 
-  /* Record this track in the seen_tracks table, unless it is skeleton.
+  /* Record this track in the seen_tracks table, unless it is Skeleton or Dirac.
    * We don't need to store any information about the track, just the fact
    * that it exists.
    * Store a dummy value (as NULL is not allowed in an OggzTable).
    */
   content = oggz_stream_get_content (oggz, serialno);
-  if (content != OGGZ_CONTENT_SKELETON)
+  switch (content) {
+  case OGGZ_CONTENT_SKELETON:
+    /* No VorbisComment for Skeleton, and no need to warn */
+    break;
+  case OGGZ_CONTENT_DIRAC:
+    /* No VorbisComment for Dirac, see:
+     * http://lists.xiph.org/pipermail/ogg-dev/2008-November/001277.html
+     */
+    if (ocdata->do_all) {
+      fprintf (stderr, "oggz-comment: Warning: Ignoring Dirac track, serialno %010d\n",
+               serialno);
+    } else {
+      fail_dirac (ocdata);
+    }
+    break;
+  default:
     oggz_table_insert (ocdata->seen_tracks, serialno, (void *)0x01);
+  }
 
   ident = ot_page_identify (oggz, og, NULL);
   if (ident != NULL) {
@@ -456,6 +484,9 @@ main (int argc, char ** argv)
       oggz_table_insert (ocdata->serialno_table, serialno, (void *)0x7);
       break;
     case 'c': /* content-type */
+      if (strcasecmp (optarg, "dirac") == 0) {
+        fail_dirac (ocdata);
+      }
       filter_content_types = 1;
       ocdata->do_all = 0;
       n = oggz_table_size (ocdata->content_types_table);
