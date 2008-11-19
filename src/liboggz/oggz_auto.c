@@ -94,6 +94,8 @@ auto_speex (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
 
+  oggz_set_preroll (oggz, serialno, 3);
+
   numheaders = (ogg_int64_t) INT32_LE_AT(&header[68]) + 2;
   oggz_stream_set_numheaders (oggz, serialno, numheaders);
 
@@ -114,6 +116,8 @@ auto_vorbis (OGGZ * oggz, long serialno, unsigned char * data, long length, void
 #endif
 
   oggz_set_granulerate (oggz, serialno, granule_rate, OGGZ_AUTO_MULT);
+
+  oggz_set_preroll (oggz, serialno, 2);
 
   oggz_stream_set_numheaders (oggz, serialno, 3);
 

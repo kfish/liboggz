@@ -38,6 +38,8 @@
 		oggz_get_granulerate;
 		oggz_set_granuleshift;
 		oggz_get_granuleshift;
+		oggz_set_preroll;
+		oggz_get_preroll;
 
 		oggz_tell;
                 oggz_tell_granulepos;

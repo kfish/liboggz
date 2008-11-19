@@ -279,8 +279,10 @@ oggz_get_granulerate (OGGZ * oggz, long serialno,
                                     ogg_int64_t * granulerate_d);
 
 int oggz_set_granuleshift (OGGZ * oggz, long serialno, int granuleshift);
-
 int oggz_get_granuleshift (OGGZ * oggz, long serialno);
+
+int oggz_set_preroll (OGGZ * oggz, long serialno, int preroll);
+int oggz_get_preroll (OGGZ * oggz, long serialno);
 
 /* oggz_auto */
  
