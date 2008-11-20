@@ -3,7 +3,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-
 #include <getopt.h>
 
 #include "oggz-chop.h"
@@ -26,10 +25,18 @@ usage (char * progname)
   printf ("                         Specify end time\n");
   printf ("  -k , --no-skeleton     Do NOT include a Skeleton bitstream in the output");
   printf ("\nMiscellaneous options\n");
+  printf ("  -n, --dry-run          Don't actually write the output\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
+  printf ("  -V, --verbose          Verbose operation, prints to stderr\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+}
+
+static int
+version (FILE *stream)
+{
+    return fprintf (stream, "%s version " VERSION "\n", progname);
 }
 
 int
@@ -39,16 +46,18 @@ cmd_main (OCState * state, int argc, char * argv[])
   int show_help = 0;
   int i;
 
-  char * optstring = "s:e:o:khv";
+  char * optstring = "s:e:o:knhvV";
 
 #ifdef HAVE_GETOPT_LONG
   static struct option long_options[] = {
-    {"start",   required_argument, 0, 's'},
-    {"end",   required_argument, 0, 'e'},
+    {"start",    required_argument, 0, 's'},
+    {"end",      required_argument, 0, 'e'},
     {"output",   required_argument, 0, 'o'},
-    {"no-skeleton",   no_argument, 0, 'k'},
+    {"no-skeleton", no_argument, 0, 'k'},
+    {"dry-run",  no_argument, 0, 'n'},
     {"help",     no_argument, 0, 'h'},
     {"version",  no_argument, 0, 'v'},
+    {"verbose",  no_argument, 0, 'V'},
     {0,0,0,0}
   };
 #endif
@@ -95,11 +104,17 @@ cmd_main (OCState * state, int argc, char * argv[])
     case 'k': /* no-skeleton */
       state->do_skeleton = 0;
       break;
+    case 'n': /* dry-run */
+      state->dry_run = 1;
+      break;
     case 'h': /* help */
       show_help = 1;
       break;
     case 'v': /* version */
       show_version = 1;
+      break;
+    case 'V': /* verbose */
+      state->verbose = 1;
       break;
     case 'o': /* output */
       state->outfilename = optarg;
@@ -110,7 +125,9 @@ cmd_main (OCState * state, int argc, char * argv[])
   }
 
   if (show_version) {
-    printf ("%s version " VERSION "\n", progname);
+    version (stdout);
+  } else if (state->verbose) {
+    version (stderr);
   }
 
   if (show_help) {

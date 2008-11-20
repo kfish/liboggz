@@ -177,12 +177,14 @@ _ogg_page_set_eos (const ogg_page * og)
 }
 
 static void
-fwrite_ogg_page (FILE * outfile, const ogg_page * og)
+fwrite_ogg_page (OCState * state, const ogg_page * og)
 {
   if (og == NULL) return;
 
-  fwrite (og->header, 1, og->header_len, outfile);
-  fwrite (og->body, 1, og->body_len, outfile);
+  if (!state->dry_run) {
+    fwrite (og->header, 1, og->header_len, state->outfile);
+    fwrite (og->body, 1, og->body_len, state->outfile);
+  }
 }
 
 /************************************************************
@@ -494,7 +496,7 @@ write_accum (OCState * state)
                          (void *)(min_cn+1+CN_OFFSET));
 
       /* Write out minimum page */
-      fwrite_ogg_page (state->outfile, min_og);
+      fwrite_ogg_page (state, min_og);
     }
 
     /* Let's lexically forget about this CN_OFFSET silliness */
@@ -583,11 +585,11 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       chop_glue (state, oggz);
     }
 
-    fwrite_ogg_page (state->outfile, og);
+    fwrite_ogg_page (state, og);
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
     _ogg_page_set_eos (og);
-    fwrite_ogg_page (state->outfile, og);
+    fwrite_ogg_page (state, og);
 
     /* Stop handling this track */
     oggz_set_read_page (oggz, serialno, NULL, NULL);
@@ -676,7 +678,7 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       }
     }
   } else {
-    fwrite_ogg_page (state->outfile, og);
+    fwrite_ogg_page (state, og);
 
     ts = oggz_table_lookup (state->tracks, serialno);
     ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
@@ -747,15 +749,17 @@ chop (OCState * state)
 
   if (oggz == NULL) return -1;
 
-  if (state->outfilename == NULL) {
-    state->outfile = stdout;
-  } else {
-    state->outfile = fopen (state->outfilename, "wb");
-    if (state->outfile == NULL) {
-      fprintf (stderr, "oggz-chop: unable to open output file %s\n",
-	       state->outfilename);
-      oggz_close(oggz);
-      return -1;
+  if (!state->dry_run) {
+    if (state->outfilename == NULL) {
+      state->outfile = stdout;
+    } else {
+      state->outfile = fopen (state->outfilename, "wb");
+      if (state->outfile == NULL) {
+        fprintf (stderr, "oggz-chop: unable to open output file %s\n",
+  	       state->outfilename);
+        oggz_close(oggz);
+        return -1;
+      }
     }
   }
 
@@ -774,7 +778,7 @@ chop (OCState * state)
 
   oggz_close (oggz);
 
-  if (state->outfilename != NULL) {
+  if (state->outfilename != NULL && !state->dry_run) {
     fclose (state->outfile);
   }
 

@@ -64,6 +64,10 @@ typedef struct _OCState {
   double end;
 
   int original_had_skeleton;
+
+  /* Commandline options */
+  int dry_run;
+  int verbose;
 } OCState;
 
 
