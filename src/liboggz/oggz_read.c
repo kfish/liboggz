@@ -86,6 +86,8 @@ oggz_read_init (OGGZ * oggz)
 
   reader->current_unit = 0;
 
+  reader->current_page_bytes = 0;
+
   return oggz;
 }
 
@@ -183,26 +185,33 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
   oggz_off_t page_offset = 0, ret;
   int found = 0;
 
+  /* Increment oggz->offset by length of the last page processed */
+  oggz->offset += reader->current_page_bytes;
+
   do {
     more = ogg_sync_pageseek (&reader->ogg_sync, og);
 
     if (more == 0) {
+      /* No page available */
       page_offset = 0;
       return -2;
     } else if (more < 0) {
 #ifdef DEBUG_VERBOSE
       printf ("get_next_page: skipped %ld bytes\n", -more);
 #endif
-      page_offset -= more;
+      page_offset += (-more);
+      oggz->offset += (-more);
     } else {
 #ifdef DEBUG_VERBOSE
       printf ("get_next_page: page has %ld bytes\n", more);
 #endif
+      reader->current_page_bytes = more;
       found = 1;
     }
 
   } while (!found);
 
+#if 0 /* This is now done by the increment at the top of the file */
   /* Calculate the byte offset of the page which was found */
   if (bytes > 0) {
     oggz->offset = oggz_io_tell (oggz) - bytes + page_offset;
@@ -214,6 +223,9 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
   }
 
   return ret;
+#else
+  return oggz->offset;
+#endif
 }
 
 typedef struct {
