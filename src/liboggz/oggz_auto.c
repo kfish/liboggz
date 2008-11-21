@@ -375,11 +375,9 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
     fps_numerator, fps_denominator, granule_shift);
 #endif
 
-  /* the granulerate is twice the frame rate (in order to handle interlace)
-   * it is also multiplied by (1<<9) since the decode time is stored in
-   * the top 32bits of granulepos, but the granule_shift is 22. */
+  /* the granulerate is twice the frame rate (in order to handle interlace) */
   oggz_set_granulerate (oggz, serialno,
-	2*(1<<9)*(ogg_int64_t)info->fps_numerator,
+	2 * (ogg_int64_t)info->fps_numerator,
 	OGGZ_AUTO_MULT * (ogg_int64_t)info->fps_denominator);
   oggz_set_granuleshift (oggz, serialno, granule_shift);
 
