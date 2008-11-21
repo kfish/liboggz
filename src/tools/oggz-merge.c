@@ -196,8 +196,8 @@ oggz_merge (OMData * omdata, FILE * outfile)
   const ogg_page * og;
   int active;
 
-  /* For theora+vorbis, ensure theora bos is first */
-  int careful_for_theora = 0;
+  /* For theora+vorbis, or dirac+vorbis, ensure video bos is first */
+  int careful_for_video = 0;
 
   /* If all input files are Ogg Vorbis I, warn that the output will not be
    * a valid Ogg Vorbis I file as it will be multitrack. This is in response
@@ -206,7 +206,7 @@ oggz_merge (OMData * omdata, FILE * outfile)
   int v, warn_all_vorbis = 1;
 
   if (oggz_table_size (omdata->inputs) == 2)
-    careful_for_theora = 1;
+    careful_for_video = 1;
 
   while ((ninputs = oggz_table_size (omdata->inputs)) > 0) {
     min_units = -1;
@@ -239,7 +239,7 @@ oggz_merge (OMData * omdata, FILE * outfile)
               is_vorbis = (oggz_stream_get_content (input->reader, serialno) == OGGZ_CONTENT_VORBIS);
 
 	      if (i == 0 && is_vorbis)
-		careful_for_theora = 0;
+		careful_for_video = 0;
 	      else
 		active = 0;
 
