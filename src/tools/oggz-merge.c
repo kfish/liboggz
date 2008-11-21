@@ -232,7 +232,7 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	  if (ogg_page_bos ((ogg_page *)input->og)) {
 	    min_i = i;
 
-	    if (careful_for_theora || warn_all_vorbis) {
+	    if (careful_for_video || warn_all_vorbis) {
               int is_vorbis;
               long serialno = ogg_page_serialno ((ogg_page *)input->og);
 
