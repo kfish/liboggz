@@ -70,14 +70,10 @@ esac
 
 # First check for -? option
 if test "X$1" = "X-?"; then
-  echo $QARGS
   exit 0
 fi
 
-echo $GETOPTARGS
-
 TEMP=`getopt $GETOPTARGS "$@"`
-echo $TEMP
 
 if test "$?" != "0"; then
   usage
