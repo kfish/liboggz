@@ -233,12 +233,10 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	    min_i = i;
 
 	    if (careful_for_theora || warn_all_vorbis) {
-	      const char * codec_name;
-	      int is_vorbis = 0;
+              int is_vorbis;
+              long serialno = ogg_page_serialno ((ogg_page *)input->og);
 
-	      if ((codec_name = 
-                  ot_page_identify (input->reader, input->og, NULL)) != NULL)
-		is_vorbis = !strcmp (codec_name, "Vorbis");
+              is_vorbis = (oggz_stream_get_content (input->reader, serialno) == OGGZ_CONTENT_VORBIS);
 
 	      if (i == 0 && is_vorbis)
 		careful_for_theora = 0;

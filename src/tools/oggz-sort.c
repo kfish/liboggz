@@ -262,18 +262,10 @@ oggz_sort (OSData * osdata, FILE * outfile)
 	    min_i = i;
 
 	    if (careful_for_theora) {
-	      const char * codec_name;
-	      int is_vorbis = 0;
-
-	      if ((codec_name = 
-                  ot_page_identify (input->reader, input->og, NULL)) != NULL)
-		is_vorbis = !strcmp (codec_name, "Vorbis");
-
-	      if (i == 0 && is_vorbis)
+	      if (i == 0 && oggz_stream_get_content (input->reader, input->serialno) == OGGZ_CONTENT_VORBIS)
 		careful_for_theora = 0;
 	      else
 		active = 0;
-
 	    } else {
 	      active = 0;
 	    }
