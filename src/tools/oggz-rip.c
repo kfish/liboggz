@@ -181,8 +181,7 @@ orstream_new (OGGZ *oggz, const ORData *ordata, const ogg_page *og,
   stream->streamid = streamid_count++;
   stream->content_type = "unknown";
 
-  ident = ot_page_identify (oggz, og, NULL);
-  if (ident != NULL) stream->content_type = ident;
+  stream->content_type = oggz_stream_get_content_type (oggz, serialno);
    
   if (ordata->verbose)
     fprintf (stderr, 
@@ -257,11 +256,7 @@ oggz_rip (ORData * ordata)
 
   oggz_set_read_page (ordata->reader, -1, read_page, ordata);
   
-  while ((n = oggz_read (ordata->reader, READ_SIZE))) {
-
-    if (n <= 0)
-      return n;
-
+  while ((n = oggz_read (ordata->reader, READ_SIZE)) != 0) {
     if (ordata->verbose) {
       fprintf (stderr, "\r Read %li k, wrote %li k ...\r",
 	       (long) (oggz_tell (ordata->reader)/1024),
