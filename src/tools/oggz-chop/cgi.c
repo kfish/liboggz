@@ -40,11 +40,12 @@ set_param (OCState * state, char * key, char * val)
 }
 
 /**
- * Parse the name=value pairs in the query string and set parameters
- * @param start,end The range parameters to set
+ * Parse the name=value pairs in the query string and set
+ * time start and end parameters.
+ * @param state The OCState to store the time range into
  * @param query The query string
  */
-static void
+void
 parse_query (OCState * state, char * query)
 {
   char * key, * val, * end;

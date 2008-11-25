@@ -45,6 +45,7 @@ cmd_main (OCState * state, int argc, char * argv[])
   int show_version = 0;
   int show_help = 0;
   int i;
+  char * query;
 
   char * optstring = "s:e:o:knhvV";
 
@@ -144,6 +145,16 @@ cmd_main (OCState * state, int argc, char * argv[])
   }
 
   state->infilename = argv[optind++];
+
+  /* If infilename contains a query parameter, separate it off
+   * NB: This should be enabled by a flag, as it doesn't allow
+   * filenames which actually have a query parameter in them --
+   * such as those returned by wget on an oggz-chop resource!
+   */
+  if (state->infilename && (query = strchr (state->infilename, '?')) != NULL) {
+    *query++ = '\0';
+    parse_query (state, query);
+  }
 
   return chop (state);
 
