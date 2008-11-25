@@ -946,6 +946,7 @@ chop (OCState * state)
         fprintf (stderr, "oggz-chop: unable to open output file %s\n",
   	       state->outfilename);
         oggz_close(oggz);
+        perror (state->outfilename);
         return -1;
       }
     }
