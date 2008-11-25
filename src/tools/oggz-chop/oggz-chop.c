@@ -147,6 +147,10 @@ state_clear (OCState * state)
 static void
 state_report (OCState * state)
 {
+  printf ("%s %d %d %d\n", state->infilename,
+          state->headers + state->constructed,
+          state->canon_range_start, state->canon_range_end);
+
   if (!state->verbose) return;
 
   fprintf (stderr, "Headers:     %8ld bytes\n", state->headers);
