@@ -49,6 +49,8 @@ typedef enum {
 typedef struct _OCState {
   OCStatus status;
 
+  char * infilename_copy; /* Copy, retaining query */
+
   char * infilename;
   char * outfilename;
 

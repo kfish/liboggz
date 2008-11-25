@@ -140,6 +140,8 @@ state_clear (OCState * state)
 {
   int i, ntracks;
 
+  if (state->infilename_copy) free (state->infilename_copy);
+
   ntracks = oggz_table_size (state->tracks);
   for (i = 0; i < ntracks; i++) {
     track_state_delete (oggz_table_nth(state->tracks, i, NULL));
@@ -150,7 +152,7 @@ state_clear (OCState * state)
 static void
 state_report (OCState * state)
 {
-  printf ("%s %ld %ld %ld %ld\n", state->infilename,
+  printf ("%s %ld %ld %ld %ld\n", state->infilename_copy,
           state->headers + state->constructed, state->min_offset,
           state->canon_range_start, state->canon_range_end);
 

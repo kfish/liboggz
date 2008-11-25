@@ -145,6 +145,7 @@ cmd_main (OCState * state, int argc, char * argv[])
   }
 
   state->infilename = argv[optind++];
+  state->infilename_copy = strdup (state->infilename);
 
   /* If infilename contains a query parameter, separate it off
    * NB: This should be enabled by a flag, as it doesn't allow
