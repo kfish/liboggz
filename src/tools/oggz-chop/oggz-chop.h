@@ -75,6 +75,9 @@ typedef struct _OCState {
   long constructed;
   long copied;
 
+  /* Minimum offset of pages used in construction */
+  long min_offset;
+
   /* Commandline options */
   int dry_run;
   int verbose;

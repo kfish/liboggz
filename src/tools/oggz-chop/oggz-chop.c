@@ -36,6 +36,7 @@
 #include <getopt.h>
 #include <errno.h>
 #include <math.h>
+#include <limits.h>
 
 #include <oggz/oggz.h>
 
@@ -127,7 +128,9 @@ state_init (OCState * state)
   state->tracks = oggz_table_new ();
   state->status = OC_INIT;
 
+
   /* Initialize byte range */
+  state->min_offset = LONG_MAX;
   state->canon_range_start = 0;
   state->canon_range_end = -1;
 }
@@ -147,15 +150,15 @@ state_clear (OCState * state)
 static void
 state_report (OCState * state)
 {
-  printf ("%s %d %d %d\n", state->infilename,
-          state->headers + state->constructed,
+  printf ("%s %ld %ld %ld %ld\n", state->infilename,
+          state->headers + state->constructed, state->min_offset,
           state->canon_range_start, state->canon_range_end);
 
   if (!state->verbose) return;
 
   fprintf (stderr, "Headers:     %8ld bytes\n", state->headers);
   fprintf (stderr, "Deleted:     %8ld bytes\n", state->deleted);
-  fprintf (stderr, "Constructed: %8ld bytes\n", state->constructed);
+  fprintf (stderr, "Constructed: %8ld bytes, min. offset %8ld\n", state->constructed, state->min_offset);
   fprintf (stderr, "Copied:      %8ld bytes\n", state->copied);
   fprintf (stderr, "Total:       %8ld bytes\n", state->headers + state->deleted + state->constructed + state->copied);
 
@@ -163,7 +166,7 @@ state_report (OCState * state)
     fprintf (stderr, "X-Range-Redirect: bytes=%ld-%ld\n",
              state->canon_range_start, state->canon_range_end);
   } else {
-    fprintf (stderr, "X-Range-Redirect: bytes=%d-\n", state->canon_range_start);
+    fprintf (stderr, "X-Range-Redirect: bytes=%ld-\n", state->canon_range_start);
   }
 }
 
@@ -506,7 +509,7 @@ write_accum (OCState * state)
   OCTrackState * ts;
   OCPageAccum * pa;
   OggzTable * candidates;
-  long serialno, min_serialno;
+  long serialno, min_serialno, min_offset;
   int i, ntracks, ncandidates=0, remaining=0, min_i, cn, min_cn;
   ogg_page * og, * min_og;
   double min_time;
@@ -546,12 +549,16 @@ write_accum (OCState * state)
     min_cn = -1;
     min_og = NULL;
     min_serialno = -1;
+    min_offset = LONG_MAX;
     for (i=0; i < ncandidates; i++) {
       cn = ((int) oggz_table_nth (candidates, i, &serialno)) - CN_OFFSET;
       ts = oggz_table_lookup (state->tracks, serialno);
       if (ts && ts->page_accum) {
         if (cn < oggz_table_size (ts->page_accum)) {
           pa = oggz_table_nth (ts->page_accum, cn, NULL);
+
+          if (pa->byte_offset < state->min_offset)
+            state->min_offset = pa->byte_offset;
 
           if (pa->time < min_time) {
             min_i = i;
