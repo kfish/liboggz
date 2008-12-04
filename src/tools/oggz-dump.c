@@ -253,7 +253,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     }
   }
 
-  fprintf (outfile, ": serialno %010ld, ",
+  fprintf (outfile, ": serialno %010lu, ",
 	   oddata->hide_serialno ? -1 : serialno);
 
   if (oddata->hide_granulepos) {
@@ -340,7 +340,7 @@ revert_packet (OGGZ * oggz, ogg_packet * op, long serialno, int flush)
   int ret;
 
 #ifdef DEBUG
-  printf ("feeding packet (%010ld) %ld bytes %s, %s\n",
+  printf ("feeding packet (%010lu) %ld bytes %s, %s\n",
           current_serialno, op->bytes,
           op->b_o_s ? "bos" : "not bos",
           op->e_o_s ? "eos" : "not eos");

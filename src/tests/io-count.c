@@ -104,7 +104,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
   if (iter > MAX_ITER) return 1;
 
 #ifdef DEBUG
-  printf ("%08" PRI_OGGZ_OFF_T "x: serialno %010ld, "
+  printf ("%08" PRI_OGGZ_OFF_T "x: serialno %010lu, "
 	  "granulepos %" PRId64 ", packetno %" PRId64,
 	  oggz_tell (oggz), serialno, op->granulepos, op->packetno);
 

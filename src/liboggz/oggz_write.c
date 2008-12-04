@@ -227,13 +227,13 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
    * ie. that it fits within 32 bits and does not equal the special value -1 */
   if ((long)((ogg_int32_t)serialno) != serialno || serialno == -1) {
 #ifdef DEBUG
-    printf ("oggz_write_feed: serialno %010ld\n", serialno);
+    printf ("oggz_write_feed: serialno %010lu\n", serialno);
 #endif
     return OGGZ_ERR_BAD_SERIALNO;
   }
 
 #ifdef DEBUG
-  printf ("oggz_write_feed: (%010ld) FLUSH: %d\n", serialno, flush);
+  printf ("oggz_write_feed: (%010lu) FLUSH: %d\n", serialno, flush);
 #endif
 
   /* Cache strict, prefix, suffix */

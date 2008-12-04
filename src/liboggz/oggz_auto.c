@@ -407,7 +407,7 @@ auto_fisbone (OGGZ * oggz, long serialno, unsigned char * data, long length, voi
   granuleshift = (int)header[48];
 
 #ifdef DEBUG
-  printf ("Got fisbone granulerate %lld/%lld, granuleshift %d for serialno %010ld\n",
+  printf ("Got fisbone granulerate %lld/%lld, granuleshift %d for serialno %010lu\n",
 	  granule_rate_numerator, granule_rate_denominator, granuleshift,
 	  fisbone_serialno);
 #endif

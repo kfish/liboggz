@@ -189,7 +189,7 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
      * http://lists.xiph.org/pipermail/ogg-dev/2008-November/001277.html
      */
     if (ocdata->do_all) {
-      fprintf (stderr, "oggz-comment: Warning: Ignoring Dirac track, serialno %010ld\n",
+      fprintf (stderr, "oggz-comment: Warning: Ignoring Dirac track, serialno %010lu\n",
                serialno);
     } else {
       fail_dirac (ocdata);
@@ -354,9 +354,9 @@ read_comments(OGGZ *oggz, ogg_packet *op, long serialno, void *user_data)
   if (filter_stream_p (ocdata, serialno) && op->packetno == 1) {
     codec_name = oggz_stream_get_content_type(oggz, serialno);
     if (codec_name) {
-      printf ("%s: serialno %010ld\n", codec_name, serialno);
+      printf ("%s: serialno %010lu\n", codec_name, serialno);
     } else {
-      printf ("???: serialno %010ld\n", serialno);
+      printf ("???: serialno %010lu\n", serialno);
     }
 
     printf("\tVendor: %s\n", oggz_comment_get_vendor(oggz, serialno));

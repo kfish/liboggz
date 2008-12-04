@@ -49,18 +49,18 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 {
 #if 0
   if (got_an_eos) {
-    printf ("[%010ld]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,
+    printf ("[%010lu]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,
 	    (long)op->granulepos);
   }
 #endif
 
   if (op->b_o_s) {
-    printf ("%010ld: [%" PRId64 "] BOS %8s\n", serialno, op->granulepos, op->packet);
+    printf ("%010lu: [%" PRId64 "] BOS %8s\n", serialno, op->granulepos, op->packet);
   }
 
   if (op->e_o_s) {
     got_an_eos = 1;
-    printf ("%010ld: [%" PRId64 "] EOS\n", serialno, op->granulepos);
+    printf ("%010lu: [%" PRId64 "] EOS\n", serialno, op->granulepos);
   }
 
   return 0;

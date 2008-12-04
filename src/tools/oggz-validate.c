@@ -223,7 +223,7 @@ ovdata_clear (OVData * ovdata)
     for (i = 0; i < nr_missing_eos; i++) {
       log_error ();
       oggz_table_nth (ovdata->missing_eos, i, &serialno);
-      fprintf (stderr, "serialno %010ld: missing *** eos\n", serialno);
+      fprintf (stderr, "serialno %010lu: missing *** eos\n", serialno);
     }
   }
 
@@ -257,7 +257,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 	ovdata->theora_count++;
 	if (ovdata->audio_count > 0) {
 	  log_error ();
-	  fprintf (stderr, "serialno %010ld: Theora video bos page after audio bos page\n", serialno);
+	  fprintf (stderr, "serialno %010lu: Theora video bos page after audio bos page\n", serialno);
 	}
         break;
       case OGGZ_CONTENT_VORBIS:
@@ -279,7 +279,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (!suffix) {
     if (oggz_table_lookup (ovdata->missing_eos, serialno) == NULL) {
       ret = log_error ();
-      fprintf (stderr, "serialno %010ld: missing *** bos\n", serialno);
+      fprintf (stderr, "serialno %010lu: missing *** bos\n", serialno);
     }
 
     packetno = (int)oggz_table_lookup (ovdata->packetno, serialno);
@@ -290,16 +290,16 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       oggz_table_insert (ovdata->packetno, serialno, (void *)packetno);
       if (packetno == headers && gpos != 0) {
         ret = log_error ();
-        fprintf (stderr, "serialno %010ld: Terminal header page has non-zero granulepos\n", serialno);
+        fprintf (stderr, "serialno %010lu: Terminal header page has non-zero granulepos\n", serialno);
       } else if (packetno > headers) {
         ret = log_error ();
-        fprintf (stderr, "serialno %010ld: Terminal header page contains non-header packet\n", serialno);
+        fprintf (stderr, "serialno %010lu: Terminal header page contains non-header packet\n", serialno);
       }
     } else if (packetno == headers) {
       /* This is the next page after the page on which the last header finished */
       if (ogg_page_continued (og)) {
         ret = log_error ();
-        fprintf (stderr, "serialno %010ld: Terminal header page contains non-header segment\n", serialno);
+        fprintf (stderr, "serialno %010lu: Terminal header page contains non-header segment\n", serialno);
       }
 
       /* Mark packetno as greater than headers to avoid these checks for this serialno */
@@ -313,13 +313,13 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     int removed = oggz_table_remove (ovdata->missing_eos, serialno);
     if (!suffix && removed == -1) {
       ret = log_error ();
-      fprintf (stderr, "serialno %010ld: *** eos marked but no bos\n",
+      fprintf (stderr, "serialno %010lu: *** eos marked but no bos\n",
   	       serialno);
     }
 
     if (packets == 0) {
       ret = log_error ();
-      fprintf (stderr, "serialno %010ld: *** eos marked on page with no completed packets\n",
+      fprintf (stderr, "serialno %010lu: *** eos marked on page with no completed packets\n",
   	       serialno);
     }
 
@@ -331,7 +331,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if(gpos != -1 && packets == 0) {
     ret = log_error ();
-    fprintf (stderr, "serialno %010ld: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
+    fprintf (stderr, "serialno %010lu: granulepos %" PRId64 " on page with no completed packets, must be -1\n", serialno, gpos);
   }
 
   return ret;
@@ -350,7 +350,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     if (timestamp < current_timestamp) {
       ret = log_error();
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
-      fprintf (stderr, ": serialno %010ld: Packet out of order (previous ",
+      fprintf (stderr, ": serialno %010lu: Packet out of order (previous ",
 	       serialno);
       ot_fprint_time (stderr, (double)current_timestamp/SUBSECONDS);
       fprintf (stderr, ")\n");
@@ -371,7 +371,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
     } else {
       ot_fprint_time (stderr, (double)timestamp/SUBSECONDS);
     }
-    fprintf (stderr, ": serialno %010ld: ", serialno);
+    fprintf (stderr, ": serialno %010lu: ", serialno);
     for (i = 0; errors[i].error; i++) {
       if (errors[i].error == feed_err) {
 	fprintf (stderr, "%s\n", errors[i].description);

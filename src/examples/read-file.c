@@ -66,7 +66,7 @@ read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
 
   granuleshift = oggz_get_granuleshift (oggz, serialno);
 
-  printf ("%010ld: op->granulepos: ", serialno);
+  printf ("%010lu: op->granulepos: ", serialno);
   print_granulepos (op->granulepos, granuleshift);
   printf ("  oggz_tell_granulepos(): ");
   print_granulepos (oggz_tell_granulepos (oggz), granuleshift);

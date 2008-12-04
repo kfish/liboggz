@@ -50,7 +50,7 @@ read_comments (OGGZ * oggz, long serialno)
 
   content_type = oggz_stream_get_content_type (oggz, serialno);
 
-  printf ("%s: serial %010ld\n\n", content_type, serialno);
+  printf ("%s: serial %010lu\n\n", content_type, serialno);
 
   vendor = oggz_comment_get_vendor (oggz, serialno);
   if (vendor) printf ("  Vendor: %s\r\n", vendor);

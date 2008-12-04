@@ -259,7 +259,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
   
   if (oit->has_fisbone) {
     printf("\n\tExtra information from Ogg Skeleton track:\n");
-    /*printf("\tserialno: %010d\n", oit->fbInfo.serial_no);*/
+    /*printf("\tserialno: %010u\n", oit->fbInfo.serial_no);*/
     printf("\tNumber of header packets: %d\n", oit->fbInfo.nr_header_packet);
     printf("\tGranule rate: %.2f\n", (double)oit->fbInfo.granule_rate_n/oit->fbInfo.granule_rate_d);
     printf("\tGranule shift: %d\n", (int)oit->fbInfo.granule_shift);
@@ -288,9 +288,9 @@ static void
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   if (oit->codec_name) {
-    printf ("\n%s: serialno %010ld\n", oit->codec_name, serialno);
+    printf ("\n%s: serialno %010lu\n", oit->codec_name, serialno);
   } else {
-    printf ("\n???: serialno %010ld\n", serialno);
+    printf ("\n???: serialno %010lu\n", serialno);
   }
   printf ("\t%ld packets in %ld pages, %.1f packets/page, %.3f%% Ogg overhead\n",
 	  oit->packets.count, oit->pages.count,

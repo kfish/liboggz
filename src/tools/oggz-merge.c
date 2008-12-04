@@ -275,7 +275,7 @@ oggz_merge (OMData * omdata, FILE * outfile)
 
 	  if (omdata->verbose) {
 	    ot_fprint_time (stdout, (double)units/1000);
-	    printf (": Got index %d serialno %010d %" PRId64 " units: ",
+	    printf (": Got index %d serialno %010u %" PRId64 " units: ",
 		    i, ogg_page_serialno ((ogg_page *)input->og), units);
 	  }
 

@@ -58,7 +58,7 @@ oggz_metric_dirac (OGGZ * oggz, long serialno,
   units = dt * stream->granulerate_d / stream->granulerate_n;
 
 #ifdef DEBUG
-  printf ("oggz_..._granuleshift: serialno %010ld Got frame or field %lld (%lld + %lld): %lld units\n",
+  printf ("oggz_..._granuleshift: serialno %010lu Got frame or field %lld (%lld + %lld): %lld units\n",
 	  serialno, dt, iframe, pframe, units);
 #endif
 
@@ -83,7 +83,7 @@ oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
   units = granulepos * stream->granulerate_d / stream->granulerate_n;
 
 #ifdef DEBUG
-  printf ("oggz_..._granuleshift: serialno %010ld Got frame %lld (%lld + %lld): %lld units\n",
+  printf ("oggz_..._granuleshift: serialno %010lu Got frame %lld (%lld + %lld): %lld units\n",
 	  serialno, granulepos, iframe, pframe, units);
 #endif
 

@@ -207,7 +207,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     oggz_get_granulerate (oggz, serialno, &gr_n, &gr_d);
     ort->delta = (ord->base_units * gr_n) / (gr_d);
 #ifdef DEBUG
-    fprintf (stderr, "%010ld: DELTA %lld (gr: %lld/%lld)\n",
+    fprintf (stderr, "%010lu: DELTA %lld (gr: %lld/%lld)\n",
 	     serialno, ort->delta, gr_n, gr_d);
 #endif
   }
@@ -220,7 +220,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   ort->nr_packets += ogg_page_packets ((ogg_page *)og);
 
 #ifdef DEBUG
-  fprintf (stderr, "%010ld: %d packets, gp %lld\n",
+  fprintf (stderr, "%010lu: %d packets, gp %lld\n",
 	   serialno, ort->nr_packets, ogg_page_granulepos ((ogg_page *)og));
 #endif
 

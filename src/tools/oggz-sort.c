@@ -274,7 +274,7 @@ oggz_sort (OSData * osdata, FILE * outfile)
 
 	  if (osdata->verbose) {
 	    ot_fprint_time (stdout, (double)units/1000);
-	    printf (": Got index %d serialno %010d %lld units: ",
+	    printf (": Got index %d serialno %010u %lld units: ",
 		    i, ogg_page_serialno ((ogg_page *)input->og), (long long) units);
 	  }
 
