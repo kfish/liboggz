@@ -189,7 +189,7 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
      * http://lists.xiph.org/pipermail/ogg-dev/2008-November/001277.html
      */
     if (ocdata->do_all) {
-      fprintf (stderr, "oggz-comment: Warning: Ignoring Dirac track, serialno %010d\n",
+      fprintf (stderr, "oggz-comment: Warning: Ignoring Dirac track, serialno %010ld\n",
                serialno);
     } else {
       fail_dirac (ocdata);
