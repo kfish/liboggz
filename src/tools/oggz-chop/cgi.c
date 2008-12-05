@@ -146,6 +146,11 @@ cgi_main (OCState * state)
 
   /*photo_init (&params->in, path_translated);*/
 
+  if (path_translated == NULL) {
+    fprintf (stderr, "oggz-chop: CGI configuration error: PATH_TRANSLATED undefined\n");
+    return -1;
+  }
+
   /* Get Last-Modified time */
   if (stat (path_translated, &statbuf) == -1) {
     switch (errno) {
