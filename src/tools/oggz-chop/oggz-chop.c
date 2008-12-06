@@ -743,6 +743,11 @@ chop (OCState * state)
 {
   OGGZ * oggz;
 
+  if (state == NULL || state->infilename == NULL) {
+    fprintf (stderr, "oggz-chop: Initialization state invalid\n");
+    return -1;
+  }
+
   state_init (state);
 
   if (strcmp (state->infilename, "-") == 0) {
