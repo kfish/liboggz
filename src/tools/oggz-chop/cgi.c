@@ -13,6 +13,11 @@
 #include "httpdate.h"
 #include "timespec.h"
 
+/* Customization: for servers that do not set PATH_TRANSLATED, specify the
+ * DocumentRoot here and it will be prepended to PATH_INFO */
+//#define DOCUMENT_ROOT "/var/www"
+#define DOCUMENT_ROOT NULL
+
 static void
 set_param (OCState * state, char * key, char * val)
 {
@@ -121,6 +126,33 @@ cgi_send (OCState * state)
 }
 #endif
 
+static char *
+prepend_document_root (char * path_info)
+{
+  char * dr = DOCUMENT_ROOT;
+  char * path_translated;
+  int dr_len, pt_len;
+
+  if (path_info == NULL) return NULL;
+
+  if (dr == NULL || *dr == '\0') return strdup (path_info);
+
+  dr_len = strlen (dr);
+
+  pt_len = dr_len + strlen(path_info) + 1;
+  path_translated = malloc (pt_len);
+  snprintf (path_translated, pt_len , "%s%s", dr, path_info);
+
+  return path_translated;
+}
+
+static int
+path_undefined (char * vars)
+{
+  fprintf (stderr, "oggz-chop: Cannot determine real filename due to CGI configuration error: %s undefined\n", vars);
+  return -1;
+}
+
 int
 cgi_main (OCState * state)
 {
@@ -131,6 +163,7 @@ cgi_main (OCState * state)
   char * if_modified_since;
   time_t since_time, last_time;
   struct stat statbuf;
+  int built_path_translated=0;
 
   httpdate_init ();
 
@@ -140,16 +173,21 @@ cgi_main (OCState * state)
   if_modified_since = getenv ("HTTP_IF_MODIFIED_SINCE");
 
   memset (state, 0, sizeof(*state));
-  state->infilename = path_translated;
   state->end = -1.0;
   state->do_skeleton = 1;
 
-  /*photo_init (&params->in, path_translated);*/
-
   if (path_translated == NULL) {
-    fprintf (stderr, "oggz-chop: CGI configuration error: PATH_TRANSLATED undefined\n");
-    return -1;
+    if (path_info == NULL)
+      return path_undefined ("PATH_TRANSLATED and PATH_INFO");
+
+    path_translated = prepend_document_root (path_info);
+    if (path_translated == NULL)
+      return path_undefined ("PATH_TRANSLATED");
+
+    built_path_translated = 1;
   }
+
+  state->infilename = path_translated;
 
   /* Get Last-Modified time */
   if (stat (path_translated, &statbuf) == -1) {
@@ -157,8 +195,7 @@ cgi_main (OCState * state)
     case ENOENT:
       return 0;
     default:
-      fprintf (stderr, "oggz-chop: Error checking %s: %s\n",
-               path_translated, strerror(errno));
+      fprintf (stderr, "oggz-chop: %s: %s\n", path_translated, strerror(errno));
       return -1;
     }
   }
@@ -209,6 +246,9 @@ cgi_main (OCState * state)
 #else
   err = chop (state);
 #endif
+
+  if (built_path_translated && path_translated != NULL)
+    free (path_translated);
   
   return err;
 }
