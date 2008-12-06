@@ -94,38 +94,6 @@ cgi_test (void)
   return 1;
 }
 
-#if 0
-static int
-cgi_send_photo (photo_t * photo)
-{
-  /*header_content_length (photo->size);*/
-  header_end();
-
-  photo_put (photo);
-
-  return 0;
-}
-
-static int
-cgi_send (OCState * state)
-{
-  header_last_modified (state->in.mtime);
-
-  if (params->nochange) {
-    cgi_send_photo (&params->in);
-  } else if (params->out.name) {
-    cgi_send_photo (&params->out);
-  } else {
-    header_content_length ((off_t)params->data_size);
-    header_end();
-
-    memory_send (params);
-  }
-
-  return 0;
-}
-#endif
-
 static char *
 prepend_document_root (char * path_info)
 {
@@ -223,29 +191,12 @@ cgi_main (OCState * state)
 
   header_accept_timeuri_ogg ();
 
-  /*config_init (params);*/
-
   parse_query (state, query_string);
-
-#if 0
-  if (params->x || params->y || params->scale || params->gray ||
-      params->quality) {
-    cache_init (params, path_info);
-  } else {
-    params->nochange = 1;
-  }
-#endif
 
   header_end();
 
   err = 0;
-#if 0
-  if (!(params->nochange || params->cached)) {
-    err = chop (state);
-  }
-#else
   err = chop (state);
-#endif
 
   if (built_path_translated && path_translated != NULL)
     free (path_translated);
