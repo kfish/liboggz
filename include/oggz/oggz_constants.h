@@ -173,6 +173,9 @@ enum OggzError {
   /** Hole (sequence number gap) detected in input data */
   OGGZ_ERR_HOLE_IN_DATA                 = -17,
 
+  /** Out of memory */
+  OGGZ_ERR_OUT_OF_MEMORY                = -18,
+
   /** The requested serialno does not exist in this OGGZ */
   OGGZ_ERR_BAD_SERIALNO                 = -20,
 

@@ -91,6 +91,7 @@ oggz_write_init (OGGZ * oggz)
   writer->next_zpacket = NULL;
 
   writer->packet_queue = oggz_vector_new ();
+  if (writer->packet_queue == NULL) return NULL;
 
 #ifdef ZPACKET_CMP
   /* XXX: comparison function should only kick in when a metric is set */
@@ -205,7 +206,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   oggz_stream_t * stream;
   oggz_writer_packet_t * packet;
   ogg_packet * new_op;
-  unsigned char * new_buf;
+  unsigned char * new_buf = NULL;
   int b_o_s, e_o_s, bos_auto;
   int strict, prefix, suffix;
 
@@ -306,12 +307,18 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
   /* Now set up the packet and add it to the queue */
   if (guard == NULL) {
     new_buf = oggz_malloc ((size_t)op->bytes);
+    if (new_buf == NULL) return OGGZ_ERR_OUT_OF_MEMORY;
+
     memcpy (new_buf, op->packet, (size_t)op->bytes);
   } else {
     new_buf = op->packet;
   }
 
   packet = oggz_malloc (sizeof (oggz_writer_packet_t));
+  if (packet == NULL) {
+    if (guard == NULL && new_buf != NULL) free (new_buf);
+    return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   new_op = &packet->op;
   new_op->packet = new_buf;

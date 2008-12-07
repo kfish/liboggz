@@ -92,6 +92,10 @@ oggz_new (int flags)
   oggz->cb_next = 0;
 
   oggz->streams = oggz_vector_new ();
+  if (oggz->streams == NULL) {
+    goto err_oggz_new;
+  }
+  
   oggz->all_at_eos = 0;
 
   oggz->metric = NULL;
@@ -102,14 +106,26 @@ oggz_new (int flags)
   oggz->order_user_data = NULL;
 
   oggz->packet_buffer = oggz_dlist_new ();
+  if (oggz->packet_buffer == NULL) {
+    goto err_streams_new;
+  }
 
   if (OGGZ_CONFIG_WRITE && (oggz->flags & OGGZ_WRITE)) {
-    oggz_write_init (oggz);
+    if (oggz_write_init (oggz) == NULL)
+      goto err_packet_buffer_new;
   } else if (OGGZ_CONFIG_READ) {
     oggz_read_init (oggz);
   }
 
   return oggz;
+
+err_packet_buffer_new:
+  oggz_free (oggz->packet_buffer);
+err_streams_new:
+  oggz_free (oggz->streams);
+err_oggz_new:
+  oggz_free (oggz);
+  return NULL;
 }
 
 OGGZ *

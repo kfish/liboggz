@@ -227,6 +227,8 @@ oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet,
             OggzReader *reader) {
 
   OggzBufferedPacket *p = malloc(sizeof(OggzBufferedPacket));
+  if (p == NULL) return NULL;
+
   memcpy(&(p->packet), packet, sizeof(ogg_packet));
   p->packet.packet = malloc(packet->bytes);
   memcpy(p->packet.packet, packet->packet, packet->bytes);

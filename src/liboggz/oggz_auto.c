@@ -458,6 +458,7 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
   if (stream->calculate_data == NULL) {
     stream->calculate_data = malloc(sizeof(auto_calc_speex_info_t));
+    if (stream->calculate_data == NULL) return -1;
     info = stream->calculate_data;
     info->encountered_first_data_packet = 0;
     info->packet_size =
@@ -511,6 +512,8 @@ auto_calc_celt (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
 
   if (stream->calculate_data == NULL) {
     stream->calculate_data = malloc(sizeof(auto_calc_celt_info_t));
+    if (stream->calculate_data == NULL) return -1;
+
     info = stream->calculate_data;
     info->encountered_first_data_packet = 0;
 
@@ -576,6 +579,7 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   {
     if (info == NULL) {
       stream->calculate_data = malloc(sizeof(auto_calc_theora_info_t));
+      if (stream->calculate_data == NULL) return -1;
       info = stream->calculate_data;
     }
     info->encountered_first_data_packet = 0;
@@ -699,6 +703,8 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     short_size = 1 << (op->packet[28] & 0xF);
 
     stream->calculate_data = malloc(sizeof(auto_calc_vorbis_info_t));
+    if (stream->calculate_data == NULL) return -1;
+
     info = (auto_calc_vorbis_info_t *)stream->calculate_data;
     info->nln_increments[3] = long_size >> 1;
     info->nln_increments[2] = 3 * (long_size >> 2) - (short_size >> 2);
@@ -841,9 +847,11 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
       /*
        * store mode size information in our info struct
        */
-      stream->calculate_data = realloc(stream->calculate_data,
+      info = realloc(stream->calculate_data,
               sizeof(auto_calc_vorbis_info_t) + (size - 1) * sizeof(int));
-      info = (auto_calc_vorbis_info_t *)(stream->calculate_data);
+      if (info == NULL) return -1;
+
+      stream->calculate_data = info;
 
       i = -1;
       while ((1 << (++i)) < size);
@@ -969,6 +977,8 @@ auto_calc_flac (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op)
 
   if (stream->calculate_data == NULL) {
     stream->calculate_data = malloc(sizeof(auto_calc_flac_info_t));
+    if (stream->calculate_data == NULL) return -1;
+
     info = (auto_calc_flac_info_t *)stream->calculate_data;
     info->previous_gp = 0;
     info->encountered_first_data_packet = 0;
