@@ -109,14 +109,34 @@ usage (char * progname)
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
+static void
+exit_out_of_memory (void)
+{
+  fprintf (stderr, "%s: Out of memory\n", progname);
+  exit (1);
+}
+
 static ODData *
 oddata_new ()
 {
   ODData * oddata = malloc (sizeof (ODData));
+
+  if (oddata == NULL) return NULL;
+
   memset (oddata, 0, sizeof (ODData));
 
   oddata->serialno_table = oggz_table_new ();
+  if (oddata->serialno_table == NULL) {
+    free (oddata);
+    return NULL;
+  }
+
   oddata->content_types_table = oggz_table_new ();
+  if (oddata->content_types_table == NULL) {
+    free (oddata->serialno_table);
+    free (oddata);
+    return NULL;
+  }
 
   oddata->dump_bits = 0;
   oddata->dump_char = 1;
@@ -383,6 +403,8 @@ revert_file (char * infilename)
   }
 
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT|OGGZ_AUTO);
+  if (oggz == NULL)
+    exit_out_of_memory();
 
   while (fgets (line, 120, infile)) {
     line_offset = 0;
@@ -457,13 +479,9 @@ revert_file (char * infilename)
 	      new_size = max_bytes * 2;
 	    }
 
-	    new_packet =
-	      (unsigned char *) realloc ((void *)packet, new_size);
+	    new_packet = (unsigned char *) realloc((void *)packet, new_size);
 	    if (new_packet == NULL) {
-	      fprintf (stderr,
-		       "%s: error allocating memory for packet data\n",
-		       progname);
-	      exit (1);
+              exit_out_of_memory ();
 	    } else {
 	      max_bytes = (long)new_size;
 	      packet = new_packet;
@@ -546,6 +564,8 @@ main (int argc, char ** argv)
   }
 
   oddata = oddata_new ();
+  if (oddata == NULL)
+    exit_out_of_memory();
 
   oddata->read_packet = read_packet;
 
