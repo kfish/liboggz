@@ -733,11 +733,11 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
     return NULL;
   }
 
-  c_packet = malloc(sizeof *c_packet);
+  c_packet = oggz_malloc(sizeof *c_packet);
   if(c_packet) {
     memset(c_packet, 0, sizeof *c_packet);
     c_packet->packetno = 1;
-    c_packet->packet = malloc(buf_size);
+    c_packet->packet = oggz_malloc(buf_size);
   }
 
   if(c_packet && c_packet->packet) {
@@ -765,7 +765,7 @@ oggz_comment_generate(OGGZ * oggz, long serialno,
 	c_packet->bytes -= 1;
       }
   } else {
-    free(c_packet);
+    oggz_free(c_packet);
     c_packet = 0;
   }
 
@@ -790,9 +790,9 @@ void oggz_packet_destroy(ogg_packet *packet) {
   if(packet) {
     if(packet->packet)
       {
-	free(packet->packet);
+	oggz_free(packet->packet);
       }
-    free(packet);
+    oggz_free(packet);
   }
   return;
 }

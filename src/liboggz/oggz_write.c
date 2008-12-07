@@ -316,7 +316,7 @@ oggz_write_feed (OGGZ * oggz, ogg_packet * op, long serialno, int flush,
 
   packet = oggz_malloc (sizeof (oggz_writer_packet_t));
   if (packet == NULL) {
-    if (guard == NULL && new_buf != NULL) free (new_buf);
+    if (guard == NULL && new_buf != NULL) oggz_free (new_buf);
     return OGGZ_ERR_OUT_OF_MEMORY;
   }
 

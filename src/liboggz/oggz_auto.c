@@ -366,7 +366,7 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
   int granule_shift = 22; /* not a typo */
   dirac_info *info;
 
-  info = malloc(sizeof(dirac_info));
+  info = oggz_malloc(sizeof(dirac_info));
 
   dirac_parse_info(info, data, length);
 
@@ -383,7 +383,7 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
 
   oggz_stream_set_numheaders (oggz, serialno, 0);
 
-  free(info);
+  oggz_free(info);
   return 1;
 }
 
@@ -457,7 +457,7 @@ auto_calc_speex(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
           = (auto_calc_speex_info_t *)stream->calculate_data;
 
   if (stream->calculate_data == NULL) {
-    stream->calculate_data = malloc(sizeof(auto_calc_speex_info_t));
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_speex_info_t));
     if (stream->calculate_data == NULL) return -1;
     info = stream->calculate_data;
     info->encountered_first_data_packet = 0;
@@ -511,7 +511,7 @@ auto_calc_celt (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
           = (auto_calc_celt_info_t *)stream->calculate_data;
 
   if (stream->calculate_data == NULL) {
-    stream->calculate_data = malloc(sizeof(auto_calc_celt_info_t));
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_celt_info_t));
     if (stream->calculate_data == NULL) return -1;
 
     info = stream->calculate_data;
@@ -578,7 +578,7 @@ auto_calc_theora(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
   if (first_byte & 0x80)
   {
     if (info == NULL) {
-      stream->calculate_data = malloc(sizeof(auto_calc_theora_info_t));
+      stream->calculate_data = oggz_malloc(sizeof(auto_calc_theora_info_t));
       if (stream->calculate_data == NULL) return -1;
       info = stream->calculate_data;
     }
@@ -702,7 +702,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
     long_size = 1 << (op->packet[28] >> 4);
     short_size = 1 << (op->packet[28] & 0xF);
 
-    stream->calculate_data = malloc(sizeof(auto_calc_vorbis_info_t));
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_vorbis_info_t));
     if (stream->calculate_data == NULL) return -1;
 
     info = (auto_calc_vorbis_info_t *)stream->calculate_data;
@@ -976,7 +976,7 @@ auto_calc_flac (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op)
   auto_calc_flac_info_t *info;
 
   if (stream->calculate_data == NULL) {
-    stream->calculate_data = malloc(sizeof(auto_calc_flac_info_t));
+    stream->calculate_data = oggz_malloc(sizeof(auto_calc_flac_info_t));
     if (stream->calculate_data == NULL) return -1;
 
     info = (auto_calc_flac_info_t *)stream->calculate_data;

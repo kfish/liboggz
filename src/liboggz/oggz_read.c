@@ -226,11 +226,11 @@ oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet,
             ogg_int64_t granulepos, long serialno, oggz_stream_t * stream, 
             OggzReader *reader) {
 
-  OggzBufferedPacket *p = malloc(sizeof(OggzBufferedPacket));
+  OggzBufferedPacket *p = oggz_malloc(sizeof(OggzBufferedPacket));
   if (p == NULL) return NULL;
 
   memcpy(&(p->packet), packet, sizeof(ogg_packet));
-  p->packet.packet = malloc(packet->bytes);
+  p->packet.packet = oggz_malloc(packet->bytes);
   memcpy(p->packet.packet, packet->packet, packet->bytes);
 
   p->calced_granulepos = granulepos;
@@ -245,8 +245,8 @@ oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet,
 void
 oggz_read_free_pbuffer_entry(OggzBufferedPacket *p) {
   
-  free(p->packet.packet);
-  free(p);
+  oggz_free(p->packet.packet);
+  oggz_free(p);
 
 }
 
