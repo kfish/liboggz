@@ -176,11 +176,15 @@ oggz_io_flush (OGGZ * oggz)
 
 /* get/set functions */
 
-static void
+static int
 oggz_io_init (OGGZ * oggz)
 {
   oggz->io = (OggzIO *) oggz_malloc (sizeof (OggzIO));
+  if (oggz->io == NULL) return -1;
+
   memset (oggz->io, 0, sizeof (OggzIO));
+
+  return 0;
 }
 
 int
@@ -189,7 +193,10 @@ oggz_io_set_read (OGGZ * oggz, OggzIORead read, void * user_handle)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
   if (oggz->file != NULL) return OGGZ_ERR_INVALID;
 
-  if (oggz->io == NULL) oggz_io_init (oggz);
+  if (oggz->io == NULL) {
+    if (oggz_io_init (oggz) == -1)
+      return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   oggz->io->read = read;
   oggz->io->read_user_handle = user_handle;
@@ -214,7 +221,10 @@ oggz_io_set_write (OGGZ * oggz, OggzIOWrite write, void * user_handle)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
   if (oggz->file != NULL) return OGGZ_ERR_INVALID;
 
-  if (oggz->io == NULL) oggz_io_init (oggz);
+  if (oggz->io == NULL) {
+    if (oggz_io_init (oggz) == -1)
+      return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   oggz->io->write = write;
   oggz->io->write_user_handle = user_handle;
@@ -239,7 +249,10 @@ oggz_io_set_seek (OGGZ * oggz, OggzIOSeek seek, void * user_handle)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
   if (oggz->file != NULL) return OGGZ_ERR_INVALID;
 
-  if (oggz->io == NULL) oggz_io_init (oggz);
+  if (oggz->io == NULL) {
+    if (oggz_io_init (oggz) == -1)
+      return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   oggz->io->seek = seek;
   oggz->io->seek_user_handle = user_handle;
@@ -264,7 +277,10 @@ oggz_io_set_tell (OGGZ * oggz, OggzIOTell tell, void * user_handle)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
   if (oggz->file != NULL) return OGGZ_ERR_INVALID;
 
-  if (oggz->io == NULL) oggz_io_init (oggz);
+  if (oggz->io == NULL) {
+    if (oggz_io_init (oggz) == -1)
+      return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   oggz->io->tell = tell;
   oggz->io->tell_user_handle = user_handle;
@@ -289,7 +305,10 @@ oggz_io_set_flush (OGGZ * oggz, OggzIOFlush flush, void * user_handle)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
   if (oggz->file != NULL) return OGGZ_ERR_INVALID;
 
-  if (oggz->io == NULL) oggz_io_init (oggz);
+  if (oggz->io == NULL) {
+    if (oggz_io_init (oggz) == -1)
+      return OGGZ_ERR_OUT_OF_MEMORY;
+  }
 
   oggz->io->flush = flush;
   oggz->io->flush_user_handle = user_handle;
