@@ -337,7 +337,10 @@ oggz_add_stream (OGGZ * oggz, long serialno)
 
   ogg_stream_init (&stream->ogg_stream, (int)serialno);
 
-  oggz_comments_init (stream);
+  if (oggz_comments_init (stream) == -1) {
+    oggz_free (stream);
+    return NULL;
+  }
 
   stream->content = OGGZ_CONTENT_UNKNOWN;
   stream->numheaders = 3; /* Default to 3 headers for Ogg logical bitstreams */

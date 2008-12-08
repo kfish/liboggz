@@ -225,7 +225,10 @@ oggz_comment_set_vendor (OGGZ * oggz, long serialno, const char * vendor_string)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   stream = oggz_get_stream (oggz, serialno);
-  if (stream == NULL) stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    return OGGZ_ERR_OUT_OF_MEMORY;
 
   if (oggz->flags & OGGZ_WRITE) {
     if (OGGZ_CONFIG_WRITE) {
@@ -331,7 +334,10 @@ oggz_comment_add (OGGZ * oggz, long serialno, const OggzComment * comment)
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   stream = oggz_get_stream (oggz, serialno);
-  if (stream == NULL) stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    return OGGZ_ERR_OUT_OF_MEMORY;
 
   if (oggz->flags & OGGZ_WRITE) {
     if (OGGZ_CONFIG_WRITE) {
@@ -362,7 +368,10 @@ oggz_comment_add_byname (OGGZ * oggz, long serialno,
   if (oggz == NULL) return OGGZ_ERR_BAD_OGGZ;
 
   stream = oggz_get_stream (oggz, serialno);
-  if (stream == NULL) stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    stream = oggz_add_stream (oggz, serialno);
+  if (stream == NULL)
+    return OGGZ_ERR_OUT_OF_MEMORY;
 
   if (oggz->flags & OGGZ_WRITE) {
     if (OGGZ_CONFIG_WRITE) {
@@ -477,6 +486,8 @@ oggz_comments_init (oggz_stream_t * stream)
 {
   stream->vendor = NULL;
   stream->comments = oggz_vector_new ();
+  if (stream->comments == NULL) return -1;
+
   oggz_vector_set_cmp (stream->comments, (OggzCmpFunc) oggz_comment_cmp, NULL);
 
   return 0;

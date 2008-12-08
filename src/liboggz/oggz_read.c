@@ -122,6 +122,8 @@ oggz_set_read_callback (OGGZ * oggz, long serialno,
     stream = oggz_get_stream (oggz, serialno);
     if (stream == NULL)
       stream = oggz_add_stream (oggz, serialno);
+    if (stream == NULL)
+      return OGGZ_ERR_OUT_OF_MEMORY;
 
     stream->read_packet = read_packet;
     stream->read_user_data = user_data;
@@ -152,6 +154,8 @@ oggz_set_read_page (OGGZ * oggz, long serialno, OggzReadPage read_page,
     stream = oggz_get_stream (oggz, serialno);
     if (stream == NULL)
       stream = oggz_add_stream (oggz, serialno);
+    if (stream == NULL)
+      return OGGZ_ERR_OUT_OF_MEMORY;
 
     stream->read_page = read_page;
     stream->read_page_user_data = user_data;
@@ -341,7 +345,7 @@ oggz_read_sync (OGGZ * oggz)
           /* new stream ... check bos etc. */
           if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
             /* error -- could not add stream */
-            return -7;
+            return OGGZ_ERR_OUT_OF_MEMORY;
           }
         }
         os = &stream->ogg_stream;
@@ -499,7 +503,7 @@ oggz_read_sync (OGGZ * oggz)
       /* new stream ... check bos etc. */
       if ((stream = oggz_add_stream (oggz, serialno)) == NULL) {
         /* error -- could not add stream */
-        return -7;
+        return OGGZ_ERR_OUT_OF_MEMORY;
       }
 
       /* identify stream type */
@@ -568,6 +572,8 @@ oggz_read (OGGZ * oggz, long n)
   reader = &oggz->x.reader;
 
   cb_ret = oggz_read_sync (oggz);
+  if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+    return cb_ret;
 
   while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK &&
          bytes_read > 0 && remaining > 0) {
@@ -585,6 +591,8 @@ oggz_read (OGGZ * oggz, long n)
       nread += bytes_read;
       
       cb_ret = oggz_read_sync (oggz);
+      if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+        return cb_ret;
     }
   }
 
@@ -636,6 +644,8 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
   reader = &oggz->x.reader;
 
   cb_ret = oggz_read_sync (oggz);
+  if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+    return cb_ret;
 
   while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK  &&
          /* !oggz->eos && */ remaining > 0) {
@@ -649,6 +659,8 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
     nread += bytes;
 
     cb_ret = oggz_read_sync (oggz);
+    if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+      return cb_ret;
   }
 
   if (cb_ret == OGGZ_STOP_ERR) oggz_purge (oggz);
