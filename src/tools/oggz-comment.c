@@ -35,7 +35,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <assert.h> /* , ja */
 #include <errno.h>
 #include <getopt.h>
 
@@ -98,23 +97,41 @@ static OCData *
 ocdata_new ()
 {
   OCData *ocdata = malloc (sizeof (OCData));
-  assert (ocdata != NULL);
+
+  if (ocdata == NULL) return NULL;
+
   memset (ocdata, 0, sizeof (OCData));
 
   ocdata->do_all = 1;
 
   ocdata->storer = oggz_new (OGGZ_WRITE);
+  if (ocdata->storer == NULL)
+    goto err_storer;
   
   ocdata->seen_tracks = oggz_table_new ();
-  assert (ocdata->seen_tracks != NULL);
+  if (ocdata->seen_tracks == NULL)
+    goto err_seen_tracks;
 
   ocdata->serialno_table = oggz_table_new();
-  assert (ocdata->serialno_table != NULL);
+  if (ocdata->serialno_table == NULL)
+    goto err_serialno_table;
 
   ocdata->content_types_table = oggz_table_new();
-  assert (ocdata->content_types_table != NULL);
+  if (ocdata->content_types_table == NULL)
+    goto err_content_types_table;
   
   return ocdata;
+
+err_content_types_table:
+  free (ocdata->serialno_table);
+err_serialno_table:
+  free (ocdata->seen_tracks);
+err_seen_tracks:
+  free (ocdata->storer);
+err_storer:
+  free (ocdata);
+
+  return NULL;
 }
 
 static void 
@@ -312,7 +329,7 @@ edit_comments (OCData * ocdata, char * outfilename)
 
   /* Set up writer, filling in ocdata for callbacks */
   if ((ocdata->writer = oggz_new (OGGZ_WRITE)) == NULL) {
-    printf ("Unable to create new writer\n");
+    fprintf (stderr, "Unable to create new writer: out of memory\n");
   }
 
   /* Set a page reader to process bos pages */
@@ -454,6 +471,10 @@ main (int argc, char ** argv)
   }
 
   ocdata = ocdata_new ();
+  if (ocdata == NULL) {
+    fprintf (stderr, "oggz-comment: out of memory\n");
+    exit (1);
+  }
 
   while (1) {
 #ifdef HAVE_GETOPT_LONG
