@@ -53,7 +53,7 @@ oggz_metric_dirac (OGGZ * oggz, long serialno,
   pframe = granulepos - (iframe << stream->granuleshift);
   pt = (iframe + pframe) >> 9;
   delay = pframe >> 9;
-  dt = (int64_t)pt - delay;
+  dt = (ogg_int64_t)pt - delay;
 
   units = dt * stream->granulerate_d / stream->granulerate_n;
 

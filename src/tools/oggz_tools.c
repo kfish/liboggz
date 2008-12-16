@@ -450,7 +450,7 @@ ot_dirac_gpos_parse (ogg_int64_t iframe, ogg_int64_t pframe,
   dg->pt = (iframe + pframe) >> 9;
   dg->dist = ((iframe & 0xff) << 8) | (pframe & 0xff);
   dg->delay = pframe >> 9;
-  dg->dt = (int64_t)dg->pt - dg->delay;
+  dg->dt = (ogg_int64_t)dg->pt - dg->delay;
 }
 
 int
