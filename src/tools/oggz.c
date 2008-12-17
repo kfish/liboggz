@@ -77,7 +77,7 @@ usage (char * progname)
           "                presentation time.\n");
   printf ("  sort          Sort the pages of an Ogg file in order of presentation time.\n");
 
-  printf ("Miscellaneous:\n");
+  printf ("\nMiscellaneous:\n");
   printf ("  known-codecs  List codecs known by this version of oggz\n");
 
   printf ("\n");
