@@ -38,7 +38,7 @@
 
 /* #define DEBUG */
 
-#define TOOLNAME_LEN 16
+#define TOOLNAME_LEN 32
 
 int
 usage (char * progname)
