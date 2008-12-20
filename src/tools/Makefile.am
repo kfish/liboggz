@@ -12,7 +12,9 @@ INCLUDES = -I$(top_builddir) -I$(top_builddir)/include \
            @OGG_CFLAGS@
 
 OGGZDIR = ../liboggz
-OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@ $(srcdir)/../liboggz/dirac.c
+OGGZ_LIBS = $(OGGZDIR)/liboggz.la @OGG_LIBS@
+
+COMMON_SRCS=oggz_tools.c $(srcdir)/../liboggz/dirac.c
 
 oggz_any_programs = oggz oggz-known-codecs
 
@@ -39,31 +41,31 @@ oggz_LDADD =
 oggz_known_codecs_SOURCES = oggz-known-codecs.c
 oggz_known_codecs_LDADD = $(OGGZ_LIBS)
 
-oggz_info_SOURCES = oggz-info.c oggz_tools.c skeleton.c 
+oggz_info_SOURCES = oggz-info.c skeleton.c $(COMMON_SRCS)
 oggz_info_LDADD = $(OGGZ_LIBS) -lm
 
-oggz_comment_SOURCES = oggz-comment.c oggz_tools.c
+oggz_comment_SOURCES = oggz-comment.c $(COMMON_SRCS)
 oggz_comment_LDADD = $(OGGZ_LIBS)
 
-oggz_dump_SOURCES = oggz-dump.c oggz_tools.c
+oggz_dump_SOURCES = oggz-dump.c $(COMMON_SRCS)
 oggz_dump_LDADD = $(OGGZ_LIBS)
 
-oggz_merge_SOURCES = oggz-merge.c oggz_tools.c
+oggz_merge_SOURCES = oggz-merge.c $(COMMON_SRCS)
 oggz_merge_LDADD = $(OGGZ_LIBS)
 
-oggz_rip_SOURCES = oggz-rip.c oggz_tools.c
+oggz_rip_SOURCES = oggz-rip.c $(COMMON_SRCS)
 oggz_rip_LDADD = $(OGGZ_LIBS)
 
-oggz_validate_SOURCES = oggz-validate.c oggz_tools.c
+oggz_validate_SOURCES = oggz-validate.c $(COMMON_SRCS)
 oggz_validate_LDADD = $(OGGZ_LIBS)
 
-oggz_basetime_SOURCES = oggz-basetime.c oggz_tools.c
+oggz_basetime_SOURCES = oggz-basetime.c $(COMMON_SRCS)
 oggz_basetime_LDADD = $(OGGZ_LIBS)
 
-oggz_scan_SOURCES = oggz-scan.c oggz_tools.c
+oggz_scan_SOURCES = oggz-scan.c $(COMMON_SRCS)
 oggz_scan_LDADD = $(OGGZ_LIBS)
 
-oggz_sort_SOURCES = oggz-sort.c oggz_tools.c
+oggz_sort_SOURCES = oggz-sort.c $(COMMON_SRCS)
 oggz_sort_LDADD = $(OGGZ_LIBS)
 
 # Add symlinks for deprecated tool names, if they are already installed;
