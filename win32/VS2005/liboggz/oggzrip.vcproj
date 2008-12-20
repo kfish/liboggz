@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include\;..\.."
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include\;..\..;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -188,11 +188,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggz_tools.c"
+				RelativePath="..\..\..\src\liboggz\dirac.c"
 				>
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggzrip.c"
+				RelativePath="..\..\..\src\tools\oggz-rip.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\tools\oggz_tools.c"
 				>
 			</File>
 		</Filter>

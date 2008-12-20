@@ -122,6 +122,9 @@
 				RelativePath="..\..\attgetopt.c">
 			</File>
 			<File
+				RelativePath="..\..\..\src\liboggz\dirac.c">
+			</File>
+			<File
 				RelativePath="..\..\..\src\tools\oggz-validate.c">
 			</File>
 			<File

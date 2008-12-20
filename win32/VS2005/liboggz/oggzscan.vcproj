@@ -120,7 +120,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include\,..\..\..\include\,..\.."
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include\;..\..;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				RuntimeLibrary="0"
 				UsePrecompiledHeader="0"
@@ -185,6 +185,10 @@
 			>
 			<File
 				RelativePath="..\..\attgetopt.c"
+				>
+			</File>
+			<File
+				RelativePath="..\..\..\src\liboggz\dirac.c"
 				>
 			</File>
 			<File

@@ -22,7 +22,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include;..\..\"
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include;..\..\;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -85,7 +85,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include;..\..\"
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include;..\..\;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;NDEBUG;_CONSOLE"
 				StringPooling="TRUE"
 				RuntimeLibrary="0"
@@ -146,10 +146,13 @@
 				RelativePath="..\..\attgetopt.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggz_tools.c">
+				RelativePath="..\..\..\src\liboggz\dirac.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggzdump.c">
+				RelativePath="..\..\..\src\tools\oggz-dump.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\tools\oggz_tools.c">
 			</File>
 		</Filter>
 		<Filter

@@ -93,3 +93,5 @@ oggz_get_numtracks			@50
 oggz_stream_get_content                 @100
 oggz_stream_get_content_type            @101
 oggz_tell_granulepos					@102
+
+oggz_stream_get_numheaders		@103

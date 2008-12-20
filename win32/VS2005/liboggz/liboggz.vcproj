@@ -75,7 +75,7 @@
 			<Tool
 				Name="VCLinkerTool"
 				AdditionalDependencies="libogg.lib"
-				OutputFile="$(OutDir)/liboggz.dll"
+				OutputFile="$(OutDir)\$(ProjectName).dll"
 				LinkIncremental="1"
 				SuppressStartupBanner="true"
 				AdditionalLibraryDirectories="$(OutDir)"
@@ -109,6 +109,7 @@
 				Name="VCPostBuildEventTool"
 				Description="Copy libogg to output directory"
 				CommandLine="copy ..\..\..\libogg\win32\Dynamic_Release\ogg.dll .\Release"
+				ExcludedFromBuild="true"
 			/>
 		</Configuration>
 		<Configuration
@@ -213,6 +214,10 @@
 			Name="Source Files"
 			Filter="cpp;c;cxx;rc;def;r;odl;idl;hpj;bat"
 			>
+			<File
+				RelativePath="..\..\..\src\liboggz\dirac.c"
+				>
+			</File>
 			<File
 				RelativePath="..\..\liboggz.def"
 				>

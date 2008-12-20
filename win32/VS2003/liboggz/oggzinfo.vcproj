@@ -84,7 +84,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include,..\..\..\include,..\.."
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include;..\..\..\include;..\..;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				BasicRuntimeChecks="3"
 				RuntimeLibrary="1"
@@ -146,10 +146,13 @@
 				RelativePath="..\..\attgetopt.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggz_tools.c">
+				RelativePath="..\..\..\src\liboggz\dirac.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggzinfo.c">
+				RelativePath="..\..\..\src\tools\oggz-info.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\tools\oggz_tools.c">
 			</File>
 			<File
 				RelativePath="..\..\..\src\tools\skeleton.c">

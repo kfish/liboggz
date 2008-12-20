@@ -1,9 +1,15 @@
 /*
   dirac.c
 */
+
+#include "config.h"
+
+#ifdef HAVE_STDINT_H
 #include <stdint.h>
+#endif
 
 #include "dirac.h"
+
 
 typedef struct
 dirac_bs_s
@@ -106,7 +112,6 @@ dirac_bool ( dirac_bs_t *p_bs )
 void
 dirac_parse_info (dirac_info *info, unsigned char * data, long len)
 {
-  char * buf;
   dirac_bs_t bs;
   ogg_uint32_t video_format;
 
@@ -183,4 +188,3 @@ dirac_parse_info (dirac_info *info, unsigned char * data, long len)
     }
   }
 }
-

@@ -19,7 +19,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include\;..\.."
+				AdditionalIncludeDirectories="..\..\..\..\libogg\include\;..\..\..\include\;..\..;..\..\..\src\liboggz"
 				PreprocessorDefinitions="WIN32;_DEBUG;_CONSOLE"
 				MinimalRebuild="TRUE"
 				BasicRuntimeChecks="3"
@@ -122,10 +122,13 @@
 				RelativePath="..\..\attgetopt.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggz_tools.c">
+				RelativePath="..\..\..\src\liboggz\dirac.c">
 			</File>
 			<File
-				RelativePath="..\..\..\src\tools\oggzrip.c">
+				RelativePath="..\..\..\src\tools\oggz-rip.c">
+			</File>
+			<File
+				RelativePath="..\..\..\src\tools\oggz_tools.c">
 			</File>
 		</Filter>
 		<Filter
