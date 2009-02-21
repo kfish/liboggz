@@ -52,6 +52,8 @@
 
 #define READ_BLOCKSIZE 1024000
 
+static char * progname;
+
 static void
 usage (const char * progname)
 {
@@ -83,6 +85,13 @@ usage (const char * progname)
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
+static void
+exit_out_of_memory (void)
+{
+  fprintf (stderr, "%s: Out of memory\n", progname);
+  exit (1);
+}
+
 #define SEP "------------------------------------------------------------"
 
 typedef struct _OI_Info OI_Info;
@@ -90,7 +99,10 @@ typedef struct _OI_Stats OI_Stats;
 typedef struct _OI_TrackInfo OI_TrackInfo;
 
 /* Let's get functional */
-typedef void (*OI_TrackFunc) (OI_Info * info, OI_TrackInfo * oit, long serialno);
+typedef int (*OI_TrackFunc) (OI_Info * info, OI_TrackInfo * oit, long serialno);
+
+/* Out of memory return value from OI_TrackFunc, aborts oggz_info_apply() */
+#define OIT_OOM (-1)
 
 struct _OI_Info {
   OGGZ * oggz;
@@ -163,7 +175,7 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
   return (double)((double)(granule * gr_d) / (double)gr_n);
 }
 
-static void
+static int
 oggz_info_apply (OI_TrackFunc func, OI_Info * info)
 {
   OI_TrackInfo * oit;
@@ -173,8 +185,13 @@ oggz_info_apply (OI_TrackFunc func, OI_Info * info)
   n = oggz_table_size (info->tracks);
   for (i = 0; i < n; i++) {
     oit = oggz_table_nth (info->tracks, i, &serialno);
-    if (oit) func (info, oit, serialno);
+    if (oit) {
+      if (func (info, oit, serialno) == OIT_OOM)
+        exit_out_of_memory();
+    }
   }
+
+  return 0;
 }
 
 static void
@@ -198,6 +215,7 @@ oggz_info_trackinfo_new (void)
   OI_TrackInfo * oit;
 
   oit = malloc (sizeof (OI_TrackInfo));
+  if (oit == NULL) return NULL;
 
   oi_stats_clear (&oit->pages);
   oi_stats_clear (&oit->packets);
@@ -252,7 +270,7 @@ ot_fishead_print(OI_TrackInfo *oit) {
   }
 }
 
-static void
+static int
 ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
 
   char *allocated, *messages, *token;
@@ -269,8 +287,11 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
     ot_fprint_time (stdout, gp_to_time (info->oggz, oit->fbInfo.serial_no, oit->fbInfo.start_granule));
     printf ("\n");
     printf("\tPreroll: %d\n", oit->fbInfo.preroll);
+
     allocated = messages = _ogg_calloc(oit->fbInfo.current_header_size+1, sizeof(char));
+    if (messages == NULL) return OIT_OOM;
     strcpy(messages, oit->fbInfo.message_header_fields);
+
     printf("\tMessage Header Fields:\n");
     while (1) {
       token = strsep(&messages, "\n\r");
@@ -281,10 +302,12 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
     printf("\n");
     _ogg_free(allocated);
   }
+
+  return 0;
 }
 
 /* oggz_info_trackinfo_print() */
-static void
+static int
 oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   if (oit->codec_name) {
@@ -325,9 +348,11 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
     ot_fishead_print(oit);
   }
   if (show_extra_skeleton_info && oit->has_fisbone) {
-    ot_fisbone_print(info, oit);
+    if (ot_fisbone_print(info, oit) == OIT_OOM);
+      return OIT_OOM;
   }
 
+  return 0;
  }
 
 static void
@@ -340,11 +365,12 @@ oi_stats_average (OI_Stats * stats)
   }
 }
 
-static void
+static int
 oit_calc_average (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   oi_stats_average (&oit->pages);
   oi_stats_average (&oit->packets);
+  return 0;
 }
 
 static void
@@ -361,11 +387,12 @@ oi_stats_stddev (OI_Stats * stats)
   }
 }
 
-static void
+static int
 oit_calc_stddev (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   oi_stats_stddev (&oit->pages);
   oi_stats_stddev (&oit->packets);
+  return 0;
 }
 
 static int
@@ -378,6 +405,7 @@ read_page_pass1 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
   oit = oggz_table_lookup (info->tracks, serialno);
   if (oit == NULL) {
     oit = oggz_info_trackinfo_new ();
+    if (oit == NULL) return -1;
     oggz_table_insert (info->tracks, serialno, oit);
   }
 
@@ -491,6 +519,10 @@ oi_pass1 (OGGZ * oggz, OI_Info * info)
 
   while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
 
+  /* We only return an error from our user callback on OOM */
+  if (n == OGGZ_ERR_STOP_ERR || n == OGGZ_ERR_OUT_OF_MEMORY)
+    exit_out_of_memory ();
+
   oggz_info_apply (oit_calc_average, info);
 
   /* Now we are at the end of the file, calculate the duration */
@@ -519,13 +551,15 @@ oi_pass2 (OGGZ * oggz, OI_Info * info)
   oggz_set_read_callback (oggz, -1, read_packet_pass2, info);
 
   while ((n = oggz_read (oggz, READ_BLOCKSIZE)) > 0);
+  if (n == OGGZ_ERR_OUT_OF_MEMORY)
+    exit_out_of_memory();
 
   oggz_info_apply (oit_calc_stddev, info);
 
   return 0;
 }
 
-static void
+static int
 oit_delete (OI_Info * info, OI_TrackInfo * oit, long serialno)
 {
   if (oit->codec_info) {
@@ -533,6 +567,9 @@ oit_delete (OI_Info * info, OI_TrackInfo * oit, long serialno)
       fisbone_clear (&oit->fbInfo);
     free (oit->codec_info);
   }
+  free (oit);
+
+  return 0;
 }
 
 int
@@ -541,7 +578,6 @@ main (int argc, char ** argv)
   int show_version = 0;
   int show_help = 0;
 
-  char * progname;
   int i;
   int show_all = 0;
 
