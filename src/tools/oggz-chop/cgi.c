@@ -103,15 +103,23 @@ prepend_document_root (char * path_info)
 
   if (path_info == NULL) return NULL;
 
-  if (dr == NULL || *dr == '\0') return strdup (path_info);
+  if (dr == NULL || *dr == '\0') {
+    if ((path_translated = strdup (path_info)) == NULL)
+      goto prepend_oom;
+  } else {
+    dr_len = strlen (dr);
 
-  dr_len = strlen (dr);
-
-  pt_len = dr_len + strlen(path_info) + 1;
-  path_translated = malloc (pt_len);
-  snprintf (path_translated, pt_len , "%s%s", dr, path_info);
+    pt_len = dr_len + strlen(path_info) + 1;
+    if ((path_translated = malloc (pt_len)) == NULL)
+      goto prepend_oom;
+    snprintf (path_translated, pt_len , "%s%s", dr, path_info);
+  }
 
   return path_translated;
+
+prepend_oom:
+  fprintf (stderr, "oggz-chop: Out of memory");
+  return NULL;
 }
 
 static int

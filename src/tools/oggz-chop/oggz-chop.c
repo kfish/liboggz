@@ -75,7 +75,8 @@ track_state_new (void)
 {
   OCTrackState * ts;
 
-  ts = (OCTrackState *) malloc (sizeof(*ts));
+  if ((ts = (OCTrackState *) malloc (sizeof(*ts))) == NULL)
+    return NULL;
 
   memset (ts, 0, sizeof(*ts));
 
@@ -103,7 +104,8 @@ track_state_add (OggzTable * state, long serialno)
 {
   OCTrackState * ts;
 
-  ts = track_state_new ();
+  if ((ts = track_state_new ()) == NULL)
+    return NULL;
 
   if (oggz_table_insert (state, serialno, ts) == ts) {
     return ts;
@@ -146,11 +148,21 @@ _ogg_page_copy (const ogg_page * og)
 {
   ogg_page * new_og;
 
-  new_og = malloc (sizeof (*og));
-  new_og->header = malloc (og->header_len);
+  if ((new_og = malloc (sizeof (*og))) == NULL)
+    return NULL;
+
+  if ((new_og->header = malloc (og->header_len)) == NULL) {
+    free (new_og);
+    return NULL;
+  }
   new_og->header_len = og->header_len;
   memcpy (new_og->header, og->header, og->header_len);
-  new_og->body = malloc (og->body_len);
+
+  if ((new_og->body = malloc (og->body_len)) == NULL) {
+    free (new_og->header);
+    free (new_og);
+    return NULL;
+  }
   new_og->body_len = og->body_len;
   memcpy (new_og->body, og->body, og->body_len);
 
@@ -201,8 +213,14 @@ page_accum_new (const ogg_page * og, double time)
 {
   OCPageAccum * pa;
 
-  pa = malloc(sizeof (*pa));
-  pa->og = _ogg_page_copy (og);
+  if ((pa = malloc(sizeof (*pa))) == NULL)
+    return NULL;
+
+  if ((pa->og = _ogg_page_copy (og)) == NULL) {
+    free (pa);
+    return NULL;
+  }
+
   pa->time = time;
 
   return pa;
@@ -359,7 +377,9 @@ fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
     content_type = oggz_stream_get_content (oggz, serialno);
     name = type_names[content_type];
     len = snprintf (NULL, 0, CONTENT_TYPE_FMT, name);
-    ts->fisbone.message_header_fields = malloc(len+1);
+    if ((ts->fisbone.message_header_fields = malloc(len+1)) == NULL) {
+      return -1;
+    }
     snprintf (ts->fisbone.message_header_fields, len+1, CONTENT_TYPE_FMT, name);
     ts->fisbone.current_header_size = len+1;
   }
@@ -717,8 +737,14 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
         fishead_update (state, og);
       }
     } else {
-      ts = track_state_add (state->tracks, serialno);
-      fisbone_init (oggz, state, ts, serialno);
+      if ((ts = track_state_add (state->tracks, serialno)) == NULL) {
+        /* Out of memory */
+        return OGGZ_STOP_ERR;
+      }
+      if (fisbone_init (oggz, state, ts, serialno) == -1) {
+        /* Out of memory */
+        return OGGZ_STOP_ERR;
+      }
       ts->headers_remaining = ts->fisbone.nr_header_packet;
     }
 
