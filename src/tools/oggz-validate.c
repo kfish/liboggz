@@ -80,6 +80,7 @@ static error_text errors[] = {
   {0, NULL}
 };
 
+static char * progname;
 static int max_errors = MAX_ERRORS;
 static int multifile = 0;
 static char * current_filename = NULL;
@@ -139,6 +140,13 @@ usage (char * progname)
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
 }
 
+static void
+exit_out_of_memory (void)
+{
+  fprintf (stderr, "%s: Out of memory\n", progname);
+  exit (1);
+}
+
 static int
 log_error (void)
 {
@@ -187,7 +195,7 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
   return (timestamp_t)((double)(SUBSECONDS * granule * gr_d) / (double)gr_n);
 }
 
-static void
+static int
 ovdata_init (OVData * ovdata)
 {
   int flags;
@@ -203,8 +211,12 @@ ovdata_init (OVData * ovdata)
     exit (1);
   }
 
-  ovdata->missing_eos = oggz_table_new ();
-  ovdata->packetno = oggz_table_new ();
+  if ((ovdata->missing_eos = oggz_table_new ()) == NULL)
+    exit_out_of_memory();
+
+  if ((ovdata->packetno = oggz_table_new ()) == NULL)
+    exit_out_of_memory();
+
   ovdata->theora_count = 0;
   ovdata->audio_count = 0;
   ovdata->chain_ended = 0;
@@ -247,7 +259,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
   if (ogg_page_bos ((ogg_page *)og)) {
     /* Register this serialno as needing eos */
-    oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1);
+    if (oggz_table_insert (ovdata->missing_eos, serialno, (void *)0x1) == NULL)
+      exit_out_of_memory();
 
     /* Handle ordering of Theora vs. audio packets */
     content_type = oggz_stream_get_content (oggz, serialno);
@@ -287,7 +300,9 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     if (packetno < headers) {
       /* The previous page was headers, and more are expected */
       packetno += packets;
-      oggz_table_insert (ovdata->packetno, serialno, (void *)packetno);
+      if (oggz_table_insert (ovdata->packetno, serialno, (void *)packetno) == NULL)
+        exit_out_of_memory();
+
       if (packetno == headers && gpos != 0) {
         ret = log_error ();
         fprintf (stderr, "serialno %010lu: Terminal header page has non-zero granulepos\n", serialno);
@@ -303,7 +318,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       }
 
       /* Mark packetno as greater than headers to avoid these checks for this serialno */
-      oggz_table_insert (ovdata->packetno, serialno, (void *)(headers+1));
+      if (oggz_table_insert (ovdata->packetno, serialno, (void *)(headers+1)) == NULL)
+        exit_out_of_memory();
     }
 
   }
@@ -459,7 +475,6 @@ main (int argc, char ** argv)
   int opt_prefix = 0;
   int opt_suffix = 0;
 
-  char * progname;
   char * filename;
   int i = 1;
 
