@@ -332,6 +332,11 @@ main (int argc, char ** argv)
 
   /* init osdata */
   osdata = malloc (sizeof (OSData));
+  if (osdata == NULL) {
+    fprintf (stderr, "%s: Out of memory\n", progname);
+    exit (1);
+  }
+
   memset (osdata, 0, sizeof (OSData));
   osdata->read_packet = read_packet;
   if (scan_keyframes) osdata->keyframes = 1;
