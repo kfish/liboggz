@@ -56,6 +56,8 @@
   "  contain %d tracks in parallel, interleaved for simultaneous playback.\n"\
   "  If you want to sequence these files one after another, use cat instead.\n"
 
+static char * progname;
+
 static void
 usage (char * progname)
 {
@@ -69,6 +71,23 @@ usage (char * progname)
   printf ("  -V, --verbose          Verbose operation\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+}
+
+static void
+exit_out_of_memory (void)
+{
+  fprintf (stderr, "%s: Out of memory\n", progname);
+  exit (1);
+}
+
+static void
+checked_fwrite (const void *data, size_t size, size_t count, FILE *stream)
+{
+  int n = fwrite (data, size, count, stream);
+  if ((size_t)n != count) {
+    perror ("write failed");
+    exit (1);
+  }
 }
 
 typedef struct _OMData OMData;
@@ -96,10 +115,22 @@ _ogg_page_copy (const ogg_page * og)
   ogg_page * new_og;
 
   new_og = malloc (sizeof (*og));
+  if (new_og == NULL) return NULL;
+
   new_og->header = malloc (og->header_len);
+  if (new_og->header == NULL) {
+    free (new_og);
+    return NULL;
+  }
   new_og->header_len = og->header_len;
   memcpy (new_og->header, og->header, og->header_len);
+
   new_og->body = malloc (og->body_len);
+  if (new_og->body == NULL) {
+    free (new_og->header);
+    free (new_og);
+    return NULL;
+  }
   new_og->body_len = og->body_len;
   memcpy (new_og->body, og->body, og->body_len);
 
@@ -129,6 +160,7 @@ omdata_new (void)
   OMData * omdata;
 
   omdata = (OMData *) malloc (sizeof (OMData));
+  if (omdata == NULL) return NULL;
 
   omdata->inputs = oggz_table_new ();
   omdata->verbose = 0;
@@ -158,6 +190,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   OMInput * input = (OMInput *) user_data;
 
   input->og = _ogg_page_copy (og);
+  if (input->og == NULL) return OGGZ_STOP_ERR;
 
   return OGGZ_STOP_OK;
 }
@@ -226,7 +259,9 @@ oggz_merge (OMData * omdata, FILE * outfile)
 	    oggz_table_remove (omdata->inputs, key);
 	    ominput_delete (input);
 	    input = NULL;
-	  }
+	  } else if (n == OGGZ_ERR_STOP_ERR) {
+            exit_out_of_memory();
+          }
 	}
 	if (input && input->og) {
 	  if (ogg_page_bos ((ogg_page *)input->og)) {
@@ -306,8 +341,8 @@ oggz_merge (OMData * omdata, FILE * outfile)
     if (min_i != -1) {
       input = (OMInput *) oggz_table_nth (omdata->inputs, min_i, &key);
       og = input->og;
-      fwrite (og->header, 1, og->header_len, outfile);
-      fwrite (og->body, 1, og->body_len, outfile);
+      checked_fwrite (og->header, 1, og->header_len, outfile);
+      checked_fwrite (og->body, 1, og->body_len, outfile);
 
       _ogg_page_free (og);
       input->og = NULL;
@@ -323,7 +358,6 @@ main (int argc, char * argv[])
   int show_version = 0;
   int show_help = 0;
 
-  char * progname;
   char * infilename = NULL, * outfilename = NULL;
   FILE * infile = NULL, * outfile = NULL;
   int used_stdin = 0; /* Flag usage of stdin, only use it once */
@@ -361,6 +395,8 @@ main (int argc, char * argv[])
   }
 
   omdata = omdata_new();
+  if (omdata == NULL)
+    exit_out_of_memory();
 
   while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -428,7 +464,8 @@ main (int argc, char * argv[])
       fprintf (stderr, "%s: unable to open input file %s\n", progname,
 	       infilename);
     } else {
-      omdata_add_input (omdata, infile);
+      if (omdata_add_input (omdata, infile) == NULL)
+        exit_out_of_memory();
     }
   }
 

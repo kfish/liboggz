@@ -44,6 +44,8 @@
 
 #define READ_SIZE 4096
 
+static char * progname;
+
 static void
 usage (char * progname)
 {
@@ -57,6 +59,23 @@ usage (char * progname)
   printf ("  -V, --verbose          Verbose operation\n");
   printf ("\n");
   printf ("Please report bugs to <ogg-dev@xiph.org>\n");
+}
+
+static void
+exit_out_of_memory (void)
+{
+  fprintf (stderr, "%s: Out of memory\n", progname);
+  exit (1);
+}
+
+static void
+checked_fwrite (const void *data, size_t size, size_t count, FILE *stream)
+{
+  int n = fwrite (data, size, count, stream);
+  if ((size_t)n != count) {
+    perror ("write failed");
+    exit (1);
+  }
 }
 
 typedef struct _OSData OSData;
@@ -86,10 +105,22 @@ _ogg_page_copy (const ogg_page * og)
   ogg_page * new_og;
 
   new_og = malloc (sizeof (*og));
+  if (new_og == NULL) return NULL;
+
   new_og->header = malloc (og->header_len);
+  if (new_og->header == NULL) {
+    free (new_og);
+    return NULL;
+  }
   new_og->header_len = og->header_len;
   memcpy (new_og->header, og->header, og->header_len);
+
   new_og->body = malloc (og->body_len);
+  if (new_og->body == NULL) {
+    free (new_og->header);
+    free (new_og);
+    return NULL;
+  }
   new_og->body_len = og->body_len;
   memcpy (new_og->body, og->body, og->body_len);
 
@@ -119,8 +150,14 @@ osdata_new (void)
   OSData * osdata;
 
   osdata = (OSData *) malloc (sizeof (OSData));
+  if (osdata == NULL) return NULL;
 
   osdata->inputs = oggz_table_new ();
+  if (osdata->inputs == NULL) {
+    free (osdata);
+    return NULL;
+  }
+
   osdata->verbose = 0;
 
   return osdata;
@@ -152,6 +189,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   if (serialno == input->serialno) {
     ogg_page *iog;
     iog = _ogg_page_copy (og);
+    if (iog == NULL) return OGGZ_STOP_ERR;
+
     /* If this page's granulepos should be -1 but isn't then fix that before
      * storing and sorting the page. */
     if(ogg_page_packets(iog)==0&&ogg_page_granulepos(iog)!=-1) {
@@ -181,10 +220,15 @@ read_page_add_input (OGGZ * oggz, const ogg_page * og, long serialno,
 
   if (is_bos) {
     input = (OSInput *) malloc (sizeof (OSInput));
-    if (input == NULL) return -1;
+    if (input == NULL) return OGGZ_STOP_ERR;
 
     input->osdata = osdata;
     input->reader = oggz_open (osdata->infilename, OGGZ_READ|OGGZ_AUTO);
+    if (input->reader == NULL) {
+      free (input);
+      return OGGZ_STOP_ERR;
+    }
+
     input->serialno = serialno;
     input->og = NULL;
 
@@ -193,7 +237,7 @@ read_page_add_input (OGGZ * oggz, const ogg_page * og, long serialno,
     nfiles = oggz_table_size (osdata->inputs);
     if (!oggz_table_insert (osdata->inputs, nfiles++, input)) {
       osinput_delete (input);
-      return -1;
+      return OGGZ_STOP_ERR;
     }
 
     return OGGZ_CONTINUE;
@@ -255,6 +299,8 @@ oggz_sort (OSData * osdata, FILE * outfile)
 	    oggz_table_remove (osdata->inputs, key);
 	    osinput_delete (input);
 	    input = NULL;
+	  } else if (n == OGGZ_ERR_STOP_ERR) {
+            exit_out_of_memory();
 	  }
 	}
 	if (input && input->og) {
@@ -305,8 +351,8 @@ oggz_sort (OSData * osdata, FILE * outfile)
     if (min_i != -1) {
       input = (OSInput *) oggz_table_nth (osdata->inputs, min_i, &key);
       og = input->og;
-      fwrite (og->header, 1, og->header_len, outfile);
-      fwrite (og->body, 1, og->body_len, outfile);
+      checked_fwrite (og->header, 1, og->header_len, outfile);
+      checked_fwrite (og->body, 1, og->body_len, outfile);
 
       _ogg_page_free (og);
       input->og = NULL;
@@ -322,7 +368,6 @@ main (int argc, char * argv[])
   int show_version = 0;
   int show_help = 0;
 
-  char * progname;
   char * infilename = NULL, * outfilename = NULL;
   FILE * infile = NULL, * outfile = NULL;
   OSData * osdata;
@@ -359,6 +404,8 @@ main (int argc, char * argv[])
   }
 
   osdata = osdata_new();
+  if (osdata == NULL)
+    exit_out_of_memory();
 
   while (1) {
 #ifdef HAVE_GETOPT_LONG
@@ -407,7 +454,11 @@ main (int argc, char * argv[])
   }
 
   infilename = argv[optind++];
-  osdata_add_file (osdata, infilename);
+  if (osdata_add_file (osdata, infilename) == -1) {
+    fprintf (stderr, "%s: unable to open input file %s\n",
+             progname, infilename);
+    goto exit_err;
+  }
 
   if (outfilename == NULL) {
     outfile = stdout;
