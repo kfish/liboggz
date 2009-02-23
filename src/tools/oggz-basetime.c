@@ -89,6 +89,8 @@ or_track_data_new (void)
   OBTrackData * ort;
 
   ort = malloc (sizeof (OBTrackData));
+  if (ort == NULL) return NULL;
+
   ort->delta = -1;
   ort->nr_packets = 0;
 
@@ -109,8 +111,14 @@ or_data_new (void)
   OBData * ord;
 
   ord = malloc (sizeof (OBData));
+  if (ord == NULL) return NULL;
+
   ord->base_units = -1;
   ord->tracks = oggz_table_new ();
+  if (ord->tracks == NULL) {
+    free (ord);
+    return NULL;
+  }
 
   return ord;
 }
@@ -127,6 +135,18 @@ or_data_delete (OBData * ord)
     or_track_data_delete (ort);
   }
   oggz_table_delete (ord->tracks);
+}
+
+/********** checked_fwrite **********/
+
+static void
+checked_fwrite (const void *data, size_t size, size_t count, FILE *stream)
+{
+  int n = fwrite (data, size, count, stream);
+  if ((size_t)n != count) {
+    perror ("write failed");
+    exit (1);
+  }
 }
 
 /********** Filter **********/
@@ -177,7 +197,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   int numheaders;
 
   if (ogg_page_bos ((ogg_page *)og)) {
-    ort = or_track_data_new ();
+    if ((ort = or_track_data_new ()) == NULL)
+      return OGGZ_STOP_ERR;
     oggz_table_insert (ord->tracks, serialno, ort);
   } else {
     ort = oggz_table_lookup (ord->tracks, serialno);
@@ -224,8 +245,8 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 	   serialno, ort->nr_packets, ogg_page_granulepos ((ogg_page *)og));
 #endif
 
-  fwrite (og->header, 1, og->header_len, stdout);
-  fwrite (og->body, 1, og->body_len, stdout);
+  checked_fwrite (og->header, 1, og->header_len, stdout);
+  checked_fwrite (og->body, 1, og->body_len, stdout);
 
   return 0;
 }
@@ -245,6 +266,7 @@ main (int argc, char ** argv)
   char * progname = argv[0];
   OGGZ * oggz;
   OBData * ord;
+  int ret;
 
   if (argc < 2) {
     usage (progname);
@@ -262,6 +284,7 @@ main (int argc, char ** argv)
   }
 
   ord = or_data_new ();
+  if (ord == NULL) goto oom;
 
   if ((oggz = oggz_open ((char *)argv[1], OGGZ_READ | OGGZ_AUTO)) == NULL) {
     printf ("unable to open file %s\n", argv[1]);
@@ -270,11 +293,17 @@ main (int argc, char ** argv)
 
   oggz_set_read_page (oggz, -1, read_page, ord);
 
-  oggz_run (oggz);
+  ret = oggz_run (oggz);
 
   oggz_close (oggz);
 
   or_data_delete (ord);
 
+  if (ret == OGGZ_ERR_STOP_ERR) goto oom;
+
   exit (0);
+
+oom:
+  fprintf (stderr, "%s: out of memory\n", progname);
+  exit (1);
 }
