@@ -367,6 +367,7 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
   dirac_info *info;
 
   info = oggz_malloc(sizeof(dirac_info));
+  if (info == NULL) return -1;
 
   dirac_parse_info(info, data, length);
 
