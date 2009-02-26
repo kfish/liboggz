@@ -35,9 +35,12 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <limits.h> /* ULONG_MAX */
 #ifndef WIN32
 #include <strings.h>
 #endif
+
+#include <assert.h>
 
 #include "oggz_private.h"
 #include "oggz_vector.h"
@@ -51,12 +54,24 @@
 #endif
 
 
+/* Ensure comment vector length can be expressed in 32 bits */
+static unsigned long
+oggz_comment_len (const char * s)
+{
+  size_t len;
+
+  if (s == NULL) return 0;
+
+  len = strlen (s);
+  return (unsigned long) MIN(len, 0xFFFFFFFF);
+}
+
 static char *
 oggz_strdup (const char * s)
 {
   char * ret;
   if (s == NULL) return NULL;
-  ret = oggz_malloc (strlen(s) + 1);
+  ret = oggz_malloc (oggz_comment_len(s) + 1);
   if (ret == NULL) return NULL;
 
   return strcpy (ret, s);
@@ -583,6 +598,26 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
    return 0;
 }
 
+/*
+ * Pre-condition: at least one of accum, delta are non-zero,
+ * ie. don't call accum_length (0, 0);
+ * \retval 0 Failure: integer overflow
+ */
+static unsigned long
+accum_length (unsigned long * accum, unsigned long delta)
+{
+  /* Pre-condition: don't call accum_length (0, 0) */
+  assert (*accum != 0 || delta != 0);
+
+  /* Check for integer overflow */
+  if (delta > ULONG_MAX - (*accum))
+    return 0;
+
+  *accum += delta;
+
+  return *accum;
+}
+
 long
 oggz_comments_encode (OGGZ * oggz, long serialno,
                       unsigned char * buf, long length)
@@ -590,16 +625,20 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   oggz_stream_t * stream;
   char * c = (char *)buf;
   const OggzComment * comment;
-  int nb_fields = 0, vendor_length = 0, field_length;
-  long actual_length, remaining = length;
+  int nb_fields = 0, vendor_length = 0;
+  unsigned long actual_length = 0, remaining = length, field_length;
+
+  /* Deal with sign of length first */
+  if (length < 0) return 0;
 
   stream = oggz_get_stream (oggz, serialno);
   if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
   /* Vendor string */
   if (stream->vendor)
-    vendor_length = strlen (stream->vendor);
-  actual_length = 4 + vendor_length;
+    vendor_length = oggz_comment_len (stream->vendor);
+  if (accum_length (&actual_length, 4 + vendor_length) == 0)
+    return 0;
 #ifdef DEBUG
   printf ("oggz_comments_encode: vendor = %s\n", stream->vendor);
 #endif
@@ -609,9 +648,14 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
 
   for (comment = oggz_comment_first (oggz, serialno); comment;
        comment = oggz_comment_next (oggz, serialno, comment)) {
-    actual_length += 4 + strlen (comment->name);    /* [size]"name" */
-    if (comment->value)
-      actual_length += 1 + strlen (comment->value); /* "=value" */
+    /* [size]"name" */
+    if (accum_length (&actual_length, 4 + oggz_comment_len (comment->name)) == 0)
+      return 0;
+    if (comment->value) {
+      /* "=value" */
+      if (accum_length (&actual_length, 1 + oggz_comment_len (comment->value)) == 0)
+        return 0;
+    }
 
 #ifdef DEBUG
     printf ("oggz_comments_encode: %s = %s\n",
@@ -621,7 +665,11 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
     nb_fields++;
   }
 
-  actual_length++; /* framing bit */
+  /* framing bit */
+  if (accum_length (&actual_length, 1) == 0)
+    return 0;
+
+  /* NB. actual_length is not modified from here onwards */
 
   if (buf == NULL) return actual_length;
 
@@ -631,7 +679,7 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   c += 4;
 
   if (stream->vendor) {
-    field_length = strlen (stream->vendor);
+    field_length = oggz_comment_len (stream->vendor);
     memcpy (c, stream->vendor, MIN (field_length, remaining));
     c += field_length; remaining -= field_length;
     if (remaining <= 0 ) return actual_length;
@@ -645,16 +693,16 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
   for (comment = oggz_comment_first (oggz, serialno); comment;
        comment = oggz_comment_next (oggz, serialno, comment)) {
 
-    field_length = strlen (comment->name);     /* [size]"name" */
+    field_length = oggz_comment_len (comment->name);     /* [size]"name" */
     if (comment->value)
-      field_length += 1 + strlen (comment->value); /* "=value" */
+      field_length += 1 + oggz_comment_len (comment->value); /* "=value" */
 
     remaining -= 4;
     if (remaining <= 0) return actual_length;
     writeint (c, 0, field_length);
     c += 4;
 
-    field_length = strlen (comment->name);
+    field_length = oggz_comment_len (comment->name);
     memcpy (c, comment->name, MIN (field_length, remaining));
     c += field_length; remaining -= field_length;
     if (remaining <= 0) return actual_length;
@@ -665,7 +713,7 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
       *c = '=';
       c++;
 
-      field_length = strlen (comment->value);
+      field_length = oggz_comment_len (comment->value);
       memcpy (c, comment->value, MIN (field_length, remaining));
       c += field_length; remaining -= field_length;
       if (remaining <= 0) return actual_length;

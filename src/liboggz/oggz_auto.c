@@ -745,6 +745,7 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
       int size_check;
       int *mode_size_ptr;
       int i;
+      size_t size_realloc_bytes;
 
       /*
        * This is the format of the mode data at the end of the packet for all
@@ -845,11 +846,12 @@ auto_calc_vorbis(ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
       }
 #endif
 
-      /*
-       * store mode size information in our info struct
-       */
-      info = realloc(stream->calculate_data,
-              sizeof(auto_calc_vorbis_info_t) + (size - 1) * sizeof(int));
+      /* Check that size to be realloc'd doesn't overflow */
+      size_realloc_bytes = sizeof(auto_calc_vorbis_info_t) + (size - 1) * sizeof(int);
+      if (size_realloc_bytes < sizeof (auto_calc_vorbis_info_t)) return -1;
+
+      /* Store mode size information in our info struct */
+      info = realloc(stream->calculate_data, size_realloc_bytes);
       if (info == NULL) return -1;
 
       stream->calculate_data = info;
