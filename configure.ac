@@ -58,7 +58,7 @@ AM_CONDITIONAL(HAVE_DOCBOOK2HTML,$HAVE_DOCBOOK2HTML)
 VALGRIND_ENVIRONMENT=""
 ac_enable_valgrind=no
 AC_ARG_ENABLE(valgrind-testing,
-     [  --enable-valgrind-testing     enable running of tests inside Valgrind ],
+     AC_HELP_STRING([--enable-valgrind-testing], [enable running of tests inside Valgrind]),
      [ ac_enable_valgrind=yes ], [ ac_enable_valgrind=no] )
 
 if test "x${ac_enable_valgrind}" = xyes ; then
@@ -109,7 +109,7 @@ dnl
 
 ac_enable_experimental=no
 AC_ARG_ENABLE(experimental,
-     [  --enable-experimental   enable building of experimental code ],
+     AC_HELP_STRING([--enable-experimental], [enable building of experimental code]),
      [ ac_enable_experimental=yes ])
 
 if test "x${ac_enable_experimental}" = xyes ; then
@@ -122,7 +122,7 @@ dnl
 
 ac_enable_read=yes
 AC_ARG_ENABLE(read,
-     [  --disable-read          disable building of reading support ],
+     AC_HELP_STRING([--disable-read], [disable building of reading support]),
      [ ac_enable_read=no ], [ ac_enable_read=yes] )
 
 if test "x${ac_enable_read}" = xyes ; then
@@ -139,7 +139,7 @@ dnl
   
 ac_enable_write=yes
 AC_ARG_ENABLE(write,
-     [  --disable-write         disable building of writing support ],
+     AC_HELP_STRING([--disable-write], [disable building of writing support]),
      [ ac_enable_write=no ], [ ac_enable_write=yes] )
 
 if test "x${ac_enable_write}" = xyes ; then
