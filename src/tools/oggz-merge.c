@@ -464,7 +464,7 @@ main (int argc, char * argv[])
       fprintf (stderr, "%s: unable to open input file %s\n", progname,
 	       infilename);
     } else {
-      if (omdata_add_input (omdata, infile) == NULL)
+      if (omdata_add_input (omdata, infile) < 0)
         exit_out_of_memory();
     }
   }
