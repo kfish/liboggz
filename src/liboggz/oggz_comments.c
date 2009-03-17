@@ -644,7 +644,9 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
 #endif
 
   /* user comment list length */
-  actual_length += 4;
+  if (accum_length (&actual_length, 4) == 0)
+    return 0;
+
 
   for (comment = oggz_comment_first (oggz, serialno); comment;
        comment = oggz_comment_next (oggz, serialno, comment)) {
@@ -682,7 +684,7 @@ oggz_comments_encode (OGGZ * oggz, long serialno,
     field_length = oggz_comment_len (stream->vendor);
     memcpy (c, stream->vendor, MIN (field_length, remaining));
     c += field_length; remaining -= field_length;
-    if (remaining <= 0 ) return actual_length;
+    if (remaining <= 0) return actual_length;
   }
 
   remaining -= 4;
