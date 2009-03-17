@@ -273,8 +273,10 @@ track_state_advance_page_accum (OCTrackState * ts)
     pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
 
     /* If we have a page with granulepos, it necessarily contains the end
-     * of a packet from an earlier GOP, and thus this is the last page that
-     * we need to recover.
+     * of a packet from an earlier GOP, and may contain the start of
+     * a packet from the new GOP. Thus it is the earliest page that we need
+     * to recover.
+     * We are working backwards, so we can break out when we have found it.
      */
     if (ogg_page_granulepos (pa->og) != -1) {
       earliest_new = i;
