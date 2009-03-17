@@ -262,9 +262,16 @@ track_state_advance_page_accum (OCTrackState * ts)
   int i, accum_size;
   int e, earliest_new; /* Index into page accumulator of the earliest page that
                         * contains a packet from the new GOP */
+  int succ_continued; /* Successor page is continued */
   OCPageAccum * pa;
 
   if (ts == NULL || ts->page_accum == NULL) return 0;
+
+  /* Upon entry, the next page is the one most recently read; we only get here
+   * if that page is continued, otherwise the accumulator is simply cleared,
+   * in read_gs() and read_dirac() below.
+   */
+  succ_continued = 1;
 
   earliest_new = accum_size = oggz_table_size (ts->page_accum);
 
@@ -273,15 +280,30 @@ track_state_advance_page_accum (OCTrackState * ts)
     pa = (OCPageAccum *) oggz_table_lookup (ts->page_accum, i);
 
     /* If we have a page with granulepos, it necessarily contains the end
-     * of a packet from an earlier GOP, and may contain the start of
-     * a packet from the new GOP. Thus it is the earliest page that we need
-     * to recover.
-     * We are working backwards, so we can break out when we have found it.
+     * of a packet from an earlier GOP, and may contain the start of a packet
+     * from the new GOP. If so, it is the earliest page to recover.
      */
     if (ogg_page_granulepos (pa->og) != -1) {
       earliest_new = i;
+
+      /* If the successor page was not continued, ie. it began a packet,
+       * then this page only contains packets from the previous GOP or earlier.
+       * In this case, we can be sure that the successor is the earliest_new
+       * page to use.
+       */
+      if (!succ_continued)
+        earliest_new++;
+
+      /* We are working backwards, so we can break out when we have found 
+       * the earliest page to recover.
+       */
       break;
     }
+
+    /* Update succ_continued flag; we are working backwards, so this page
+     * is the successor to the one we will consider on the next iteration.
+     */
+    succ_continued = ogg_page_continued(OGG_PAGE_CONST(pa->og));
   }
 
   /* If all accumulated pages have no granulepos, keep them,
