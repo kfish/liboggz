@@ -634,7 +634,6 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   double page_time;
   ogg_int64_t granulepos, keyframe;
   int granuleshift, i, accum_size;
-  ogg_page * accum_og;
 
   page_time = oggz_tell_units (oggz) / 1000.0;
 
@@ -668,6 +667,56 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
       /* Record this as prev_keyframe */
       ts->prev_keyframe = keyframe;
+    }
+  }
+
+  /* Add a copy of this to the page accumulator */
+  pa = page_accum_new (og, page_time);
+  oggz_table_insert (ts->page_accum, accum_size, pa);
+
+  return OGGZ_CONTINUE;
+}
+
+static int
+read_dirac (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
+{
+  OCState * state = (OCState *)user_data;
+  OCTrackState * ts;
+  OCPageAccum * pa;
+  double page_time;
+  ogg_int64_t granulepos, keyframe, dist;
+  int granuleshift, i, accum_size;
+
+  page_time = oggz_tell_units (oggz) / 1000.0;
+
+  ts = oggz_table_lookup (state->tracks, serialno);
+  accum_size = oggz_table_size (ts->page_accum);
+
+  if (page_time >= state->start) {
+    /* Glue in fisbones, write out accumulated pages */
+    chop_glue (state, oggz);
+
+    /* Switch to the plain page reader */
+    oggz_set_read_page (oggz, serialno, read_plain, state);
+    return read_plain (oggz, og, serialno, user_data);
+  } /* else { ... */
+
+  granulepos = ogg_page_granulepos (OGG_PAGE_CONST(og));
+  if (granulepos != -1) {
+    granuleshift = oggz_get_granuleshift (oggz, serialno);
+    keyframe = granulepos >> granuleshift;
+    dist = ((keyframe & 0xff) << 8) | (granulepos & 0xff);
+
+    if (dist == 0) {
+      if (ogg_page_continued(OGG_PAGE_CONST(og))) {
+        /* If this new-keyframe page is continued, advance the page accumulator,
+         * ie. recover earlier pages from this new GOP */
+        accum_size = track_state_advance_page_accum (ts);
+      } else {
+        /* Otherwise, just clear the page accumulator */
+        track_state_remove_page_accum (ts);
+        accum_size = 0;
+      }
     }
   }
 
@@ -712,6 +761,9 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     if (ts->headers_remaining <= 0) {
       if (state->start == 0.0 || oggz_get_granuleshift (oggz, serialno) == 0) {
         oggz_set_read_page (oggz, serialno, read_plain, state);
+      } else if (content_type == OGGZ_CONTENT_DIRAC) {
+        ts->page_accum = oggz_table_new();
+        oggz_set_read_page (oggz, serialno, read_dirac, state);
       } else {
         ts->page_accum = oggz_table_new();
         oggz_set_read_page (oggz, serialno, read_gs, state);
