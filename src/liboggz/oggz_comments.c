@@ -537,9 +537,10 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
 
    end = c+length;
    len=readint(c, 0);
+   if (len<0) return -1;
 
    c+=4;
-   if (c+len>end) return -1;
+   if (len>end-c) return -1;
 
    stream = oggz_get_stream (oggz, serialno);
    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
@@ -556,15 +557,18 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
 
    if (c+4>end) return -1;
 
+   /* This value gets checked effectively by the 'for' condition
+      and the checks within the loop for c running off the end.  */
    nb_fields=readint(c, 0);
    c+=4;
    for (i=0;i<nb_fields;i++) {
       if (c+4>end) return -1;
 
       len=readint(c, 0);
+      if (len<0) return -1;
 
       c+=4;
-      if (c+len>end) return -1;
+      if (len>end-c) return -1;
 
       name = c;
       value = oggz_index_len (c, '=', len);
