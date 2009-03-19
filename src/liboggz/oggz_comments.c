@@ -53,9 +53,12 @@
 #define strcasecmp _stricmp
 #endif
 
+/* Ensure comment vector length can be expressed in 32 bits
+ * including space for the trailing NUL */
+#define MAX_COMMENT_LENGTH 0xFFFFFFFE
+#define oggz_comment_clamp(c) MIN((c),MAX_COMMENT_LENGTH)
 
-/* Ensure comment vector length can be expressed in 32 bits */
-static unsigned long
+static size_t
 oggz_comment_len (const char * s)
 {
   size_t len;
@@ -63,7 +66,7 @@ oggz_comment_len (const char * s)
   if (s == NULL) return 0;
 
   len = strlen (s);
-  return (unsigned long) MIN(len, 0xFFFFFFFF);
+  return oggz_comment_clamp(len);
 }
 
 static char *
@@ -78,11 +81,12 @@ oggz_strdup (const char * s)
 }
 
 static char *
-oggz_strdup_len (const char * s, int len)
+oggz_strdup_len (const char * s, size_t len)
 {
   char * ret;
   if (s == NULL) return NULL;
   if (len == 0) return NULL;
+  len = oggz_comment_clamp(len);
   ret = oggz_malloc (len + 1);
   if (!ret) return NULL;
   if (strncpy (ret, s, len) == NULL) {
@@ -527,7 +531,8 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
 {
    oggz_stream_t * stream;
    char *c= (char *)comments;
-   int len, i, nb_fields, n;
+   int i, nb_fields, n;
+   size_t len;
    char *end;
    char * name, * value, * nvalue = NULL;
    OggzComment * comment;
@@ -537,10 +542,9 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
 
    end = c+length;
    len=readint(c, 0);
-   if (len<0) return -1;
 
    c+=4;
-   if (len>end-c) return -1;
+   if (len>(size_t)(end-c)) return -1;
 
    stream = oggz_get_stream (oggz, serialno);
    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
@@ -565,10 +569,9 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
       if (c+4>end) return -1;
 
       len=readint(c, 0);
-      if (len<0) return -1;
 
       c+=4;
-      if (len>end-c) return -1;
+      if (len>(size_t)(end-c)) return -1;
 
       name = c;
       value = oggz_index_len (c, '=', len);
