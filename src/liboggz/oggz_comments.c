@@ -173,12 +173,23 @@ oggz_comment_new (const char * name, const char * value)
   OggzComment * comment;
 
   if (!oggz_comment_validate_byname (name, value)) return NULL;
+  /* Ensures that name != NULL, value != NULL, and validates strings */
 
   comment = oggz_malloc (sizeof (OggzComment));
   if (comment == NULL) return NULL;
 
   comment->name = oggz_strdup (name);
+  if (comment->name == NULL) {
+    oggz_free (comment);
+    return NULL;
+  }
+
   comment->value = oggz_strdup (value);
+  if (comment->value == NULL) {
+    oggz_free (comment->name);
+    oggz_free (comment);
+    return NULL;
+  }
 
   return comment;
 }
@@ -217,7 +228,8 @@ _oggz_comment_set_vendor (OGGZ * oggz, long serialno,
 
   if (stream->vendor) oggz_free (stream->vendor);
 
-  stream->vendor = oggz_strdup (vendor_string);
+  if ((stream->vendor = oggz_strdup (vendor_string)) == NULL)
+    return OGGZ_ERR_OUT_OF_MEMORY;
 
   return 0;
 }
@@ -364,9 +376,11 @@ oggz_comment_add (OGGZ * oggz, long serialno, const OggzComment * comment)
       if (!oggz_comment_validate_byname (comment->name, comment->value))
         return OGGZ_ERR_COMMENT_INVALID;
 
-      new_comment = oggz_comment_new (comment->name, comment->value);
+      if ((new_comment = oggz_comment_new (comment->name, comment->value)) == NULL)
+        return OGGZ_ERR_OUT_OF_MEMORY;
 
-      _oggz_comment_add (stream, new_comment);
+      if (_oggz_comment_add (stream, new_comment) == NULL)
+        return OGGZ_ERR_OUT_OF_MEMORY;
 
       return 0;
     } else {
@@ -398,9 +412,11 @@ oggz_comment_add_byname (OGGZ * oggz, long serialno,
       if (!oggz_comment_validate_byname (name, value))
         return OGGZ_ERR_COMMENT_INVALID;
 
-      new_comment = oggz_comment_new (name, value);
+      if ((new_comment = oggz_comment_new (name, value)) == NULL)
+        return OGGZ_ERR_OUT_OF_MEMORY;
 
-      _oggz_comment_add (stream, new_comment);
+      if (_oggz_comment_add (stream, new_comment) == NULL)
+        return OGGZ_ERR_OUT_OF_MEMORY;
 
       return 0;
     } else {
@@ -550,10 +566,16 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
    if (stream == NULL) return OGGZ_ERR_BAD_SERIALNO;
 
    /* Vendor */
-   nvalue = oggz_strdup_len (c, len);
-   if (!nvalue) return -1;
-   _oggz_comment_set_vendor (oggz, serialno, nvalue);
-   if (nvalue) oggz_free (nvalue);
+   if (len > 0) {
+     if ((nvalue = oggz_strdup_len (c, len)) == NULL)
+       return OGGZ_ERR_OUT_OF_MEMORY;
+
+     if (_oggz_comment_set_vendor (oggz, serialno, nvalue) == OGGZ_ERR_OUT_OF_MEMORY)
+       return OGGZ_ERR_OUT_OF_MEMORY;
+
+     oggz_free (nvalue);
+   }
+
 #ifdef DEBUG
    fwrite(c, 1, len, stderr); fputc ('\n', stderr);
 #endif
@@ -580,18 +602,30 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
          value++;
 
          n = c+len - value;
-         nvalue = oggz_strdup_len (value, n);
+         if ((nvalue = oggz_strdup_len (value, n)) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
 #ifdef DEBUG
          printf ("oggz_comments_decode: %s -> %s (length %d)\n",
          name, nvalue, n);
 #endif
-         comment = oggz_comment_new (name, nvalue);
-         _oggz_comment_add (stream, comment);
+         if ((comment = oggz_comment_new (name, nvalue)) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
+         if (_oggz_comment_add (stream, comment) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
          oggz_free (nvalue);
       } else {
-         nvalue = oggz_strdup_len (name, len);
-         comment = oggz_comment_new (nvalue, NULL);
-         _oggz_comment_add (stream, comment);
+         if ((nvalue = oggz_strdup_len (name, len)) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
+         if ((comment = oggz_comment_new (nvalue, NULL)) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
+         if (_oggz_comment_add (stream, comment) == NULL)
+           return OGGZ_ERR_OUT_OF_MEMORY;
+
          oggz_free (nvalue);
       }
 
