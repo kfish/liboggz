@@ -371,11 +371,6 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
 
   dirac_parse_info(info, data, length);
 
-#ifdef DEBUG
-  printf ("Got dirac fps %d/%d granule_shift %d\n",
-    fps_numerator, fps_denominator, granule_shift);
-#endif
-
   /* the granulerate is twice the frame rate (in order to handle interlace) */
   oggz_set_granulerate (oggz, serialno,
 	2 * (ogg_int64_t)info->fps_numerator,
