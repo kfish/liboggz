@@ -549,8 +549,7 @@ auto_calc_celt (ogg_int64_t now, oggz_stream_t *stream, ogg_packet *op) {
  * are marked by a set 2MSB in the first byte.  Intra packets (keyframes)
  * are any that are left over ;-)
  *
- * (see http://www.theora.org/doc/Theora_I_spec.pdf for the theora
- * specification)
+ * (see http://theora.org/doc/Theora.pdf for the theora specification)
  */
 
 typedef struct {
