@@ -195,7 +195,7 @@ gp_to_time (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
   return (timestamp_t)((double)(SUBSECONDS * granule * gr_d) / (double)gr_n);
 }
 
-static int
+static void
 ovdata_init (OVData * ovdata)
 {
   int flags;
