@@ -348,7 +348,7 @@ oit_print (OI_Info * info, OI_TrackInfo * oit, long serialno)
     ot_fishead_print(oit);
   }
   if (show_extra_skeleton_info && oit->has_fisbone) {
-    if (ot_fisbone_print(info, oit) == OIT_OOM);
+    if (ot_fisbone_print(info, oit) == OIT_OOM)
       return OIT_OOM;
   }
 
