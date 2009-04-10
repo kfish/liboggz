@@ -370,7 +370,8 @@ revert_packet (OGGZ * oggz, ogg_packet * op, long serialno, int flush)
   }
 
   while ((n = oggz_write_output (oggz, buf, 1024)) > 0) {
-    fwrite (buf, 1, n, outfile);
+    if (fwrite (buf, 1, n, outfile) < (size_t)n)
+      break;
   }
 }
 

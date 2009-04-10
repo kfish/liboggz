@@ -215,7 +215,8 @@ test_flushing (int flush, char * filename)
   if (filename != NULL) {
     FILE * f;
     f = fopen (filename, "w");
-    fwrite (data_buf, 1, n, f);
+    if (fwrite (data_buf, 1, n, f) < (size_t)n)
+      FAIL("Unable to write generated stream to file");
     fclose (f);
   }
 

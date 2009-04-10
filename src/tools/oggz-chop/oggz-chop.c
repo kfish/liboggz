@@ -185,17 +185,20 @@ _ogg_page_set_eos (const ogg_page * og)
   if (og == NULL) return;
 
   og->header[5] |= 0x04;
-  ogg_page_checksum_set (OGG_PAGE_CONST(og));
+  ogg_page_checksum_set ((ogg_page *)og);
 }
 
 static void
 fwrite_ogg_page (OCState * state, const ogg_page * og)
 {
+  size_t n;
+
   if (og == NULL) return;
 
   if (!state->dry_run) {
-    fwrite (og->header, 1, og->header_len, state->outfile);
-    fwrite (og->body, 1, og->body_len, state->outfile);
+    n = fwrite (og->header, 1, og->header_len, state->outfile);
+    if (n == (size_t)og->header_len)
+      n = fwrite (og->body, 1, og->body_len, state->outfile);
   }
 }
 

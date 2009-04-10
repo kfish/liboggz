@@ -255,9 +255,11 @@ static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OCData * ocdata = (OCData *)user_data;
+  size_t n;
 
-  fwrite (og->header, 1, og->header_len, ocdata->outfile);
-  fwrite (og->body, 1, og->body_len, ocdata->outfile);
+  n = fwrite (og->header, 1, og->header_len, ocdata->outfile);
+  if (n == (size_t)og->header_len)
+    n = fwrite (og->body, 1, og->body_len, ocdata->outfile);
 
   return OGGZ_CONTINUE;
 }
@@ -340,7 +342,8 @@ edit_comments (OCData * ocdata, char * outfilename)
   while ((n = oggz_read (ocdata->reader, 1024)) > 0) {
     long nn;
     while ((nn=oggz_write_output (ocdata->writer, buf, n)) > 0) {
-      fwrite (buf, 1, nn, ocdata->outfile);
+      if (fwrite (buf, 1, nn, ocdata->outfile) < (size_t)nn)
+        break;
     }
   }
 

@@ -52,8 +52,9 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   MHData * mhdata = (MHData *)user_data;
 
-  fwrite (og->header, 1, og->header_len, mhdata->outfile);
-  fwrite (og->body, 1, og->body_len, mhdata->outfile);
+  if (fwrite (og->header, 1, og->header_len, mhdata->outfile) == (size_t)og->header_len)
+    if (fwrite (og->body, 1, og->body_len, mhdata->outfile) != (size_t)og->body_len)
+      return OGGZ_STOP_ERR;
 
   return OGGZ_CONTINUE;
 }
@@ -151,7 +152,8 @@ main (int argc, char ** argv)
   oggz_set_read_callback (mhdata.reader, -1, read_packet, &mhdata);
   while ((n = oggz_read (mhdata.reader, 1024)) > 0) {
     while (oggz_write_output (mhdata.writer, buf, n) > 0) {
-      fwrite (buf, 1, n, mhdata.outfile);
+      if (fwrite (buf, 1, n, mhdata.outfile) != (size_t)n)
+        break;
     }
   }
 

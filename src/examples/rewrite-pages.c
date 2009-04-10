@@ -43,8 +43,9 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     oggz_table_insert (tracks, serialno, NULL);
   }
 
-  fwrite (og->header, 1, og->header_len, stdout);
-  fwrite (og->body, 1, og->body_len, stdout);
+  if (fwrite (og->header, 1, og->header_len, stdout) == (size_t)og->header_len)
+    if (fwrite (og->body, 1, og->body_len, stdout) != (size_t)og->body_len)
+      return OGGZ_STOP_ERR;
 
   return 0;
 }

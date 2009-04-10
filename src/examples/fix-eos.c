@@ -133,14 +133,16 @@ write_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     }
     
     /* Write out this page, but no following ones */
-    fwrite (og->header, 1, og->header_len, fixer->out);
-    fwrite (og->body, 1, og->body_len, fixer->out);
+    if (fwrite (og->header, 1, og->header_len, fixer->out) == (size_t)og->header_len)
+      if (fwrite (og->body, 1, og->body_len, fixer->out) != (size_t)og->body_len)
+        return -1;
     data->discarding = 1;
   }
 
   if(!data->discarding) {
-    fwrite (og->header, 1, og->header_len, fixer->out);
-    fwrite (og->body, 1, og->body_len, fixer->out);
+    if (fwrite (og->header, 1, og->header_len, fixer->out) == (size_t)og->header_len)
+      if (fwrite (og->body, 1, og->body_len, fixer->out) != (size_t)og->body_len)
+        return -1;
   }
 
   return 0;
