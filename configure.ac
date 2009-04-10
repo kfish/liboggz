@@ -34,6 +34,34 @@ AC_CHECK_HEADERS([fcntl.h inttypes.h stdlib.h string.h sys/types.h unistd.h])
 AC_TYPE_OFF_T
 AC_TYPE_SIZE_T
 
+dnl Check whether the compiler allows signed enums.
+dnl Re: http://lists.xiph.org/pipermail/ogg-dev/2008-July/001108.html
+dnl
+dnl "The ISO C standard, in section 6.7.2.2 "enumeration specifiers",
+dnl paragraph 4, says
+dnl
+dnl   Each enumerated type shall be compatible with *char*, a signed
+dnl   integer type, or an unsigned integer type.  The choice of type is
+dnl   implementation-defined, but shall be capable of representing the
+dnl   values of all the members of the declaration."
+dnl
+dnl -- http://gcc.gnu.org/ml/gcc-bugs/2000-09/msg00271.html
+AC_MSG_CHECKING([if $CC allows signed enums])
+
+ac_save_CFLAGS="$CFLAGS"
+CFLAGS="$CFLAGS -Wall -Wextra -Werror"
+AC_TRY_COMPILE([], [
+               void t (void)
+               {
+                 enum {A, B} a=A;
+                 if (a < 0) {}
+               } ],
+               [ AC_DEFINE([ALLOW_SIGNED_ENUMS], [],
+                           [Define if the compiler implements enums as signed values.])
+                 AC_MSG_RESULT(yes) ],
+               [ AC_MSG_RESULT(no) ])
+CFLAGS="$ac_save_CFLAGS"
+
 # Checks for library functions.
 AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove])
