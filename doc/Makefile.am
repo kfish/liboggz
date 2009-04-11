@@ -1,7 +1,7 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
 if HAVE_DOCBOOKTOMAN
-man_MANS = oggz-diff.1 oggz-dump.1 oggz-info.1 oggz-known-codecs.1 oggz-merge.1 oggz-chop.1 \
+man_MANS = oggz.1 oggz-diff.1 oggz-dump.1 oggz-info.1 oggz-known-codecs.1 oggz-merge.1 oggz-chop.1 \
 	oggz-sort.1 oggz-rip.1 oggz-comment.1 oggz-scan.1 oggz-validate.1
 else
 man_MANS =
@@ -13,7 +13,7 @@ endif
 EXTRA_DIST = $(man_MANS) Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
 	hungry.fig hungry.eps hungry.png \
-	oggz-diff.1.sgml oggz-dump.1.sgml oggz-info.1.sgml oggz-known-codecs.1.sgml oggz-merge.1.sgml \
+	oggz.1.sgml oggz-diff.1.sgml oggz-dump.1.sgml oggz-info.1.sgml oggz-known-codecs.1.sgml oggz-merge.1.sgml \
 	oggz-chop.1.sgml oggz-sort.1.sgml oggz-rip.1.sgml oggz-comment.1.sgml \
         oggz-scan.1.sgml oggz-validate.1.sgml
 
