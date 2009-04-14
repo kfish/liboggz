@@ -65,6 +65,16 @@ typedef struct _OCState {
 
   int original_had_skeleton;
 
+  /* Byte-range of copied section, measured against original */
+  long canon_range_start;
+  long canon_range_end;
+
+  /* Size tracking */
+  long headers;
+  long deleted;
+  long constructed;
+  long copied;
+
   /* Commandline options */
   int dry_run;
   int verbose;

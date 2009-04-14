@@ -126,6 +126,10 @@ state_init (OCState * state)
   /* Initialize track table and page accumulator */
   state->tracks = oggz_table_new ();
   state->status = OC_INIT;
+
+  /* Initialize byte range */
+  state->canon_range_start = 0;
+  state->canon_range_end = -1;
 }
 
 static void
@@ -138,6 +142,25 @@ state_clear (OCState * state)
     track_state_delete (oggz_table_nth(state->tracks, i, NULL));
   }
   oggz_table_delete (state->tracks);
+}
+
+static void
+state_report (OCState * state)
+{
+  if (!state->verbose) return;
+
+  fprintf (stderr, "Headers:     %8ld bytes\n", state->headers);
+  fprintf (stderr, "Deleted:     %8ld bytes\n", state->deleted);
+  fprintf (stderr, "Constructed: %8ld bytes\n", state->constructed);
+  fprintf (stderr, "Copied:      %8ld bytes\n", state->copied);
+  fprintf (stderr, "Total:       %8ld bytes\n", state->headers + state->deleted + state->constructed + state->copied);
+
+  if (state->canon_range_end > 0) {
+    fprintf (stderr, "X-Range-Redirect: bytes=%ld-%ld\n",
+             state->canon_range_start, state->canon_range_end);
+  } else {
+    fprintf (stderr, "X-Range-Redirect: bytes=%d-\n", state->canon_range_start);
+  }
 }
 
 /************************************************************
@@ -203,17 +226,24 @@ fwrite_ogg_page (OCState * state, const ogg_page * og)
   }
 }
 
+static long
+_ogg_page_length (const ogg_page * og)
+{
+  return og->header_len + og->body_len;
+}
+
 /************************************************************
  * OCPageAccum
  */
 
 typedef struct _OCPageAccum {
   ogg_page * og;
+  oggz_off_t byte_offset;
   double time;
 } OCPageAccum;
 
 static OCPageAccum *
-page_accum_new (const ogg_page * og, double time)
+page_accum_new (const ogg_page * og, oggz_off_t byte_offset, double time)
 {
   OCPageAccum * pa;
 
@@ -225,22 +255,31 @@ page_accum_new (const ogg_page * og, double time)
     return NULL;
   }
 
+  pa->byte_offset = byte_offset;
   pa->time = time;
 
   return pa;
 }
 
 static void
-page_accum_delete (OCPageAccum * pa)
+page_accum_delete (OCState * state, OCPageAccum * pa)
 {
   if (pa == NULL) return;
+
+  /* Collect stats */
+  if (state) state->deleted += _ogg_page_length (pa->og);
 
   _ogg_page_free (pa->og);
   free (pa);
 }
 
+/*
+ * Remove the page accumulator for a track.
+ * NB. The state argument here is only used for gathering statistics on the deleted
+ * region. Pass NULL outside of the constructed region.
+ */
 static void
-track_state_remove_page_accum (OCTrackState * ts)
+track_state_remove_page_accum (OCState * state, OCTrackState * ts)
 {
   int i, accum_size;
 
@@ -249,7 +288,7 @@ track_state_remove_page_accum (OCTrackState * ts)
   accum_size = oggz_table_size (ts->page_accum);
 
   for (i = accum_size-1; i >= 0; i--) {
-    page_accum_delete((OCPageAccum *)oggz_table_lookup (ts->page_accum, i));
+    page_accum_delete(state, (OCPageAccum *) oggz_table_lookup (ts->page_accum, i));
     oggz_table_remove (ts->page_accum, (long)i);
   }
 }
@@ -261,7 +300,7 @@ track_state_remove_page_accum (OCTrackState * ts)
  * Returns: the new size of the page accumulator.
  */
 static int
-track_state_advance_page_accum (OCTrackState * ts)
+track_state_advance_page_accum (OCState * state, OCTrackState * ts)
 {
   int i, accum_size;
   int e, earliest_new; /* Index into page accumulator of the earliest page that
@@ -328,7 +367,8 @@ track_state_advance_page_accum (OCTrackState * ts)
     if (i == (earliest_new-1)) {
       ts->fisbone.start_granule = ogg_page_granulepos (pa->og);
     }
-    page_accum_delete(pa);
+
+    page_accum_delete(state, pa);
     oggz_table_remove (ts->page_accum, (long)i);
   }
 
@@ -527,6 +567,9 @@ write_accum (OCState * state)
 
       /* Write out minimum page */
       fwrite_ogg_page (state, min_og);
+
+      /* Collect stats */
+      state->constructed += _ogg_page_length (min_og);
     }
 
     /* Let's lexically forget about this CN_OFFSET silliness */
@@ -538,7 +581,7 @@ write_accum (OCState * state)
   /* Cleanup */
   for (i=0; i < ntracks; i++) {
     ts = oggz_table_nth (state->tracks, i, &serialno);
-    track_state_remove_page_accum (ts);
+    track_state_remove_page_accum (NULL, ts);
   }
 
   oggz_table_delete (candidates);
@@ -563,6 +606,12 @@ chop_glue (OCState * state, OGGZ * oggz)
   OCTrackState * ts;
 
   if (state->status < OC_GLUE_DONE) {
+    /* The copied byte range starts here */
+    state->canon_range_start = oggz_tell (oggz);
+#ifdef DEBUG
+    fprintf (stderr, "Set canon_range_start to %ld\n", state->canon_range_start);
+#endif
+
     /* Write in fisbones */
     fisbones_write (state);
 
@@ -617,6 +666,9 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       ts->fisbone.start_granule = ogg_page_granulepos (OGG_PAGE_CONST(og));
       track_state_remove_page_accum (ts);
     }
+
+    /* Collect stats */
+    state->deleted += _ogg_page_length (og);
   } else if (page_time >= state->start &&
       (state->end == -1 || page_time <= state->end)) {
 
@@ -625,13 +677,30 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     }
 
     fwrite_ogg_page (state, og);
+
+    /* Collect stats */
+    state->copied += _ogg_page_length (og);
+
   } else if (state->end != -1.0 && page_time > state->end) {
     /* This is the first page past the end time; set EOS */
     _ogg_page_set_eos (og);
     fwrite_ogg_page (state, og);
 
+    /* The copied byte range ends here */
+    state->canon_range_end = oggz_tell (oggz) + _ogg_page_length (og);
+#ifdef DEBUG
+    fprintf (stderr, "Set canon_range_end to %ld\n", state->canon_range_end);
+#endif
+
+    /* Collect stats */
+    state->copied += _ogg_page_length (og);
+
     /* Stop handling this track */
     oggz_set_read_page (oggz, serialno, NULL, NULL);
+  } else {
+#ifdef DEBUG
+    fprintf (stderr, "Page not copied, offset %ld\n", oggz_tell (oggz));
+#endif
   }
 
   return OGGZ_CONTINUE;
@@ -664,7 +733,10 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     /* Switch to the plain page reader */
     oggz_set_read_page (oggz, serialno, read_plain, state);
     return read_plain (oggz, og, serialno, user_data);
-  } /* else { ... */
+  } else {
+    /* Collect stats */
+    state->deleted += _ogg_page_length (og);
+  }
 
   granulepos = ogg_page_granulepos (OGG_PAGE_CONST(og));
   if (granulepos != -1) {
@@ -675,10 +747,10 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       if (ogg_page_continued(OGG_PAGE_CONST(og))) {
         /* If this new-keyframe page is continued, advance the page accumulator,
          * ie. recover earlier pages from this new GOP */
-        accum_size = track_state_advance_page_accum (ts);
+        accum_size = track_state_advance_page_accum (state, ts);
       } else {
         /* Otherwise, just clear the page accumulator */
-        track_state_remove_page_accum (ts);
+        track_state_remove_page_accum (state, ts);
         accum_size = 0;
       }
 
@@ -688,7 +760,7 @@ read_gs (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
   }
 
   /* Add a copy of this to the page accumulator */
-  pa = page_accum_new (og, page_time);
+  pa = page_accum_new (og, oggz_tell(oggz), page_time);
   oggz_table_insert (ts->page_accum, accum_size, pa);
 
   return OGGZ_CONTINUE;
@@ -728,17 +800,17 @@ read_dirac (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       if (ogg_page_continued(OGG_PAGE_CONST(og))) {
         /* If this new-keyframe page is continued, advance the page accumulator,
          * ie. recover earlier pages from this new GOP */
-        accum_size = track_state_advance_page_accum (ts);
+        accum_size = track_state_advance_page_accum (state, ts);
       } else {
         /* Otherwise, just clear the page accumulator */
-        track_state_remove_page_accum (ts);
+        track_state_remove_page_accum (state, ts);
         accum_size = 0;
       }
     }
   }
 
   /* Add a copy of this to the page accumulator */
-  pa = page_accum_new (og, page_time);
+  pa = page_accum_new (og, oggz_tell(oggz), page_time);
   oggz_table_insert (ts->page_accum, accum_size, pa);
 
   return OGGZ_CONTINUE;
@@ -773,6 +845,10 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
     fwrite_ogg_page (state, og);
 
+    /* Collect stats */
+    state->headers += _ogg_page_length (og);
+
+    ts = oggz_table_lookup (state->tracks, serialno);
     ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
 
     if (ts->headers_remaining <= 0) {
@@ -889,6 +965,9 @@ chop (OCState * state)
   if (state->outfilename != NULL && !state->dry_run) {
     fclose (state->outfile);
   }
+
+  /* Report stats */
+  state_report (state);
 
   state_clear (state);
 
