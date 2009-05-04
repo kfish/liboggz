@@ -506,9 +506,15 @@ guess (ogg_int64_t unit_at, ogg_int64_t unit_target,
 
   if (unit_at == unit_begin) return offset_begin;
 
-  guess_ratio =
-    GUESS_MULTIPLIER * (unit_target - unit_begin) /
-    (unit_at - unit_begin);
+  if (unit_end != -1) {
+    guess_ratio =
+      GUESS_MULTIPLIER * (unit_target - unit_begin) /
+      (unit_end - unit_begin);
+  } else {
+    guess_ratio =
+      GUESS_MULTIPLIER * (unit_target - unit_begin) /
+      (unit_at - unit_begin);
+  }
 
 #ifdef DEBUG
   printf ("oggz_seek::guess: guess_ratio %lld = (%lld - %lld) / (%lld - %lld)\n",
@@ -657,7 +663,16 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
 
   unit_at = reader->current_unit;
   unit_begin = 0;
-  unit_end = -1;
+
+  og = &oggz->current_page;
+
+  if (oggz_seek_raw (oggz, 0, SEEK_END) >= 0) {
+    ogg_int64_t granulepos;
+
+    if (oggz_get_prev_start_page (oggz, og, &granulepos, &serialno) >= 0) {
+      unit_end = oggz_get_unit (oggz, serialno, granulepos);
+    }
+  }
 
   og = &oggz->current_page;
 
@@ -680,6 +695,10 @@ oggz_seek_set (OGGZ * oggz, ogg_int64_t unit_target)
     if (offset_guess == offset_at) {
       /* Already there, looping */
       break;
+    }
+
+    if (offset_guess > offset_end) {
+      offset_guess = offset_end;
     }
 
     offset_at = oggz_seek_raw (oggz, offset_guess, SEEK_SET);

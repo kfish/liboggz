@@ -361,7 +361,7 @@ revert_packet (OGGZ * oggz, ogg_packet * op, long serialno, int flush)
 
 #ifdef DEBUG
   printf ("feeding packet (%010lu) %ld bytes %s, %s\n",
-          current_serialno, op->bytes,
+          serialno, op->bytes,
           op->b_o_s ? "bos" : "not bos",
           op->e_o_s ? "eos" : "not eos");
 #endif
