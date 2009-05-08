@@ -76,11 +76,9 @@ if test $HAVE_DOXYGEN = "false"; then
              AC_MSG_WARN([*** doxygen not found, docs will not be built])
 fi
 
-# Check for docbook
-AC_CHECK_PROGS(DOCBOOKTOMAN, docbook-to-man docbook2man, false)
-AM_CONDITIONAL(HAVE_DOCBOOKTOMAN, test "x$DOCBOOKTOMAN" != "xfalse")
-AC_CHECK_PROG(HAVE_DOCBOOK2HTML, docbook2html, true, false)
-AM_CONDITIONAL(HAVE_DOCBOOK2HTML,$HAVE_DOCBOOK2HTML)
+# Check for man2html
+AC_CHECK_PROG(HAVE_MAN2HTML, man2html, true, false)
+AM_CONDITIONAL(HAVE_MAN2HTML, $HAVE_MAN2HTML)
 
 # Check for valgrind
 VALGRIND_ENVIRONMENT=""
