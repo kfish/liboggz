@@ -116,7 +116,7 @@ _le_64 (ogg_int64_t l)
 static ogg_int32_t
 int32_be_at (unsigned char *c)
 {
-  return (c [0] <<  24) + (c [1] <<  16) + (c [2] <<  8) + c [0] ;
+  return (c [0] <<  24) + (c [1] <<  16) + (c [2] <<  8) + c [3] ;
 }
 
 #endif /* __OGGZ_BYTEORDER_H__ */
