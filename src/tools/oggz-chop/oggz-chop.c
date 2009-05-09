@@ -41,6 +41,7 @@
 
 #include "oggz-chop.h"
 #include "skeleton.h"
+#include "mimetypes.h"
 
 #ifdef OGG_H_CONST_CORRECT
 #define OGG_PAGE_CONST(x) (x)
@@ -360,25 +361,6 @@ skeleton_write_packet (OCState * state, ogg_packet * op)
   return ret;
 }
 
-/* MIME types, for use in Skeleton. This must be in the same order as
- * enum OggzStreamContent defined in <oggz/oggz_constants.h> */
-const char * type_names[] = {
-  "video/theora",
-  "audio/vorbis",
-  "audio/speex",
-  "audio/x-oggpcm",
-  "text/cmml",
-  "application/x-annodex-2",
-  NULL, /* Skeleton */
-  "audio/flac",
-  "audio/flac",
-  NULL, /* AnxData */
-  "audio/celt",
-  "application/x-kate",
-  "video/dirac",
-  NULL /* UNKNOWN */
-};
-
 static int
 fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
 {
@@ -402,7 +384,7 @@ fisbone_init (OGGZ * oggz, OCState * state, OCTrackState * ts, long serialno)
     /* XXX: C99 */
 #define CONTENT_TYPE_FMT "Content-Type: %s\r\n"
     content_type = oggz_stream_get_content (oggz, serialno);
-    name = type_names[content_type];
+    name = mime_type_names[content_type];
     len = snprintf (NULL, 0, CONTENT_TYPE_FMT, name);
     if ((ts->fisbone.message_header_fields = malloc(len+1)) == NULL) {
       return -1;

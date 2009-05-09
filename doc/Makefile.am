@@ -1,7 +1,7 @@
 docdir=$(prefix)/share/doc/@PACKAGE@
 
 man_MANS = oggz.1 oggz-diff.1 oggz-dump.1 oggz-info.1 oggz-known-codecs.1 oggz-merge.1 oggz-chop.1 \
-	oggz-sort.1 oggz-rip.1 oggz-comment.1 oggz-scan.1 oggz-validate.1
+	oggz-sort.1 oggz-rip.1 oggz-comment.1 oggz-scan.1 oggz-validate.1 oggz-codecs.1
 
 EXTRA_DIST = $(man_MANS) Doxyfile.in \
 	forcefeed.fig forcefeed.eps forcefeed.png \
@@ -13,7 +13,7 @@ noinst_DATA = doxygen-build.stamp
 
 html: oggz.1.html oggz-diff.1.html oggz-dump.1.html oggz-info.1.html oggz-known-codecs.1.html \
 	oggz-merge.1.html oggz-chop.1.html oggz-sort.1.html oggz-rip.1.html oggz-comment.1.html \
-	oggz-scan.1.html oggz-validate.1.html
+	oggz-scan.1.html oggz-validate.1.html oggz-codecs.1.html oggz-codecs.1.html
 
 if HAVE_MAN2HTML
 %.1.html: %.1

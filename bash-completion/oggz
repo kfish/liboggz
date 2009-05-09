@@ -30,7 +30,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-OGGZ_COMMANDS="chop comment diff dump help info known-codecs merge rip scan sort validate"
+OGGZ_COMMANDS="chop comment diff dump help info known-codecs merge rip scan sort validate codecs"
 
 __oggzcomp ()
 {
@@ -160,6 +160,11 @@ _oggz_validate ()
     _oggz_basic_cmd oggz-validate
 }
 
+_oggz_codecs ()
+{
+    _oggz_basic_cmd oggz-codecs
+}
+
 _oggz_help ()
 {
     __oggz_commands
@@ -201,6 +206,7 @@ _oggz ()
     scan)	_oggz_scan ;;
     sort)	_oggz_sort ;;
     validate)	_oggz_validate ;;
+    codecs)	_oggz_codecs ;;
     *)		COMPREPLY=() ;;
     esac
 }
@@ -220,3 +226,4 @@ complete -o filenames -F _oggz_rip oggz-rip
 complete -o filenames -F _oggz_scan oggz-scan
 complete -o filenames -F _oggz_sort oggz-sort
 complete -o filenames -F _oggz_validate oggz-validate
+complete -o filenames -F _oggz_codecs oggz-codecs

@@ -153,7 +153,7 @@ AC_ARG_ENABLE(read,
 
 if test "x${ac_enable_read}" = xyes ; then
     AC_DEFINE(OGGZ_CONFIG_READ, [1], [Build reading support])
-    oggz_read_programs="oggz-dump oggz-info oggz-scan"
+    oggz_read_programs="oggz-dump oggz-info oggz-scan oggz-codecs"
 else
     AC_DEFINE(OGGZ_CONFIG_READ, [0], [Do not build reading support]) 
 fi

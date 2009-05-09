@@ -26,7 +26,7 @@ TESTS = httpdate_test
 
 noinst_HEADERS = cgi.h cmd.h header.h httpdate.h oggz-chop.h timespec.h
 
-oggz_chop_SOURCES = oggz-chop.c $(srcdir)/../oggz_tools.c $(srcdir)/../skeleton.c \
+oggz_chop_SOURCES = oggz-chop.c $(srcdir)/../oggz_tools.c $(srcdir)/../skeleton.c $(srcdir)/../mimetypes.c \
                     $(srcdir)/../../liboggz/dirac.c cmd.c cgi.c header.c httpdate.c main.c timespec.c
 oggz_chop_LDADD = $(OGGZ_LIBS) -lm
 

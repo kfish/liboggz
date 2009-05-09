@@ -65,6 +65,9 @@ usage (char * progname)
 
   printf ("  validate      Validate the Ogg framing of one or more files.\n");
 
+  printf ("  codecs        Display the list of codecs found in one or more files and\n"
+          "                their bitstreams.\n");
+
 
   printf ("\nExtraction:\n");
   printf ("  rip           Extract one or more logical bitstreams from an Ogg file.\n");
