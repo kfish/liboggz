@@ -49,7 +49,7 @@
 #  define PRId64 "I64d"
 #endif
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 #include "oggz_tools.h"
 
 /* #define DEBUG */

@@ -31,7 +31,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #define ID_WRITE_DIRECT
 /* define USE_FLUSH_NEXT */

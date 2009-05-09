@@ -36,7 +36,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 static char * infilename;
 static int previous_b_o_s = 0;

@@ -31,7 +31,7 @@
 */
 
 #include <stdlib.h> /* exit */
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 static long serialno;
 static ogg_int64_t granulepos = 0;

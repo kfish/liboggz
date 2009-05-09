@@ -39,7 +39,7 @@
 #include <getopt.h>
 #include <errno.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 #include "oggz_tools.h"
 
 #define READ_SIZE 4096

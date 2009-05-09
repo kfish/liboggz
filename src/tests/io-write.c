@@ -34,7 +34,7 @@
 
 #include <string.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "oggz_tests.h"
 

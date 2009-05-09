@@ -46,7 +46,7 @@
 #  define PRId64 "I64d"
 #endif
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 #include "oggz_tools.h"
 
 #define READ_SIZE 4096

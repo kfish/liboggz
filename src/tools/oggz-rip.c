@@ -48,7 +48,7 @@
 #include <getopt.h>
 #include <errno.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 #include "oggz_tools.h"
 
 #ifdef WIN32                                                                   

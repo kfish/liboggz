@@ -45,7 +45,7 @@
 #include "oggz_private.h"
 #include "oggz_vector.h"
 
-#include <oggz/oggz_stream.h>
+#include "oggz/oggz_stream.h"
 
 /*#define DEBUG*/
 

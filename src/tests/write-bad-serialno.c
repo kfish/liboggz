@@ -29,7 +29,7 @@
    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 */
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "oggz_tests.h"
 

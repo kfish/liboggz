@@ -38,7 +38,7 @@
 #include <errno.h>
 #include <getopt.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "oggz_tools.h"
 

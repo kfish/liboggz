@@ -33,7 +33,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 #include <ogg/ogg.h>
 
 struct eos_fix {

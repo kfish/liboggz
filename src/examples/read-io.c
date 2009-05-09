@@ -34,7 +34,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #ifdef HAVE_INTTYPES_H
 #  include <inttypes.h>

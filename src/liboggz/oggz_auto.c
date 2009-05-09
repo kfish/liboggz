@@ -45,7 +45,7 @@
 #include "oggz_byteorder.h"
 #include "dirac.h"
 
-#include <oggz/oggz_stream.h>
+#include "oggz/oggz_stream.h"
 
 /*#define DEBUG*/
 

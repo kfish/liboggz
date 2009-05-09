@@ -36,7 +36,7 @@
 #include <string.h>
 #include <unistd.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 /* #define DEBUG */
 

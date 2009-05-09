@@ -37,7 +37,7 @@
 #include <string.h>
 #include <getopt.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "dirac.h"
 #include "oggz_tools_dirac.h"

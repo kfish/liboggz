@@ -32,7 +32,7 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 static int
 read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
