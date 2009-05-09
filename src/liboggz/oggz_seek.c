@@ -96,7 +96,7 @@ oggz_tell_raw (OGGZ * oggz)
  * seeks and syncs
  */
 
-int
+static int
 oggz_seek_reset_stream(void *data) {
   ((oggz_stream_t *)data)->last_granulepos = -1L;
   return 0;
@@ -135,12 +135,6 @@ oggz_stream_reset (void * data)
   return 0;
 }
 
-static void
-oggz_reset_streams (OGGZ * oggz)
-{
-  oggz_vector_foreach (oggz->streams, oggz_stream_reset);
-}
-
 static long
 oggz_reset_seek (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 {
@@ -165,7 +159,8 @@ oggz_reset_seek (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 static long
 oggz_reset (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 {
-  oggz_reset_streams (oggz);
+  oggz_vector_foreach (oggz->streams, oggz_stream_reset);
+
   return oggz_reset_seek (oggz, offset, unit, whence);
 }
 
@@ -178,7 +173,7 @@ oggz_purge (OGGZ * oggz)
     return OGGZ_ERR_INVALID;
   }
 
-  oggz_reset_streams (oggz);
+  oggz_vector_foreach (oggz->streams, oggz_stream_reset);
 
   if (oggz->file && oggz_reset (oggz, oggz->offset, -1, SEEK_SET) < 0) {
     return OGGZ_ERR_SYSTEM;
