@@ -30,7 +30,7 @@
 # NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
 # SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
-OGGZ_COMMANDS="chop comment diff dump help info known-codecs merge rip scan sort validate codecs"
+OGGZ_COMMANDS="chop codecs comment diff dump help info known-codecs merge rip scan sort validate"
 
 __oggzcomp ()
 {

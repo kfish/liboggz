@@ -54,19 +54,15 @@ usage (char * progname)
   printf ("  help          Display help for a specific subcommand (eg. \"oggz help chop\")\n");
 
   printf ("\nReporting:\n");
+  printf ("  codecs        Display the list of codecs found in one or more files and\n"
+          "                their bitstreams.\n");
   printf ("  diff          Hexdump the packets of two Ogg files and output differences.\n");
   printf ("  dump          Hexdump packets of an Ogg file, or revert an Ogg file from\n"
           "                such a hexdump.\n");
-
   printf ("  info          Display information about one or more Ogg files and their\n"
           "                bitstreams.\n");
-
   printf ("  scan          Scan an Ogg file and output characteristic landmarks.\n");
-
   printf ("  validate      Validate the Ogg framing of one or more files.\n");
-
-  printf ("  codecs        Display the list of codecs found in one or more files and\n"
-          "                their bitstreams.\n");
 
 
   printf ("\nExtraction:\n");
