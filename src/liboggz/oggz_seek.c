@@ -48,6 +48,101 @@
 
 #if OGGZ_CONFIG_READ
 
+#include <stdlib.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+
+#ifdef HAVE_UNISTD_H
+#include <unistd.h>
+#endif
+
+#include <errno.h>
+
+#include <ogg/ogg.h>
+
+#include "oggz_compat.h"
+#include "oggz_private.h"
+#include "oggz/oggz_table.h"
+
+typedef struct _OggzSeekInfo OggzSeekInfo;
+
+struct _OggzSeekTrack {
+  /* Offset of bytewise-latest page with time < target */
+  oggz_off_t latest_page_offset;
+};
+
+struct OggzSeekCache {
+  time_t mtime;
+  off_t size;
+  off_t last_page_offset;
+  long unit_end;
+};
+
+struct _OggzSeekInfo {
+  OGGZ * oggz;
+
+  struct OggzSeekCache cache;
+
+  long unit_target;
+
+  OggzTable * tracks;
+};
+
+static int
+update_last_page (OggzSeekInfo * seek_info)
+{
+  return 0;
+}
+
+static int
+update_seek_cache (OggzSeekInfo * seek_info)
+{
+  struct stat statbuf;
+  int fd;
+  oggz_off_t offset_save;
+  OGGZ * oggz = seek_info->oggz;
+
+  if (oggz->file == NULL) {
+    /* Can't check validity, just update end */
+    offset_save = oggz_io_tell (oggz);
+    if (oggz_io_seek (oggz, 0, SEEK_END) == -1) {
+      return -1;
+    }
+
+    seek_info->cache.size = oggz_io_tell (oggz);
+
+    if (oggz_io_seek (oggz, offset_save, SEEK_SET) == -1) {
+      return -1; /* fubar */
+    }
+  } else {
+    if ((fd = fileno (oggz->file)) == -1) {
+      return -1;
+    }
+
+    if (fstat (fd, &statbuf) == -1) {
+      switch (errno) {
+      default:
+        return -1;
+      }
+    }
+
+    if (oggz_stat_regular (statbuf.st_mode)) {
+      if (seek_info->cache.mtime == statbuf.st_mtime) {
+        /* Not modified, cache is valid */
+        return 0;
+      }
+    }
+
+    seek_info->cache.mtime = statbuf.st_mtime;
+    seek_info->cache.size = statbuf.st_size;
+  }
+
+  update_last_page (seek_info);
+
+  return 1;
+}
+
 off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
