@@ -33,6 +33,15 @@
 /*
  * oggz_seek.c
  *
+ * Refer to http://wiki.xiph.org/index.php/Seeking for an overview of the
+ * algorithm for seeking on Ogg.
+ *
+ * Define seek to mean: for each logical bitstream, locate the
+ * bytewise-latest page in the bitstream with a time < the target
+ * time, then choose the bytewise-earliest among these pages. Thus
+ * if two pages have the same time, seeking will locate the
+ * bytewise-earlier page. 
+ *
  * Conrad Parker <conrad@annodex.net>
  */
 
