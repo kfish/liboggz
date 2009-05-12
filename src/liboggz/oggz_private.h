@@ -121,7 +121,7 @@ struct _oggz_stream_t {
   ogg_int64_t last_granulepos;
   ogg_int64_t page_granulepos;
   void * calculate_data;
-  ogg_packet  * last_packet;
+  ogg_packet * last_packet;
 };
 
 struct _OggzReader {
@@ -140,7 +140,12 @@ struct _OggzReader {
   ogg_int64_t current_unit;
   ogg_int64_t current_granulepos;
 
+  /* Read positioning */
   long current_page_bytes;
+
+  oggz_off_t current_packet_begin_page_offset;
+  int current_packet_pages;
+
 #if 0
   oggz_off_t offset_page_end; /* offset of end of current page */
 #endif

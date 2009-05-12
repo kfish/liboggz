@@ -60,6 +60,7 @@
 #include "oggz_compat.h"
 #include "oggz_private.h"
 
+#include "oggz/oggz_packet.h"
 #include "oggz/oggz_stream.h"
 
 /* #define DEBUG */
@@ -87,6 +88,9 @@ oggz_read_init (OGGZ * oggz)
   reader->current_unit = 0;
 
   reader->current_page_bytes = 0;
+
+  reader->current_packet_begin_page_offset = 0;
+  reader->current_packet_pages = 0;
 
   return oggz;
 }
@@ -317,15 +321,17 @@ oggz_read_sync (OGGZ * oggz)
   oggz_stream_t * stream;
   ogg_stream_state * os;
   ogg_packet * op;
+  oggz_position * pos;
   long serialno;
 
-  ogg_packet packet;
+  oggz_packet packet;
   ogg_page og;
 
   int cb_ret = 0;
 
   /*os = &reader->ogg_stream;*/
-  op = &packet;
+  op = &packet.op;
+  pos = &packet.pos;
 
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
@@ -468,13 +474,23 @@ oggz_read_sync (OGGZ * oggz)
             }
           }
 
+          /* Fill in position information */
+          pos->calc_granulepos = reader->current_granulepos;
+          pos->begin_page_offset = reader->current_packet_begin_page_offset;
+          pos->end_page_offset = oggz->offset;
+          pos->pages = reader->current_packet_pages;
+
           if (stream->read_packet) {
             cb_ret =
-              stream->read_packet (oggz, op, serialno, stream->read_user_data);
+              stream->read_packet (oggz, &packet, serialno, stream->read_user_data);
           } else if (reader->read_packet) {
             cb_ret =
-              reader->read_packet (oggz, op, serialno, reader->read_user_data);
+              reader->read_packet (oggz, &packet, serialno, reader->read_user_data);
           }
+
+          /* Prepare the position of the next page */
+          reader->current_packet_pages = 1;
+          reader->current_packet_begin_page_offset = oggz->offset;
 
           /* Mark this stream as having delivered a non b_o_s packet if so.
            * In the case where there is no packet reading callback, this is
@@ -494,7 +510,7 @@ oggz_read_sync (OGGZ * oggz)
       return OGGZ_READ_EMPTY; /* eof. leave uninitialized */
 
     serialno = ogg_page_serialno (&og);
-    reader->current_serialno = serialno; /* XXX: maybe not necessary */
+    reader->current_serialno = serialno;
 
     stream = oggz_get_stream (oggz, serialno);
 
@@ -544,6 +560,14 @@ oggz_read_sync (OGGZ * oggz)
     }
 
     ogg_stream_pagein(os, &og);
+    if (ogg_page_continued(&og)) {
+      if (reader->current_packet_pages != -1)
+        reader->current_packet_pages++;
+    } else {
+      /* Prepare the position of the next page */
+      reader->current_packet_pages = 1;
+      reader->current_packet_begin_page_offset = oggz->offset;
+    }
   }
 
   return cb_ret;

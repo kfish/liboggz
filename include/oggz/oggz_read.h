@@ -37,6 +37,8 @@
  * Interfaces for reading Ogg files and streams
  */
 
+#include <oggz/oggz_packet.h>
+
 /** \defgroup read_api Oggz Read API
  *
  * Oggz parses Ogg bitstreams, forming ogg_packet structures, and calling
@@ -67,16 +69,16 @@
  * with \a oggz.
  *
  * \param oggz The OGGZ handle
- * \param op The full ogg_packet (see <ogg/ogg.h>)
+ * \param packet The packet, including its position in the stream.
  * \param serialno Identify the logical bistream in \a oggz that contains
- *                 \a op
+ *                 \a packet
  * \param user_data A generic pointer you have provided earlier
  * \returns 0 to continue, non-zero to instruct Oggz to stop.
  *
  * \note It is possible to provide different callbacks per logical
  * bitstream -- see oggz_set_read_callback() for more information.
  */
-typedef int (*OggzReadPacket) (OGGZ * oggz, ogg_packet * op, long serialno,
+typedef int (*OggzReadPacket) (OGGZ * oggz, oggz_packet * packet, long serialno,
 			       void * user_data);
 
 /**
