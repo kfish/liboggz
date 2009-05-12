@@ -4,7 +4,7 @@ oggz-info \(em Display a list of codecs found in one or more Ogg files and their
  
 .SH "SYNOPSIS" 
 .PP 
-\fBoggz-codecs\fR [\-a  | \-\-all ]  [\-m  | \-\-mime ]  filename \&...  
+\fBoggz-codecs\fR [\-a  | \-\-all ]  [\-m  | \-\-mime ]  [\-1 | \-\-one\-per\-line]  filename \&...  
 .PP 
 \fBoggz-codecs\fR [\-h  | \-\-help ]  [\-v  | \-\-version ]  
 .SH "Description" 
@@ -21,6 +21,8 @@ Ogg files and their bitstreams.
 Display an entry for every bitstream, rather than displaying each codec once, even if present more than once. 
 .IP "\-m, \-\-mime" 10 
 Display each codec's MIME type, instead of its name. 
+.IP "\-1, \-\-one\-per\-line" 10 
+Display each entries on a separate line.
 .SS "Miscellaneous options" 
 .IP "\-h, \-\-help" 10 
 Display usage information and exit. 

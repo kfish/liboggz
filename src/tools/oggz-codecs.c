@@ -35,6 +35,7 @@
 #include <string.h>
 #include <limits.h> /* LONG_MAX */
 #include <math.h>
+#include <ctype.h>
 
 #include <getopt.h>
 #include <errno.h>
@@ -53,6 +54,7 @@
 
 static int show_all = 0;
 static int show_as_mime = 0;
+static int show_one_per_line = 0;
 
 /* Assumes UNKNOWN is last - fair assumption I think */
 static int codecs_count[OGGZ_CONTENT_UNKNOWN+1] = {0};
@@ -64,7 +66,8 @@ usage (const char * progname)
   printf ("Display codecs used in one or more Ogg files and their bitstreams\n");
   printf ("\nDisplay options\n");
   printf ("  -a, --all              Display an entry for all bitstreams, rather than collapsing codecs used more than once\n");
-  printf ("  -m, --mime             Displays entries on a single line, separated by commas\n");
+  printf ("  -m, --mime             Displays MIME types rather than codec names\n");
+  printf ("  -1, --one-per-line     Displays one entry per line\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
@@ -100,20 +103,26 @@ oggz_info_apply (OI_TrackFunc func, OI_Info * info)
 static void
 print_codec_name (OI_Info * info, long serialno)
 {
+  static int displayed_once = 0;
   OggzStreamContent content = oggz_stream_get_content(info->oggz, serialno);
   if (!codecs_count[content]++ || show_all) {
+    if (displayed_once && !show_one_per_line) {
+      printf(", ");
+    }
     if (show_as_mime) {
       const char *mime_type = NULL;
       if (content >= 0 && content < OGGZ_CONTENT_UNKNOWN)
         mime_type = mime_type_names[content];
       if (!mime_type) mime_type = "application/octet-stream";
-      printf("%s\n", mime_type);
+      printf("%s%s", mime_type, show_one_per_line?"\n":"");
     }
     else {
-      const char *codec_name = oggz_content_type (content);
+      const char *codec_name = oggz_content_type (content), *ptr;
       if (!codec_name) codec_name = "unknown";
-      printf("%s\n", codec_name);
+      for (ptr = codec_name; *ptr; ++ptr) putchar(tolower(*ptr));
+      if (show_one_per_line) putchar('\n');
     }
+    displayed_once = 1;
   }
 }
 
@@ -159,7 +168,7 @@ main (int argc, char ** argv)
   OGGZ * oggz;
   OI_Info info;
 
-  char * optstring = "hvam";
+  char * optstring = "hvam1";
 
 #ifdef HAVE_GETOPT_LONG
   static struct option long_options[] = {
@@ -167,6 +176,7 @@ main (int argc, char ** argv)
     {"version", no_argument, 0, 'v'},
     {"all", no_argument, 0, 'a'},
     {"mime", no_argument, 0, 'm'},
+    {"one-line", no_argument, 0, '1'},
     {NULL,0,0,0}
   };
 #endif
@@ -211,6 +221,9 @@ main (int argc, char ** argv)
       break;
     case 'm':
       show_as_mime = 1;
+      break;
+    case '1':
+      show_one_per_line = 1;
       break;
     default:
       break;
