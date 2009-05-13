@@ -189,6 +189,10 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
   int found = 0;
 
   /* Increment oggz->offset by length of the last page processed */
+#ifdef DEBUG_VERBOSE
+  printf ("%s: incrementing oggz->offset (0x%llx) by 0x%lx\n", __func__,
+          oggz->offset, reader->current_page_bytes);
+#endif
   oggz->offset += reader->current_page_bytes;
 
   do {
@@ -198,8 +202,9 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
       /* No page available */
       return -2;
     } else if (more < 0) {
+      page_offset += (-more);
 #ifdef DEBUG_VERBOSE
-      printf ("get_next_page: skipped %ld bytes\n", -more);
+  printf ("%s: skipping; incrementing oggz->offset by 0x%lx bytes\n", __func__, -more);
 #endif
       oggz->offset += (-more);
     } else {
@@ -216,7 +221,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 }
 
 typedef struct {
-  ogg_packet      packet;
+  oggz_packet     zp;
   ogg_int64_t     calced_granulepos;
   oggz_stream_t * stream;
   OggzReader    * reader;
@@ -225,16 +230,22 @@ typedef struct {
 } OggzBufferedPacket;
 
 OggzBufferedPacket *
-oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet, 
+oggz_read_new_pbuffer_entry(OGGZ *oggz, oggz_packet * zp, 
             ogg_int64_t granulepos, long serialno, oggz_stream_t * stream, 
-            OggzReader *reader) {
+            OggzReader *reader)
+{
+  OggzBufferedPacket *p;
+  ogg_packet * op = &zp->op;
 
-  OggzBufferedPacket *p = oggz_malloc(sizeof(OggzBufferedPacket));
-  if (p == NULL) return NULL;
+  if ((p = oggz_malloc(sizeof(OggzBufferedPacket))) == NULL)
+    return NULL;
+  memcpy(&(p->zp), zp, sizeof(oggz_packet));
 
-  memcpy(&(p->packet), packet, sizeof(ogg_packet));
-  p->packet.packet = oggz_malloc(packet->bytes);
-  memcpy(p->packet.packet, packet->packet, packet->bytes);
+  if ((p->zp.op.packet = oggz_malloc(op->bytes)) == NULL) {
+    oggz_free (p);
+    return NULL;
+  }
+  memcpy(p->zp.op.packet, op->packet, op->bytes);
 
   p->calced_granulepos = granulepos;
   p->stream = stream;
@@ -246,11 +257,10 @@ oggz_read_new_pbuffer_entry(OGGZ *oggz, ogg_packet *packet,
 }
 
 void
-oggz_read_free_pbuffer_entry(OggzBufferedPacket *p) {
-  
-  oggz_free(p->packet.packet);
+oggz_read_free_pbuffer_entry(OggzBufferedPacket *p)
+{
+  oggz_free(p->zp.op.packet);
   oggz_free(p);
-
 }
 
 OggzDListIterResponse
@@ -268,14 +278,14 @@ oggz_read_update_gp(void *elem) {
 
     p->calced_granulepos = 
       oggz_auto_calculate_gp_backwards(content, p->stream->last_granulepos,
-      p->stream, &(p->packet), p->stream->last_packet);
+                                       p->stream, &(p->zp.op),
+                                       p->stream->last_packet);
       
     p->stream->last_granulepos = p->calced_granulepos;
-    p->stream->last_packet = &(p->packet);
+    p->stream->last_packet = &(p->zp.op);
   }
 
   return DLIST_ITER_CONTINUE;
-
 }
 
 OggzDListIterResponse
@@ -298,11 +308,11 @@ oggz_read_deliver_packet(void *elem) {
     oggz_get_unit (p->oggz, p->serialno, p->calced_granulepos);
 
   if (p->stream->read_packet) {
-    p->stream->read_packet(p->oggz, &(p->packet), p->serialno, 
-            p->stream->read_user_data);
+    p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
+                           p->stream->read_user_data);
   } else if (p->reader->read_packet) {
-    p->reader->read_packet(p->oggz, &(p->packet), p->serialno, 
-            p->reader->read_user_data);
+    p->reader->read_packet(p->oggz, &(p->zp), p->serialno, 
+                           p->reader->read_user_data);
   }
 
   p->reader->current_granulepos = gp_stored;
@@ -374,14 +384,16 @@ oggz_read_sync (OGGZ * oggz)
            * so we silently swallow the notification and reget the packet. */
           result = ogg_stream_packetout(os, op);
           if (result == -1) {
-            /* If the result is *still* -1 then something strange is
-             * happening.
-             */
+            /* If the result is *still* -1 then something strange is happening. */
 #ifdef DEBUG
             printf ("Multiple holes in data!");
 #endif
             return OGGZ_ERR_HOLE_IN_DATA;
           }
+
+          /* Reset the position of the next page. */
+          reader->current_packet_pages = 1;
+          reader->current_packet_begin_page_offset = oggz->offset;
         }
 
         if(result > 0){
@@ -427,16 +439,28 @@ oggz_read_sync (OGGZ * oggz)
             oggz_auto_read_comments (oggz, stream, serialno, op);
           }
           
+          /* Fill in position information. */
+          pos->calc_granulepos = reader->current_granulepos;
+          pos->begin_page_offset = reader->current_packet_begin_page_offset;
+          pos->end_page_offset = oggz->offset;
+          pos->pages = reader->current_packet_pages;
+
+          /* Handle reverse buffering */
           if (oggz->flags & OGGZ_AUTO) {
-          
             /* While we are getting invalid granulepos values, store the 
              * incoming packets in a dlist */
             if (reader->current_granulepos == -1) {
-              OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
-                                oggz, &packet, reader->current_granulepos, 
-                                serialno, stream, reader);
+              OggzBufferedPacket *p;
 
+              p = oggz_read_new_pbuffer_entry (oggz, &packet,
+                                               reader->current_granulepos, 
+                                               serialno, stream, reader);
               oggz_dlist_append(oggz->packet_buffer, p);
+
+              /* Prepare the position of the next page. */
+              reader->current_packet_pages = 1;
+              reader->current_packet_begin_page_offset = oggz->offset;
+
               continue;
             } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
               /* Move backward through the list assigning gp values based upon
@@ -445,7 +469,7 @@ oggz_read_sync (OGGZ * oggz)
                * gp values.
                */
               ogg_int64_t gp_stored = stream->last_granulepos;
-              stream->last_packet = &packet;
+              stream->last_packet = op;
               oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
               oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
 
@@ -453,21 +477,26 @@ oggz_read_sync (OGGZ * oggz)
               stream->last_granulepos = gp_stored;
 
               if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
-                OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
-                                oggz, &packet, reader->current_granulepos, 
-                                serialno, stream, reader);
+                OggzBufferedPacket *p;
+
+                p = oggz_read_new_pbuffer_entry(oggz, &packet,
+                                                reader->current_granulepos, 
+                                                serialno, stream, reader);
 
                 oggz_dlist_append(oggz->packet_buffer, p);
+
+                /* Prepare the position of the next page. */
+                reader->current_packet_pages = 1;
+                reader->current_packet_begin_page_offset = oggz->offset;
+
                 continue;
               }
             }
           }
 
-          /* Fill in position information. */
-          pos->calc_granulepos = reader->current_granulepos;
-          pos->begin_page_offset = reader->current_packet_begin_page_offset;
-          pos->end_page_offset = oggz->offset;
-          pos->pages = reader->current_packet_pages;
+#ifdef DEBUG_VERBOSE
+          printf ("%s: set begin_page to %llx, calling read_packet\n", __func__, pos->begin_page_offset);
+#endif
 
           if (stream->read_packet) {
             cb_ret =
@@ -476,6 +505,10 @@ oggz_read_sync (OGGZ * oggz)
             cb_ret =
               reader->read_packet (oggz, &packet, serialno, reader->read_user_data);
           }
+
+#ifdef DEBUG_VERBOSE
+          fprintf (stdout, "%s: Done packet, setting next begin_page to 0x%llx\n", __func__, oggz->offset);
+#endif
 
           /* Prepare the position of the next page. */
           reader->current_packet_pages = 1;
@@ -550,6 +583,9 @@ oggz_read_sync (OGGZ * oggz)
       if (reader->current_packet_pages != -1)
         reader->current_packet_pages++;
     } else {
+#ifdef DEBUG_VERBOSE
+      fprintf (stdout, "%s: New non-cont page, setting next begin_page to 0x%llx\n", __func__, oggz->offset);
+#endif
       /* Prepare the position of the next page */
       reader->current_packet_pages = 1;
       reader->current_packet_begin_page_offset = oggz->offset;

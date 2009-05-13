@@ -40,6 +40,8 @@
 #include <oggz/oggz_constants.h>
 #include <oggz/oggz_off_t.h>
 
+#include "oggz/oggz_packet.h"
+
 #include "oggz_macros.h"
 #include "oggz_vector.h"
 #include "oggz_dlist.h"
@@ -53,7 +55,7 @@ typedef struct _OggzReader OggzReader;
 typedef struct _OggzWriter OggzWriter;
 
 
-typedef int (*OggzReadPacket) (OGGZ * oggz, ogg_packet * op, long serialno,
+typedef int (*OggzReadPacket) (OGGZ * oggz, oggz_packet * op, long serialno,
 			       void * user_data);
 typedef int (*OggzReadPage) (OGGZ * oggz, const ogg_page * og, long serialno,
 			     void * user_data);
