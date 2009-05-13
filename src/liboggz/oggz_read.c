@@ -359,10 +359,8 @@ oggz_read_sync (OGGZ * oggz)
 
         result = ogg_stream_packetout(os, op);
 
-        /*
-         * libogg flags "holes in the data" (which are really inconsistencies
-         * in the page sequence number) by returning -1.
-         */
+        /* libogg flags "holes in the data" (which are really inconsistencies
+         * in the page sequence number) by returning -1. */
         if(result == -1) {
 #ifdef DEBUG
           printf ("oggz_read_sync: hole in the data\n");
@@ -373,8 +371,7 @@ oggz_read_sync (OGGZ * oggz)
           if (stream->packetno < 2) return OGGZ_ERR_HOLE_IN_DATA;
 
           /* Holes in content occur in some files and pretty much don't matter,
-           * so we silently swallow the notification and reget the packet.
-           */
+           * so we silently swallow the notification and reget the packet. */
           result = ogg_stream_packetout(os, op);
           if (result == -1) {
             /* If the result is *still* -1 then something strange is
@@ -392,7 +389,7 @@ oggz_read_sync (OGGZ * oggz)
 
           stream->packetno++;
           
-          /* got a packet.  process it */
+          /* Got a packet.  process it ... */
           granulepos = op->granulepos;
 
           content = oggz_stream_get_content(oggz, serialno);
@@ -420,12 +417,8 @@ oggz_read_sync (OGGZ * oggz)
 
           stream->last_granulepos = reader->current_granulepos;
         
-          /* set unit on last packet of page */
-          if 
-          (
-            (oggz->metric || stream->metric) && reader->current_granulepos != -1
-          ) 
-          {
+          /* Set unit on last packet of page */
+          if ((oggz->metric || stream->metric) && reader->current_granulepos != -1) {
             reader->current_unit =
               oggz_get_unit (oggz, serialno, reader->current_granulepos);
           }
@@ -436,8 +429,7 @@ oggz_read_sync (OGGZ * oggz)
           
           if (oggz->flags & OGGZ_AUTO) {
           
-            /*
-             * while we are getting invalid granulepos values, store the 
+            /* While we are getting invalid granulepos values, store the 
              * incoming packets in a dlist */
             if (reader->current_granulepos == -1) {
               OggzBufferedPacket *p = oggz_read_new_pbuffer_entry(
@@ -447,20 +439,17 @@ oggz_read_sync (OGGZ * oggz)
               oggz_dlist_append(oggz->packet_buffer, p);
               continue;
             } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
-              /*
-               * move backward through the list assigning gp values based upon
+              /* Move backward through the list assigning gp values based upon
                * the granulepos we just recieved.  Then move forward through
                * the list delivering any packets at the beginning with valid
-               * gp values
+               * gp values.
                */
               ogg_int64_t gp_stored = stream->last_granulepos;
               stream->last_packet = &packet;
               oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
               oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
 
-              /*
-               * fix up the stream granulepos 
-               */
+              /* Fix up the stream granulepos. */
               stream->last_granulepos = gp_stored;
 
               if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
@@ -474,7 +463,7 @@ oggz_read_sync (OGGZ * oggz)
             }
           }
 
-          /* Fill in position information */
+          /* Fill in position information. */
           pos->calc_granulepos = reader->current_granulepos;
           pos->begin_page_offset = reader->current_packet_begin_page_offset;
           pos->end_page_offset = oggz->offset;
@@ -488,7 +477,7 @@ oggz_read_sync (OGGZ * oggz)
               reader->read_packet (oggz, &packet, serialno, reader->read_user_data);
           }
 
-          /* Prepare the position of the next page */
+          /* Prepare the position of the next page. */
           reader->current_packet_pages = 1;
           reader->current_packet_begin_page_offset = oggz->offset;
 
@@ -525,17 +514,14 @@ oggz_read_sync (OGGZ * oggz)
       oggz_auto_identify_page (oggz, &og, serialno);
 
       /* read bos data */
-      if (oggz->flags & OGGZ_AUTO)
+      if (oggz->flags & OGGZ_AUTO) {
         oggz_auto_read_bos_page (oggz, &og, serialno, NULL);
-    }
-    else if (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_ANXDATA)
-    {
-      /*
-       * re-identify ANXDATA streams as these are now content streams
-       */
+      }
+    } else if (oggz_stream_get_content(oggz, serialno) == OGGZ_CONTENT_ANXDATA) {
+      /* re-identify ANXDATA streams as these are now content streams */
       oggz_auto_identify_page (oggz, &og, serialno);
     }
-    
+
     os = &stream->ogg_stream;
 
     {
