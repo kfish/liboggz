@@ -222,7 +222,6 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 
 typedef struct {
   oggz_packet     zp;
-  ogg_int64_t     calced_granulepos;
   oggz_stream_t * stream;
   OggzReader    * reader;
   OGGZ          * oggz;
@@ -231,8 +230,8 @@ typedef struct {
 
 OggzBufferedPacket *
 oggz_read_new_pbuffer_entry(OGGZ *oggz, oggz_packet * zp, 
-            ogg_int64_t granulepos, long serialno, oggz_stream_t * stream, 
-            OggzReader *reader)
+                            long serialno, oggz_stream_t * stream, 
+                            OggzReader *reader)
 {
   OggzBufferedPacket *p;
   ogg_packet * op = &zp->op;
@@ -247,7 +246,6 @@ oggz_read_new_pbuffer_entry(OGGZ *oggz, oggz_packet * zp,
   }
   memcpy(p->zp.op.packet, op->packet, op->bytes);
 
-  p->calced_granulepos = granulepos;
   p->stream = stream;
   p->serialno = serialno;
   p->reader = reader;
@@ -268,7 +266,7 @@ oggz_read_update_gp(void *elem) {
 
   OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
 
-  if (p->calced_granulepos == -1 && p->stream->last_granulepos != -1) {
+  if (p->zp.pos.calc_granulepos == -1 && p->stream->last_granulepos != -1) {
     int content = oggz_stream_get_content(p->oggz, p->serialno);
 
     /* Cancel the iteration (backwards through buffered packets)
@@ -276,12 +274,12 @@ oggz_read_update_gp(void *elem) {
     if (content < 0 || content >= OGGZ_CONTENT_UNKNOWN)
       return DLIST_ITER_CANCEL;
 
-    p->calced_granulepos = 
+    p->zp.pos.calc_granulepos = 
       oggz_auto_calculate_gp_backwards(content, p->stream->last_granulepos,
                                        p->stream, &(p->zp.op),
                                        p->stream->last_packet);
       
-    p->stream->last_granulepos = p->calced_granulepos;
+    p->stream->last_granulepos = p->zp.pos.calc_granulepos;
     p->stream->last_packet = &(p->zp.op);
   }
 
@@ -295,17 +293,17 @@ oggz_read_deliver_packet(void *elem) {
   ogg_int64_t gp_stored;
   ogg_int64_t unit_stored;
 
-  if (p->calced_granulepos == -1) {
+  if (p->zp.pos.calc_granulepos == -1) {
     return DLIST_ITER_CANCEL;
   }
 
   gp_stored = p->reader->current_granulepos;
   unit_stored = p->reader->current_unit;
 
-  p->reader->current_granulepos = p->calced_granulepos;
+  p->reader->current_granulepos = p->zp.pos.calc_granulepos;
 
   p->reader->current_unit =
-    oggz_get_unit (p->oggz, p->serialno, p->calced_granulepos);
+    oggz_get_unit (p->oggz, p->serialno, p->zp.pos.calc_granulepos);
 
   if (p->stream->read_packet) {
     p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
@@ -453,7 +451,6 @@ oggz_read_sync (OGGZ * oggz)
               OggzBufferedPacket *p;
 
               p = oggz_read_new_pbuffer_entry (oggz, &packet,
-                                               reader->current_granulepos, 
                                                serialno, stream, reader);
               oggz_dlist_append(oggz->packet_buffer, p);
 
@@ -480,7 +477,6 @@ oggz_read_sync (OGGZ * oggz)
                 OggzBufferedPacket *p;
 
                 p = oggz_read_new_pbuffer_entry(oggz, &packet,
-                                                reader->current_granulepos, 
                                                 serialno, stream, reader);
 
                 oggz_dlist_append(oggz->packet_buffer, p);
