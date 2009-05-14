@@ -55,6 +55,8 @@
 static int show_all = 0;
 static int show_as_mime = 0;
 static int show_one_per_line = 0;
+static int displayed_once = 0;
+static int many_files = 0;
 
 /* Assumes UNKNOWN is last - fair assumption I think */
 static int codecs_count[OGGZ_CONTENT_UNKNOWN+1] = {0};
@@ -103,7 +105,6 @@ oggz_info_apply (OI_TrackFunc func, OI_Info * info)
 static void
 print_codec_name (OI_Info * info, long serialno)
 {
-  static int displayed_once = 0;
   OggzStreamContent content = oggz_stream_get_content(info->oggz, serialno);
   if (!codecs_count[content]++ || show_all) {
     if (displayed_once && !show_one_per_line) {
@@ -123,6 +124,21 @@ print_codec_name (OI_Info * info, long serialno)
       if (show_one_per_line) putchar('\n');
     }
     displayed_once = 1;
+  }
+}
+
+static void
+ensure_newline (void)
+{
+  if (many_files) {
+    putchar ('\n');
+  } else if (!show_one_per_line) {
+    /* For single file, comma-separated output, don't put the
+     * terminating newline on stdout, so that the program output
+     * can be used in an HTML5 <video> codecs attribute.
+     */
+    fflush (stdout);
+    fputc ('\n', stderr);
   }
 }
 
@@ -163,7 +179,6 @@ main (int argc, char ** argv)
   char * progname;
   int i;
 
-  int many_files = 0;
   char * infilename;
   OGGZ * oggz;
   OI_Info info;
@@ -252,12 +267,19 @@ main (int argc, char ** argv)
   }
 
   while (optind < argc) {
+    /* Reset state for new file */
+    memset (codecs_count, 0, sizeof(codecs_count));
+    displayed_once = 0;
+
     infilename = argv[optind++];
 
     if ((oggz = oggz_open (infilename, OGGZ_READ|OGGZ_AUTO)) == NULL) {
       fprintf (stderr, "%s: unable to open file %s\n", progname, infilename);
       return (1);
     }
+
+    if (many_files)
+      printf ("%s: ", infilename);
 
     info.oggz = oggz;
     info.tracks = oggz_table_new ();
@@ -269,6 +291,8 @@ main (int argc, char ** argv)
     oggz_table_delete (info.tracks);
 
     oggz_close (oggz);
+
+    ensure_newline ();
   }
 
  exit_ok:
