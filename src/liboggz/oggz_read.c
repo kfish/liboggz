@@ -211,21 +211,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 
   } while (!found);
 
-#if 0 /* This is now done by the increment at the top of the file */
-  /* Calculate the byte offset of the page which was found */
-  if (bytes > 0) {
-    oggz->offset = oggz_io_tell (oggz) - bytes + page_offset;
-    ret = oggz->offset;
-  } else {
-    /* didn't need to do any reading -- accumulate the page_offset */
-    ret = oggz->offset + page_offset;
-    oggz->offset += page_offset + more;
-  }
-
-  return ret;
-#else
   return oggz->offset;
-#endif
 }
 
 typedef struct {
