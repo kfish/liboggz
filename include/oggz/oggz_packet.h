@@ -36,6 +36,8 @@
  * Packet positioning
  *
  * oggz_packet derives from ogg_packet, and includes position information.
+ * This positioning information can be copied and used for subsequent
+ * calls to oggz_seek_position().
  */
 
 /************************************************************

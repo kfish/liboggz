@@ -63,6 +63,7 @@
 
 #include "oggz_compat.h"
 #include "oggz_private.h"
+#include "oggz/oggz_packet.h"
 #include "oggz/oggz_table.h"
 
 /************************************************************
@@ -324,6 +325,31 @@ long
 oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
 {
   return -1;
+}
+
+off_t
+oggz_seek_position (OGGZ * oggz, oggz_position * position)
+{
+  OggzReader * reader;
+
+  if (oggz == NULL)
+    return OGGZ_ERR_BAD_OGGZ;
+
+  if (oggz->flags & OGGZ_WRITE)
+    return OGGZ_ERR_INVALID;
+
+  if (oggz_io_seek (oggz, position->begin_page_offset, SEEK_SET) == -1) {
+     return -1;
+   }
+
+  oggz->offset = position->begin_page_offset;
+  reader = &oggz->x.reader;
+
+  reader->current_unit = -1;
+
+  /* XXX: scan through packets to begin_segment_index */
+
+  return oggz->offset;
 }
 
 #else

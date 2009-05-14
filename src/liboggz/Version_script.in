@@ -46,6 +46,7 @@
 		oggz_tell_units;
 		oggz_seek;
 		oggz_seek_units;
+		oggz_seek_position;
 		oggz_set_data_start;
 		oggz_serialno_new;
 

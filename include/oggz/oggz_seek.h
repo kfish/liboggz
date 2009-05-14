@@ -142,6 +142,15 @@ oggz_off_t oggz_tell (OGGZ * oggz);
  */
 oggz_off_t oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence);
 
+/**
+ * Seek to a specified oggz_position.
+ * \param oggz An OGGZ handle
+ * \param position An oggz_position, usually from an oggz_packet.
+ * \returns the new file offset, or -1 on failure.
+ */
+off_t
+oggz_seek_position (OGGZ * oggz, oggz_position * position);
+
 #ifdef _UNIMPLEMENTED
 long oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence);
 #endif
