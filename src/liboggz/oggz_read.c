@@ -392,6 +392,7 @@ oggz_read_sync (OGGZ * oggz)
           /* Reset the position of the next page. */
           reader->current_packet_pages = 1;
           reader->current_packet_begin_page_offset = oggz->offset;
+          reader->current_packet_begin_segment_index = 1;
         }
 
         if(result > 0){
@@ -442,6 +443,7 @@ oggz_read_sync (OGGZ * oggz)
           pos->begin_page_offset = reader->current_packet_begin_page_offset;
           pos->end_page_offset = oggz->offset;
           pos->pages = reader->current_packet_pages;
+          pos->begin_segment_index = reader->current_packet_begin_segment_index;
 
           /* Handle reverse buffering */
           if (oggz->flags & OGGZ_AUTO) {
@@ -454,11 +456,7 @@ oggz_read_sync (OGGZ * oggz)
                                                serialno, stream, reader);
               oggz_dlist_append(oggz->packet_buffer, p);
 
-              /* Prepare the position of the next page. */
-              reader->current_packet_pages = 1;
-              reader->current_packet_begin_page_offset = oggz->offset;
-
-              continue;
+              goto prepare_position;
             } else if (!oggz_dlist_is_empty(oggz->packet_buffer)) {
               /* Move backward through the list assigning gp values based upon
                * the granulepos we just recieved.  Then move forward through
@@ -481,11 +479,7 @@ oggz_read_sync (OGGZ * oggz)
 
                 oggz_dlist_append(oggz->packet_buffer, p);
 
-                /* Prepare the position of the next page. */
-                reader->current_packet_pages = 1;
-                reader->current_packet_begin_page_offset = oggz->offset;
-
-                continue;
+                goto prepare_position;
               }
             }
           }
@@ -506,9 +500,19 @@ oggz_read_sync (OGGZ * oggz)
           fprintf (stdout, "%s: Done packet, setting next begin_page to 0x%llx\n", __func__, oggz->offset);
 #endif
 
+prepare_position:
+
           /* Prepare the position of the next page. */
+          if (reader->current_packet_begin_page_offset == oggz->offset) {
+            /* The previous packet processed also started on this page */
+            reader->current_packet_begin_segment_index++;
+          } else {
+            /* The previous packet started on an earlier page */
+            reader->current_packet_begin_page_offset = oggz->offset;
+            reader->current_packet_begin_segment_index = 1;
+          }
+
           reader->current_packet_pages = 1;
-          reader->current_packet_begin_page_offset = oggz->offset;
 
           /* Mark this stream as having delivered a non b_o_s packet if so.
            * In the case where there is no packet reading callback, this is
@@ -585,6 +589,7 @@ oggz_read_sync (OGGZ * oggz)
       /* Prepare the position of the next page */
       reader->current_packet_pages = 1;
       reader->current_packet_begin_page_offset = oggz->offset;
+      reader->current_packet_begin_segment_index = 0;
     }
   }
 

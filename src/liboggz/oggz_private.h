@@ -145,8 +145,10 @@ struct _OggzReader {
   /* Read positioning */
   long current_page_bytes;
 
+  /* Calculation of position */
   oggz_off_t current_packet_begin_page_offset;
   int current_packet_pages;
+  int current_packet_begin_segment_index;
 
 #if 0
   oggz_off_t offset_page_end; /* offset of end of current page */
