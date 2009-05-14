@@ -181,8 +181,7 @@ static oggz_off_t
 oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 {
   OggzReader * reader = &oggz->x.reader;
-  long bytes = 0, more;
-  oggz_off_t page_offset = 0, ret;
+  long more;
   int found = 0;
 
   /* Increment oggz->offset by length of the last page processed */
@@ -193,13 +192,11 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 
     if (more == 0) {
       /* No page available */
-      page_offset = 0;
       return -2;
     } else if (more < 0) {
 #ifdef DEBUG_VERBOSE
       printf ("get_next_page: skipped %ld bytes\n", -more);
 #endif
-      page_offset += (-more);
       oggz->offset += (-more);
     } else {
 #ifdef DEBUG_VERBOSE
