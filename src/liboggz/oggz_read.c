@@ -202,7 +202,6 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
       /* No page available */
       return -2;
     } else if (more < 0) {
-      page_offset += (-more);
 #ifdef DEBUG_VERBOSE
   printf ("%s: skipping; incrementing oggz->offset by 0x%lx bytes\n", __func__, -more);
 #endif
