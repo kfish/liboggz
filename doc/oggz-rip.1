@@ -57,6 +57,20 @@ starting at 0.
 .IP "\-c \fBcontent-type\fR \-\-content-type \fBcontent-type\fR" 10 
 Filter by content-type.  The following codec names 
 are currently detected: "cmml", "flac", "theora", "speex", "vorbis" 
+
+.SH EXAMPLES
+.PP
+Extract all bitstreams from file.ogg:
+.PP
+.RS
+\f(CWoggz rip -o output.ogg file.ogg\fP
+.RE
+.PP
+Extract only the Theora bitstream from file.ogv:
+.PP
+.RS
+\f(CWoggz rip -c theora -o output.ogv file.ogv\fP
+.RE
  
 .SH "AUTHOR" 
 .PP 

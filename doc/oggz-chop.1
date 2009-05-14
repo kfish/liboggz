@@ -53,6 +53,28 @@ Do NOT include a Skeleton bitstream in the output.
 Display usage information and exit. 
 .IP "\-v, \-\-version" 10 
 Output version information and exit. 
+
+.SH EXAMPLES
+.PP
+Extract the first minute of file.ogx:
+.PP
+.RS
+\f(CWoggz chop -e 1:00 file.ogx\fP
+.RE
+.PP
+Extract from the second to the fifth minute of file.ogx:
+.PP
+.RS
+\f(CWoggz chop -s 2:00 -e 5:00 -o output.ogx file.ogx\fP
+.RE
+.PP
+Extract, specifying SMPTE-25 frame offsets:
+.PP
+.RS
+\f(CWoggz chop -s smpte-25:00:02:03::12 -e smpte-25:00:05:02::04 -o output.ogv file.ogv\fP
+.RE
+
+
 .SH "Server configuration" 
 .PP 
 The following configuration for Apache httpd will enable oggz-chop. As with 
