@@ -153,6 +153,9 @@ struct _OggzReader {
 #if 0
   oggz_off_t offset_page_end; /* offset of end of current page */
 #endif
+
+  /* After oggz_seek_position(), skip to packet delivery */
+  int position_ready;
 };
 
 /**

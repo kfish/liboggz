@@ -343,11 +343,22 @@ oggz_seek_position (OGGZ * oggz, oggz_position * position)
    }
 
   oggz->offset = position->begin_page_offset;
-  reader = &oggz->x.reader;
 
+  reader = &oggz->x.reader;
   reader->current_unit = -1;
 
-  /* XXX: scan through packets to begin_segment_index */
+  /* Set up the position info */
+  reader->current_granulepos = position->calc_granulepos;
+  reader->current_packet_pages = position->pages;
+  reader->current_packet_begin_page_offset = position->begin_page_offset;
+  reader->current_packet_begin_segment_index = position->begin_segment_index;
+
+  /* Tell oggz_read_sync() that the position info is set up, so it can
+   * simply skip over packets until the requested segment is found, then
+   * deliver as normal.
+   * The actual data fetching is ensured by the next invocation of
+   * oggz_read*(). */
+  reader->position_ready = 1;
 
   return oggz->offset;
 }

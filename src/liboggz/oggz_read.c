@@ -91,6 +91,9 @@ oggz_read_init (OGGZ * oggz)
 
   reader->current_packet_begin_page_offset = 0;
   reader->current_packet_pages = 0;
+  reader->current_packet_begin_segment_index = 0;
+
+  reader->position_ready = 0;
 
   return oggz;
 }
@@ -344,6 +347,7 @@ oggz_read_sync (OGGZ * oggz)
   ogg_packet * op;
   oggz_position * pos;
   long serialno;
+  int skip_packets = 0;
 
   oggz_packet packet;
   ogg_page og;
@@ -353,6 +357,8 @@ oggz_read_sync (OGGZ * oggz)
   /*os = &reader->ogg_stream;*/
   op = &packet.op;
   pos = &packet.pos;
+
+  skip_packets = reader->current_packet_begin_segment_index;
 
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
@@ -402,10 +408,20 @@ oggz_read_sync (OGGZ * oggz)
             return OGGZ_ERR_HOLE_IN_DATA;
           }
 
-          /* Reset the position of the next page. */
-          reader->current_packet_pages = 1;
-          reader->current_packet_begin_page_offset = oggz->offset;
-          reader->current_packet_begin_segment_index = 1;
+          if (reader->position_ready) {
+            if (skip_packets == 0) {
+#ifdef DEBUG
+            printf ("%s: skip_packets 0 but first segment was a hole\n", __func__);
+#endif
+            } else {
+              skip_packets--;
+            }
+          } else {
+            /* Reset the position of the next page. */
+            reader->current_packet_pages = 1;
+            reader->current_packet_begin_page_offset = oggz->offset;
+            reader->current_packet_begin_segment_index = 1;
+          }
         }
 
         if(result > 0){
@@ -414,6 +430,20 @@ oggz_read_sync (OGGZ * oggz)
           stream->packetno++;
           
           /* Got a packet.  process it ... */
+
+          /* If this is the first read after oggz_seek_position(), then we are already
+           * set up to deliver the next packet.
+           */
+          if (reader->position_ready) {
+            if (skip_packets == 0) {
+              reader->position_ready = 0;
+              goto read_sync_deliver;
+            } else {
+              skip_packets--;
+              continue;
+            }
+          }
+
           granulepos = op->granulepos;
 
           content = oggz_stream_get_content(oggz, serialno);
@@ -499,6 +529,8 @@ oggz_read_sync (OGGZ * oggz)
             }
           }
 
+read_sync_deliver:
+
 #ifdef DEBUG_VERBOSE
           printf ("%s: set begin_page to %llx, calling read_packet\n", __func__, pos->begin_page_offset);
 #endif
@@ -524,6 +556,7 @@ prepare_position:
           } else {
             /* The previous packet started on an earlier page */
             reader->current_packet_begin_page_offset = oggz->offset;
+            /* ... but ended on this page, so the next packet is index 1 */
             reader->current_packet_begin_segment_index = 1;
           }
 
