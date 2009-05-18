@@ -90,7 +90,7 @@ oggz_read_init (OGGZ * oggz)
   reader->current_page_bytes = 0;
 
   reader->current_packet_begin_page_offset = 0;
-  reader->current_packet_pages = 0;
+  reader->current_packet_pages = 1;
   reader->current_packet_begin_segment_index = 0;
 
   reader->position_ready = 0;
@@ -193,10 +193,11 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
 
   /* Increment oggz->offset by length of the last page processed */
 #ifdef DEBUG_VERBOSE
-  printf ("%s: incrementing oggz->offset (0x%llx) by 0x%lx\n", __func__,
+  printf ("%s: IN, incrementing oggz->offset (0x%llx) by cached 0x%lx\n", __func__,
           oggz->offset, reader->current_page_bytes);
 #endif
   oggz->offset += reader->current_page_bytes;
+  reader->current_page_bytes = 0;
 
   do {
     more = ogg_sync_pageseek (&reader->ogg_sync, og);
@@ -354,6 +355,10 @@ oggz_read_sync (OGGZ * oggz)
 
   int cb_ret = 0;
 
+#ifdef DEBUG
+  printf ("%s: IN\n", __func__);
+#endif
+
   /*os = &reader->ogg_stream;*/
   op = &packet.op;
   pos = &packet.pos;
@@ -363,6 +368,10 @@ oggz_read_sync (OGGZ * oggz)
   /* handle one packet.  Try to fetch it from current stream state */
   /* extract packets from page */
   while(cb_ret == 0) {
+
+#ifdef DEBUG
+    printf ("%s: Top of packet processing loop\n", __func__);
+#endif
 
     if (reader->current_serialno != -1) {
     /* process a packet if we can.  If the machine isn't loaded,
@@ -411,9 +420,12 @@ oggz_read_sync (OGGZ * oggz)
           if (reader->position_ready) {
             if (skip_packets == 0) {
 #ifdef DEBUG
-            printf ("%s: skip_packets 0 but first segment was a hole\n", __func__);
+              printf ("%s: skip_packets 0 but first segment was a hole\n", __func__);
 #endif
             } else {
+#ifdef DEBUG
+              printf ("%s: Position ready, at hole, so decrementing skip_packets\n", __func__);
+#endif
               skip_packets--;
             }
           } else {
@@ -436,11 +448,28 @@ oggz_read_sync (OGGZ * oggz)
            */
           if (reader->position_ready) {
             if (skip_packets == 0) {
+#ifdef DEBUG
+              printf ("%s: Position ready, skip_packets is 0, goto read_sync_deliver\n",
+                      __func__);
+#endif
+              /* Fill in position information. */
+              pos->calc_granulepos = reader->current_granulepos;
+              pos->begin_page_offset = reader->current_packet_begin_page_offset;
+              pos->end_page_offset = oggz->offset;
+              pos->pages = reader->current_packet_pages;
+              pos->begin_segment_index = reader->current_packet_begin_segment_index;
+
+              /* Clear position_ready flag, deliver */
               reader->position_ready = 0;
               goto read_sync_deliver;
             } else {
               skip_packets--;
-              continue;
+#ifdef DEBUG
+              printf ("%s: Position ready, decremented skip_packets to %d\n",
+                      __func__, skip_packets);
+#endif
+              if (skip_packets > 0)
+                continue;
             }
           }
 
@@ -532,7 +561,7 @@ oggz_read_sync (OGGZ * oggz)
 read_sync_deliver:
 
 #ifdef DEBUG_VERBOSE
-          printf ("%s: set begin_page to %llx, calling read_packet\n", __func__, pos->begin_page_offset);
+          printf ("%s: begin_page is 0x%llx, calling read_packet\n", __func__, pos->begin_page_offset);
 #endif
 
           if (stream->read_packet) {
@@ -560,7 +589,8 @@ prepare_position:
             reader->current_packet_begin_segment_index = 1;
           }
 
-          reader->current_packet_pages = 1;
+          if (!reader->position_ready)
+            reader->current_packet_pages = 1;
 
           /* Mark this stream as having delivered a non b_o_s packet if so.
            * In the case where there is no packet reading callback, this is
@@ -631,16 +661,28 @@ prepare_position:
 
     ogg_stream_pagein(os, &og);
     if (ogg_page_continued(&og)) {
-      if (reader->current_packet_pages != -1)
+      if (reader->position_ready) {
+        /* skip_packets is 1 if we are being asked to deliver either the first packet
+         * beginning on this page (after the continued segment); or, if we have already
+         * been around the packet processing loop at least once, the packet that
+         * continues onto this new page. Either way we want to deliver the next packet.
+         */
+        if (skip_packets == 1) skip_packets = 0;
+      } else if (reader->current_packet_pages != -1) {
         reader->current_packet_pages++;
+      }
     } else {
 #ifdef DEBUG_VERBOSE
       fprintf (stdout, "%s: New non-cont page, setting next begin_page to 0x%llx\n", __func__, oggz->offset);
 #endif
-      /* Prepare the position of the next page */
-      reader->current_packet_pages = 1;
-      reader->current_packet_begin_page_offset = oggz->offset;
-      reader->current_packet_begin_segment_index = 0;
+      if (reader->position_ready) {
+        skip_packets++;
+      } else {
+        /* Prepare the position of the next page */
+        reader->current_packet_pages = 1;
+        reader->current_packet_begin_page_offset = oggz->offset;
+        reader->current_packet_begin_segment_index = 0;
+      }
     }
   }
 
@@ -668,9 +710,11 @@ oggz_read (OGGZ * oggz, long n)
 
   reader = &oggz->x.reader;
 
-  cb_ret = oggz_read_sync (oggz);
-  if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
-    return cb_ret;
+  if (!reader->position_ready) {
+    cb_ret = oggz_read_sync (oggz);
+    if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+      return cb_ret;
+  }
 
   while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK &&
          bytes_read > 0 && remaining > 0) {
@@ -741,9 +785,11 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   reader = &oggz->x.reader;
 
-  cb_ret = oggz_read_sync (oggz);
-  if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
-    return cb_ret;
+  if (!reader->position_ready) {
+    cb_ret = oggz_read_sync (oggz);
+    if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+      return cb_ret;
+  }
 
   while (cb_ret != OGGZ_STOP_ERR && cb_ret != OGGZ_STOP_OK  &&
          /* !oggz->eos && */ remaining > 0) {

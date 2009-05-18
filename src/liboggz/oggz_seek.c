@@ -66,6 +66,8 @@
 #include "oggz/oggz_packet.h"
 #include "oggz/oggz_table.h"
 
+#define DEBUG
+
 /************************************************************
  * OggzSeekInfo
  */
@@ -103,6 +105,46 @@ struct _OggzSeekInfo {
  */
 
 #define PAGESIZE 4096
+
+/*
+ * Raw seek
+ */
+
+static int
+oggz_seek_reset_stream(void *data) {
+  oggz_stream_t * stream = (oggz_stream_t *) data;
+
+  ogg_stream_reset (&stream->ogg_stream);
+  stream->last_granulepos = -1L;
+
+  return 0;
+}
+
+static oggz_off_t
+oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
+{
+  OggzReader * reader = &oggz->x.reader;
+  oggz_off_t offset_at;
+
+  if (oggz_io_seek (oggz, offset, whence) == -1) {
+#ifdef DEBUG
+    printf ("%s: oggz_io_seek() returned -1\n");
+#endif
+    return -1;
+  }
+
+  offset_at = oggz->offset = oggz_io_tell (oggz);
+
+  ogg_sync_reset (&reader->ogg_sync);
+
+  oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
+  
+  /* Reset page reader state */
+  reader->current_serialno = -1;
+  reader->current_page_bytes = 0;
+
+  return offset_at;
+}
 
 /*
  * Scan forwards to the next Ogg page boundary, >= the current
@@ -210,7 +252,7 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
 {
   OGGZ * oggz = seek_info->oggz;
 
-  oggz_io_seek (oggz, offset, SEEK_SET);
+  oggz_seek_raw (oggz, offset, SEEK_SET);
   return page_next (seek_info);
 }
 
@@ -338,7 +380,10 @@ oggz_seek_position (OGGZ * oggz, oggz_position * position)
   if (oggz->flags & OGGZ_WRITE)
     return OGGZ_ERR_INVALID;
 
-  if (oggz_io_seek (oggz, position->begin_page_offset, SEEK_SET) == -1) {
+  if (oggz_seek_raw (oggz, position->begin_page_offset, SEEK_SET) == -1) {
+#ifdef DEBUG
+     printf ("%s: oggz_seek_raw() returned -1\n", __func__);
+#endif
      return -1;
    }
 
