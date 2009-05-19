@@ -153,8 +153,7 @@ read_packet_test (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data
   if (op->packet[0] != CHARCODE(read_iter)) {
     snprintf (buf, 256, "Packet contains incorrect data %c, expected %c\n",
               op->packet[0], CHARCODE(read_iter));
-    //FAIL (buf);
-    puts (buf);
+    FAIL (buf);
 #ifdef DEBUG
   } else {
     printf ("Packet contains correct data %c\n", op->packet[0]);
