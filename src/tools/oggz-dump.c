@@ -89,8 +89,8 @@ usage (char * progname)
   printf ("  -n, --new              Only dump the first packet of each logical bitstream\n");
   printf ("  -c content-type, --content-type content-type\n");
   printf ("                         Dump only the logical bitstreams for a specified\n");
-  printf ("                         content-type. The following codecs are currently\n");
-  printf ("                         detected: theora, vorbis, speex, cmml, kate\n");
+  printf ("                         content-type. Run oggz-known-codecs for a list of\n");
+  printf ("                         codec names which can be detected by this version of oggz.\n");
   printf ("  -s serialno, --serialno serialno\n");
   printf ("                         Dump only the logical bitstream with specified serialno\n");
   printf ("  -O, --hide-offset      Hide the byte offset of each packet\n");

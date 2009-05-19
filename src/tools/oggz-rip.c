@@ -92,9 +92,9 @@ usage (char * progname)
   printf ("                         streams in the order of their BOS pages,\n");
   printf ("                         starting at 0.\n");
   printf ("  -c content-type --content-type content-type\n");
-  printf ("                         Filter by content-type.  The following codec\n");
-  printf ("                         names are currently detected: \"theora\",\n");
-  printf ("                         \"vorbis\", \"speex\", \"cmml\", \"kate\"\n");
+  printf ("                         Filter by content-type. Run oggz-known-codecs\n");
+  printf ("                         for a list of codec names which can be detected\n");
+  printf ("                         by this version of oggz.\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -o filename, --output filename\n");
   printf ("                         Specify output filename\n");

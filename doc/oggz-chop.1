@@ -10,8 +10,11 @@ oggz-chop \(em Extract the part of an Ogg file between given start and/or end ti
 .SH "Description" 
 .PP 
 \fBoggz-chop\fR chops a section of an Ogg file. 
-It correctly interprets the granulepos timestamps of Ogg Vorbis, Speex, 
-FLAC and Theora bitstreams, and all bitstreams of Annodex files. 
+It correctly interprets the granulepos timestamps of
+Ogg CELT, CMML, Dirac, FLAC, Kate, PCM, Speex, Theora and Vorbis
+bitstreams.
+Run \fBoggz-known-codecs\fP\fB(1)\fP for a full list
+of codecs known by the installed version of oggz.
  
 .PP 
 The output file contains copies of the headers of the input file, and 
@@ -101,7 +104,7 @@ Copyright \(co 2008 Annodex Association
 .SH "SEE ALSO" 
 .PP 
 \fBoggz-validate\fP\fB(1)\fP, 
-\fBoggzmerge\fP\fB(1)\fP, 
-\fBoggzdump\fP\fB(1)\fP, 
+\fBoggz-merge\fP\fB(1)\fP, 
+\fBoggz-dump\fP\fB(1)\fP, 
 \fBhogg\fP\fB(1)\fP      
 .\" created by instant / docbook-to-man, Mon 23 Feb 2009, 12:35 
