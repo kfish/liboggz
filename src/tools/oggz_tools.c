@@ -141,8 +141,10 @@ ot_theora_info (unsigned char * data, long len)
   height = INT16_BE_AT(&data[18]);
 
   snprintf (buf, 80,
+            "\tTheora-Version: %d.%d.%d\n"
 	    "\tVideo-Framerate: %.3f fps\n"
 	    "\tVideo-Width: %d\n\tVideo-Height: %d\n",
+            data[7], data[8], data[9],
 	    (double)INT32_BE_AT(&data[22])/ (double)INT32_BE_AT(&data[26]),
 	    width, height);
 

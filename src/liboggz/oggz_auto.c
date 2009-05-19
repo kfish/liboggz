@@ -134,16 +134,21 @@ static int intlog(int num) {
 }
 #endif
 
+#define THEORA_VERSION(maj,min,rev) ((maj<<16)+(min<<8)+rev)
+
 static int
 auto_theora (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
 {
   unsigned char * header = data;
+  int version;
   ogg_int32_t fps_numerator, fps_denominator;
   char keyframe_granule_shift = 0;
   int keyframe_shift;
 
   /* TODO: this should check against 42 for the relevant version numbers */
   if (length < 41) return 0;
+
+  version = THEORA_VERSION(header[7], header[8], header[9]);
 
   fps_numerator = int32_be_at(&header[22]);
   fps_denominator = int32_be_at(&header[26]);
@@ -173,6 +178,8 @@ auto_theora (OGGZ * oggz, long serialno, unsigned char * data, long length, void
 			OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
   oggz_set_granuleshift (oggz, serialno, keyframe_shift);
 
+  if (version > THEORA_VERSION(3,2,0))
+    oggz_set_first_granule (oggz, serialno, 1);
 
   oggz_stream_set_numheaders (oggz, serialno, 3);
 
