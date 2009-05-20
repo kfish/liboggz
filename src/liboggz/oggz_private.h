@@ -156,6 +156,9 @@ struct _OggzReader {
 
   /* After oggz_seek_position(), skip to packet delivery */
   int position_ready;
+
+  /* After oggz_seek(), is the next page continued? */
+  int expect_hole;
 };
 
 /**

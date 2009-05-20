@@ -94,6 +94,7 @@ oggz_read_init (OGGZ * oggz)
   reader->current_packet_begin_segment_index = 0;
 
   reader->position_ready = 0;
+  reader->expect_hole = 0;
 
   return oggz;
 }
@@ -212,7 +213,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
       oggz->offset += (-more);
     } else {
 #ifdef DEBUG_VERBOSE
-      printf ("get_next_page: page has %ld bytes\n", more);
+      printf ("%s: page has %ld bytes\n", __func__, more);
 #endif
       reader->current_page_bytes = more;
       found = 1;
@@ -395,16 +396,20 @@ oggz_read_sync (OGGZ * oggz)
 
         result = ogg_stream_packetout(os, op);
 
+#ifdef DEBUG
+        printf ("%s: ogg_stream_packetout returned %d\n", __func__, result);
+#endif
+
         /* libogg flags "holes in the data" (which are really inconsistencies
          * in the page sequence number) by returning -1. */
         if(result == -1) {
 #ifdef DEBUG
-          printf ("oggz_read_sync: hole in the data\n");
+          printf ("oggz_read_sync: hole in the data, packetno %d\n", stream->packetno);
 #endif
           /* We can't tolerate holes in headers, so bail out. NB. as stream->packetno
            * has not yet been incremented, the current value refers to how many packets
            * have been processed prior to this one. */
-          if (stream->packetno < 2) return OGGZ_ERR_HOLE_IN_DATA;
+          if (stream->packetno < stream->numheaders-1) return OGGZ_ERR_HOLE_IN_DATA;
 
           /* Holes in content occur in some files and pretty much don't matter,
            * so we silently swallow the notification and reget the packet. */
@@ -440,7 +445,7 @@ oggz_read_sync (OGGZ * oggz)
           int content;
 
           stream->packetno++;
-          
+
           /* Got a packet.  process it ... */
 
           /* If this is the first read after oggz_seek_position(), then we are already
@@ -661,7 +666,17 @@ prepare_position:
 
     ogg_stream_pagein(os, &og);
     if (ogg_page_continued(&og)) {
-      if (reader->position_ready) {
+      if (reader->expect_hole) {
+        /* Just came back from a seek, or otherwise bogus current_packet_begin_page_offset */
+#ifdef DEBUG
+        printf ("%s: expecting a hole, updating begin_page_offset\n", __func__);
+#endif
+        reader->current_packet_begin_page_offset = oggz->offset;
+        reader->current_packet_pages = 1;
+        /* Clear the "expect hole" flag if this page finishes a packet */
+        if (ogg_page_packets(&og) > 0)
+          reader->expect_hole = 0;
+      } else if (reader->position_ready) {
         /* skip_packets is 1 if we are being asked to deliver either the first packet
          * beginning on this page (after the continued segment); or, if we have already
          * been around the packet processing loop at least once, the packet that

@@ -26,7 +26,7 @@ if OGGZ_CONFIG_READ
 if OGGZ_CONFIG_WRITE
 rw_tests = read-generated read-stop-ok read-stop-err \
 	io-read io-seek io-write io-read-single io-write-flush io-run io-count \
-        seek-position duration
+        seek-position seek-offset duration
 endif
 endif
 
@@ -117,6 +117,9 @@ seek_stress_LDADD = $(OGGZ_LIBS)
 
 seek_position_SOURCES = seek-position.c
 seek_position_LDADD = $(OGGZ_LIBS)
+
+seek_offset_SOURCES = seek-offset.c
+seek_offset_LDADD = $(OGGZ_LIBS)
 
 duration_SOURCES = duration.c
 duration_LDADD = $(OGGZ_LIBS)

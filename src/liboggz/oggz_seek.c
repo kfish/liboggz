@@ -99,6 +99,8 @@ struct _OggzSeekInfo {
   long unit_at;
   ogg_page og_at;
 
+  size_t current_page_bytes;
+
   OggzTable * tracks;
 };
 
@@ -122,18 +124,11 @@ oggz_seek_reset_stream(void *data) {
   return 0;
 }
 
-static oggz_off_t
-oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
+static int
+oggz_reset (OGGZ * oggz)
 {
   OggzReader * reader = &oggz->x.reader;
   oggz_off_t offset_at;
-
-  if (oggz_io_seek (oggz, offset, whence) == -1) {
-#ifdef DEBUG
-    printf ("%s: oggz_io_seek() returned -1\n", __func__);
-#endif
-    return -1;
-  }
 
   offset_at = oggz->offset = oggz_io_tell (oggz);
 
@@ -145,7 +140,27 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
   reader->current_serialno = -1;
   reader->current_page_bytes = 0;
 
+  reader->current_packet_pages = 0;
+  reader->current_packet_begin_page_offset = oggz->offset;
+  reader->current_packet_begin_segment_index = 1;
+
   return offset_at;
+}
+
+/* XXX: Should this take a seek_info? need to keep seek_info->offset_at in sync
+ * with oggz->offset, on API entry (before work) and on return.
+ */
+static oggz_off_t
+oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
+{
+  if (oggz_io_seek (oggz, offset, whence) == -1) {
+#ifdef DEBUG
+    printf ("%s: oggz_io_seek() returned -1\n", __func__);
+#endif
+    return -1;
+  }
+
+  return oggz_reset (oggz);
 }
 
 /*
@@ -169,6 +184,9 @@ page_next (OggzSeekInfo * seek_info)
   int found = 0;
 
   reader = &oggz->x.reader;
+
+  seek_info->offset_at += seek_info->current_page_bytes;
+  seek_info->current_page_bytes = 0;
 
   do {
     more = ogg_sync_pageseek (&reader->ogg_sync, og);
@@ -207,16 +225,19 @@ page_next (OggzSeekInfo * seek_info)
 #ifdef DEBUG_VERBOSE
       printf ("%s: skipped %ld bytes\n", __func__, -more);
 #endif
-      page_offset -= more;
+      //page_offset -= more;
+      seek_info->offset_at += (-more);
     } else {
 #ifdef DEBUG_VERBOSE
       printf ("%s: page has %ld bytes\n", __func__, more);
 #endif
+      seek_info->current_page_bytes = more;
       found = 1;
     }
 
   } while (!found);
 
+#if 0
   /* Calculate the byte offset of the page which was found */
   if (bytes > 0) {
     seek_info->offset_at = oggz_io_tell (oggz) - bytes + page_offset;
@@ -226,6 +247,9 @@ page_next (OggzSeekInfo * seek_info)
   }
   
   ret = seek_info->offset_at + more;
+#else
+  ret = seek_info->offset_at;
+#endif
 
 page_next_ok:
 
@@ -259,7 +283,8 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
 {
   OGGZ * oggz = seek_info->oggz;
 
-  oggz_seek_raw (oggz, offset, SEEK_SET);
+  seek_info->offset_at = oggz_seek_raw (oggz, offset, SEEK_SET);
+
   return page_next (seek_info);
 }
 
@@ -300,6 +325,8 @@ update_seek_cache (OggzSeekInfo * seek_info)
   int fd;
   oggz_off_t offset_save;
   OGGZ * oggz = seek_info->oggz;
+
+  seek_info->offset_at = oggz->offset;
 
   if (oggz->file == NULL) {
     /* Can't check validity, just update end */
@@ -371,23 +398,43 @@ oggz_purge (OGGZ * oggz)
 off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
-  return -1;
+  OggzSeekInfo seek_info;
+  OggzReader * reader;
+  off_t result;
+  ogg_page * og;
+  memset (&seek_info, 0, sizeof(OggzSeekInfo));
+
+  seek_info.oggz = oggz;
+
+  update_seek_cache (&seek_info);
+
+  switch (whence) {
+  case SEEK_CUR:
+    printf ("%s: SEEK_CUR 0x%08llx + oggz->offset 0x%08llx\n", __func__,
+            offset, oggz->offset);
+    offset += oggz->offset;
+    break;
+  case SEEK_END:
+    offset = seek_info.cache.size - offset;
+    break;
+  case SEEK_SET:
+  default:
+    break;
+  }
+
+  result = page_at_or_after (&seek_info, offset);
+
+  reader = &oggz->x.reader;
+  reader->current_page_bytes = 0;
+
+  og = &seek_info.og_at;
+  reader->expect_hole = ogg_page_continued(og);
+
+  return oggz_seek_raw (oggz, result, SEEK_SET);
 }
 
 long
 oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
-{
-  return -1;
-}
-
-long
-oggz_seek_byorder (OGGZ * oggz, void * target)
-{
-  return -1;
-}
-
-long
-oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
 {
   return -1;
 }
@@ -443,6 +490,18 @@ oggz_get_duration (OGGZ * oggz)
   update_seek_cache (&seek_info);
 
   return seek_info.cache.unit_end;
+}
+
+long
+oggz_seek_byorder (OGGZ * oggz, void * target)
+{
+  return -1;
+}
+
+long
+oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
+{
+  return -1;
 }
 
 #else
