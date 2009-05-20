@@ -180,7 +180,7 @@ page_next (OggzSeekInfo * seek_info)
   ogg_int64_t granulepos;
   char * buffer;
   long bytes = 0, more;
-  oggz_off_t page_offset = 0, ret;
+  oggz_off_t ret;
   int found = 0;
 
   reader = &oggz->x.reader;
@@ -192,8 +192,6 @@ page_next (OggzSeekInfo * seek_info)
     more = ogg_sync_pageseek (&reader->ogg_sync, og);
 
     if (more == 0) {
-      page_offset = 0;
-
       buffer = ogg_sync_buffer (&reader->ogg_sync, PAGESIZE);
       if ((bytes = (long) oggz_io_read (oggz, buffer, PAGESIZE)) == 0) {
 	if (oggz->file && feof (oggz->file)) {
@@ -225,7 +223,6 @@ page_next (OggzSeekInfo * seek_info)
 #ifdef DEBUG_VERBOSE
       printf ("%s: skipped %ld bytes\n", __func__, -more);
 #endif
-      //page_offset -= more;
       seek_info->offset_at += (-more);
     } else {
 #ifdef DEBUG_VERBOSE
@@ -237,19 +234,7 @@ page_next (OggzSeekInfo * seek_info)
 
   } while (!found);
 
-#if 0
-  /* Calculate the byte offset of the page which was found */
-  if (bytes > 0) {
-    seek_info->offset_at = oggz_io_tell (oggz) - bytes + page_offset;
-  } else {
-    /* didn't need to do any reading -- accumulate the page_offset */
-    seek_info->offset_at = seek_info->offset_at + page_offset;
-  }
-  
-  ret = seek_info->offset_at + more;
-#else
   ret = seek_info->offset_at;
-#endif
 
 page_next_ok:
 
