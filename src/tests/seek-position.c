@@ -183,13 +183,13 @@ read_packet_test (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data
 #endif
 
   if (zp->pos.begin_page_offset != expect_pos->begin_page_offset) {
-    snprintf (buf, 256, "Returned position has incorrect begin_page_offset 0x%lld, expected 0x%lld",
+    snprintf (buf, 256, "Returned position has incorrect begin_page_offset 0x%llx, expected 0x%llx",
               zp->pos.begin_page_offset, expect_pos->begin_page_offset);
     FAIL (buf);
   }
 
   if (zp->pos.end_page_offset != expect_pos->end_page_offset) {
-    snprintf (buf, 256, "Returned position has incorrect end_page_offset 0x%lld, expected 0x%lld",
+    snprintf (buf, 256, "Returned position has incorrect end_page_offset 0x%llx, expected 0x%llx",
               zp->pos.end_page_offset, expect_pos->end_page_offset);
     FAIL (buf);
   }
