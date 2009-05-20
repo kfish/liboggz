@@ -52,6 +52,7 @@
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <string.h>
 
 #ifdef HAVE_UNISTD_H
 #include <unistd.h>
@@ -66,7 +67,8 @@
 #include "oggz/oggz_packet.h"
 #include "oggz/oggz_table.h"
 
-#define DEBUG
+/* #define DEBUG */
+/* #define DEBUG_VERBOSE */
 
 /************************************************************
  * OggzSeekInfo
@@ -128,7 +130,7 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
 
   if (oggz_io_seek (oggz, offset, whence) == -1) {
 #ifdef DEBUG
-    printf ("%s: oggz_io_seek() returned -1\n");
+    printf ("%s: oggz_io_seek() returned -1\n", __func__);
 #endif
     return -1;
   }
@@ -231,6 +233,11 @@ page_next_ok:
   granulepos = ogg_page_granulepos (og);
   seek_info->unit_at = oggz_get_unit (oggz, serialno, granulepos);
 
+#ifdef DEBUG
+  printf ("%s: serialno %010ld, granulepos %lld\tunit %ld\n", __func__,
+          serialno, granulepos, seek_info->unit_at);
+#endif
+
   oggz->offset = seek_info->offset_at;
   reader->current_unit = seek_info->unit_at;
 
@@ -267,6 +274,22 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
 static int
 update_last_page (OggzSeekInfo * seek_info)
 {
+  OGGZ * oggz = seek_info->oggz;
+  OggzReader * reader;
+
+  reader = &oggz->x.reader;
+
+  if (oggz_io_seek (seek_info->oggz, -4096, SEEK_END) == -1) {
+    printf ("%s: oggz_io_seek() returned -1\n", __func__);
+    return -1;
+  }
+
+  ogg_sync_reset (&reader->ogg_sync);
+
+  while (page_next (seek_info) >= 0) {
+          seek_info->cache.unit_end = reader->current_unit;
+  }
+
   return 0;
 }
 
@@ -406,6 +429,20 @@ oggz_seek_position (OGGZ * oggz, oggz_position * position)
   reader->position_ready = 1;
 
   return oggz->offset;
+}
+
+long
+oggz_get_duration (OGGZ * oggz)
+{
+  OggzSeekInfo seek_info;
+
+  memset (&seek_info, 0, sizeof(OggzSeekInfo));
+
+  seek_info.oggz = oggz;
+
+  update_seek_cache (&seek_info);
+
+  return seek_info.cache.unit_end;
 }
 
 #else

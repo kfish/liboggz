@@ -36,6 +36,8 @@
 
 #include "oggz/oggz_stream.h"
 
+/* #define DEBUG */
+
 static ogg_int64_t
 oggz_metric_dirac (OGGZ * oggz, long serialno,
                    ogg_int64_t granulepos, void * user_data)
@@ -98,11 +100,19 @@ oggz_metric_default_linear (OGGZ * oggz, long serialno, ogg_int64_t granulepos,
 			    void * user_data)
 {
   oggz_stream_t * stream;
+  ogg_int64_t units;
 
   stream = oggz_get_stream (oggz, serialno);
   if (stream == NULL) return -1;
 
-  return (stream->granulerate_d * granulepos / stream->granulerate_n);
+  units = stream->granulerate_d * granulepos / stream->granulerate_n;
+
+#ifdef DEBUG
+  printf ("oggz_..._linear: serialno %010lu Got gpos %lld: %ld units\n",
+	  serialno, granulepos, units);
+#endif
+
+  return units;
 }
 
 static int

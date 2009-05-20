@@ -89,6 +89,13 @@
  */
 
 /**
+ * Query the duration of an Ogg resource.
+ * \param oggz An OGGZ handle
+ * \returns the duration in units (milliseconds)
+ */
+long oggz_get_duration (OGGZ * oggz);
+
+/**
  * Query the current offset in milliseconds, or custom units as
  * specified by a Metric function you have provided.
  * \param oggz An OGGZ handle
