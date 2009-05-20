@@ -293,8 +293,13 @@ test_seek_to_offset (OGGZ * reader, long n, off_t offset, int whence, off_t corr
   printf ("= Result: 0x%08llx\n", result);
 #endif
 
-  if (result != correct)
-    FAIL ("oggz_seek() returned incorrect offset");
+  if (result != correct) {
+    snprintf (buf, 64, "oggz_seek() returned incorrect offset 0x%08llx", result);
+    FAIL (buf);
+  }
+
+  if (result != oggz_tell (reader))
+    FAIL ("oggz_tell() returned incorrect offset");
 
   while ((nread = oggz_read (reader, n-result)) > 0) {
     result += nread;
@@ -316,7 +321,7 @@ test_seek_to_offset (OGGZ * reader, long n, off_t offset, int whence, off_t corr
 int
 seek_test (OGGZ * reader, long n)
 {
-  off_t off;
+  off_t offset;
   int i;
 
   oggz_set_read_callback (reader, -1, read_packet_test, NULL);
@@ -329,16 +334,14 @@ seek_test (OGGZ * reader, long n)
   test_seek_to_offset (reader, n, 0x01000, SEEK_END, 0x1212d, 24);
   test_seek_to_offset (reader, n, 0x10000, SEEK_END, 0x0365c, 5);
 
-#if 0
-  oggz_seek (reader, 0x01000, SEEK_SET);
+  offset = oggz_seek (reader, 0x01000, SEEK_SET);
   test_seek_to_offset (reader, n, 0x07000, SEEK_CUR, 0x08af1, 9);
 
-  oggz_seek (reader, 0x10000, SEEK_SET);
-  test_seek_to_offset (reader, n, -0x03000, SEEK_CUR, 0x0de03, 20);
+  offset = oggz_seek (reader, 0x10000, SEEK_SET);
+  test_seek_to_offset (reader, n, 0x01000, SEEK_CUR, 0x1212d, 24);
 
-  oggz_seek (reader, 0x10000, SEEK_SET);
-  test_seek_to_offset (reader, n, 0x02000, SEEK_CUR, 0x1212d, 24);
-#endif
+  offset = oggz_seek (reader, 0x10000, SEEK_SET);
+  test_seek_to_offset (reader, n, -0x3000, SEEK_CUR, 0x0eee9, 21);
 
   return 0;
 }

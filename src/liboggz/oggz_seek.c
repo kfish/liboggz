@@ -262,7 +262,6 @@ page_next_ok:
           serialno, granulepos, seek_info->unit_at);
 #endif
 
-  oggz->offset = seek_info->offset_at;
   reader->current_unit = seek_info->unit_at;
 
   return ret;
@@ -402,6 +401,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   OggzReader * reader;
   off_t result;
   ogg_page * og;
+
   memset (&seek_info, 0, sizeof(OggzSeekInfo));
 
   seek_info.oggz = oggz;
@@ -410,8 +410,6 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 
   switch (whence) {
   case SEEK_CUR:
-    printf ("%s: SEEK_CUR 0x%08llx + oggz->offset 0x%08llx\n", __func__,
-            offset, oggz->offset);
     offset += oggz->offset;
     break;
   case SEEK_END:
