@@ -135,12 +135,12 @@ ot_theora_info (unsigned char * data, long len)
 
   if (len < 41) return NULL;
 
-  buf = malloc (80);
+  buf = malloc (128);
 
   width = INT16_BE_AT(&data[15]);
   height = INT16_BE_AT(&data[18]);
 
-  snprintf (buf, 80,
+  snprintf (buf, 128,
             "\tTheora-Version: %d.%d.%d\n"
 	    "\tVideo-Framerate: %.3f fps\n"
 	    "\tVideo-Width: %d\n\tVideo-Height: %d\n",
