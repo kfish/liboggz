@@ -843,7 +843,10 @@ chop (OCState * state)
     oggz = oggz_open (state->infilename, OGGZ_READ|OGGZ_AUTO);
   }
 
-  if (oggz == NULL) return -1;
+  if (oggz == NULL) {
+    perror (state->infilename);
+    return -1;
+  }
 
   if (!state->dry_run) {
     if (state->outfilename == NULL) {
