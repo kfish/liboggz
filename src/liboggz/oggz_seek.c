@@ -200,10 +200,16 @@ page_next (OggzSeekInfo * seek_info)
   oggz_off_t ret;
   int found = 0;
 
+  debug_printf (1, "IN");
+  seek_info_dump (seek_info);
+
   reader = &oggz->x.reader;
 
   seek_info->offset_at += seek_info->current_page_bytes;
   seek_info->current_page_bytes = 0;
+
+  debug_printf (1, "Updated offset_at ...");
+  seek_info_dump (seek_info);
 
   do {
     more = ogg_sync_pageseek (&reader->ogg_sync, og);
@@ -251,12 +257,16 @@ page_next_ok:
   granulepos = ogg_page_granulepos (og);
   seek_info->unit_at = oggz_get_unit (oggz, serialno, granulepos);
 
-  debug_printf (1, "serialno %010ld, granulepos %lld\tunit %ld",
-                serialno, granulepos, seek_info->unit_at);
+  debug_printf (1, "ok: serialno %010ld, granulepos %lld", serialno, granulepos);
+
+  seek_info_dump (seek_info);
 
   return ret;
 
 page_next_fail:
+
+  debug_printf (1, "fail");
+  seek_info_dump (seek_info);
 
   /* XXX: reset to oggz->offset etc. */
   oggz_io_seek (oggz, oggz->offset, SEEK_SET);
@@ -276,10 +286,47 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
   debug_printf (1, "IN: offset 0x%08llx", offset);
 
   seek_info->offset_at = oggz_seek_raw (oggz, offset, SEEK_SET);
+  seek_info->current_page_bytes = 0;
 
   ret =  page_next (seek_info);
 
   debug_printf (1, "OUT: wanted offset 0x%08llx, got 0x%08llx", offset, ret);
+
+  return ret;
+}
+
+/*
+ * Seek to the given offset, and set up the reader to deliver the
+ * first packet begininning on the page of that offset.
+ */
+static oggz_off_t
+packet_next (OggzSeekInfo * seek_info, oggz_off_t offset)
+{
+  OGGZ * oggz = seek_info->oggz;
+  OggzReader * reader;
+  oggz_off_t ret;
+  ogg_page * og;
+
+  debug_printf (1, "IN, offset 0x%08llx", offset);
+
+  ret = page_at_or_after (seek_info, offset);
+
+  og = &seek_info->og_at;
+
+  reader = &oggz->x.reader;
+  reader->expect_hole = ogg_page_continued(og);
+
+  reader->current_serialno = ogg_page_serialno(og);
+  reader->current_page_bytes = seek_info->current_page_bytes;
+
+  /* XXX: reader->current_granulepos = ?? */
+  reader->current_packet_pages = 0;
+  reader->current_packet_begin_page_offset = ret;
+  reader->current_packet_begin_segment_index = 0;
+
+  debug_printf (1, "begin_seg... %d", reader->current_packet_begin_segment_index);
+
+  reader->position_ready = 1;
 
   return ret;
 }
@@ -452,7 +499,8 @@ seek_info_setup_units (OggzSeekInfo * si)
   }
 
   /* Reduce the search range if possible using read cursor position. */
-  if (si->unit_at > si->unit_begin && si->unit_at < si->unit_end) {
+  if (si->offset_at >= si->offset_begin && si->offset_at < si->offset_end &&
+      si->unit_at > si->unit_begin && si->unit_at < si->unit_end) {
     if (si->unit_target < si->unit_at) {
       debug_printf (1, "Reducing range to (begin 0x%08llx, at 0x%08llx)",
                     si->offset_begin, si->offset_at);
@@ -475,7 +523,7 @@ seek_bisect (OggzSeekInfo * seek_info)
   OGGZ * oggz = seek_info->oggz;
   OggzReader * reader;
   ogg_int64_t result;
-  oggz_off_t offset, ret;
+  oggz_off_t offset, ret, earliest_nogp=0;
   int i=0, j;
 
   debug_printf (1, "IN");
@@ -508,6 +556,7 @@ seek_bisect (OggzSeekInfo * seek_info)
     }
 
     j=0;
+    earliest_nogp = 0;
     do {
       if ((ret = page_at_or_after (seek_info, offset)) == -1) {
         debug_printf (1, "page_at_or_after failed");
@@ -515,9 +564,20 @@ seek_bisect (OggzSeekInfo * seek_info)
         break;
       }
 
+      if (j==0 && seek_info->unit_at == -1) {
+        earliest_nogp = ret;
+      }
+
       offset = ret+1;
       j++;
     } while (seek_info->unit_at == -1 && j<3);
+
+    if (seek_info->unit_at >= seek_info->unit_target) {
+      debug_printf (1, "We are beyond!");
+      seek_info->offset_end = earliest_nogp;
+    } else {
+      debug_printf (1, "We are before!");
+    }
 
     i++;
   } while (i<5);
@@ -599,6 +659,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   reader->expect_hole = ogg_page_continued(og);
 
   return oggz_seek_raw (oggz, result, SEEK_SET);
+  //return packet_next (&seek_info, result);
 }
 
 ogg_int64_t
@@ -607,6 +668,7 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   OggzSeekInfo seek_info;
   OggzReader * reader;
   ogg_int64_t result;
+  ogg_page * og;
 
   if (oggz == NULL)
     return OGGZ_ERR_BAD_OGGZ;
@@ -648,6 +710,16 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   result = seek_bisect (&seek_info);
 
   debug_printf (1, "seek_bisect() returned %lld\n", result);
+
+  oggz->offset = result;
+
+  reader->current_page_bytes = 0;
+
+  og = &seek_info.og_at;
+  reader->expect_hole = ogg_page_continued(og);
+
+  //return oggz_seek_raw (oggz, result, SEEK_SET);
+  packet_next (&seek_info, seek_info.offset_at);
 
   return result;
 }
