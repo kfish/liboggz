@@ -9,7 +9,7 @@
  * #include "debug.h"
  *
  * ...
- *     debug_print (2, "Something went wrong");
+ *     debug_printf (2, "Something went wrong");
  * ...
  *
  * The macro print_debug(level, fmt) prints a formatted debugging message
