@@ -451,6 +451,7 @@ update_seek_cache (OggzSeekInfo * seek_info)
 }
 
 #define GUESS_MULTIPLIER ((ogg_int64_t)(1<<16))
+#define GUESS_ROLLBACK 2048
 
 static oggz_off_t
 guess (OggzSeekInfo * si)
@@ -479,13 +480,18 @@ guess (OggzSeekInfo * si)
   }
 
   offset_guess = si->offset_begin +
-    (oggz_off_t)(((si->offset_end - si->offset_begin) * guess_ratio) /
-      GUESS_MULTIPLIER);
+    (oggz_off_t)(((si->offset_end - si->offset_begin) * guess_ratio) / GUESS_MULTIPLIER);
+
   debug_printf (2, "offset_begin 0x%08llx, offset_end 0x%08llx",
                 si->offset_begin, si->offset_end);
-
   debug_printf (1, "Guessed offset (end-begin)*%lld / %lld = 0x%08llx",
                 guess_ratio, GUESS_MULTIPLIER, offset_guess);
+
+  if (offset_guess > GUESS_ROLLBACK) {
+    offset_guess -= GUESS_ROLLBACK;
+    debug_printf (1, "Subtracting rollback 0x%08llx, offset_guess now 0x%08llx",
+                  GUESS_ROLLBACK, offset_guess);
+  }
 
   return offset_guess;
 }
