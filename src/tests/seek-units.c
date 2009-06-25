@@ -333,7 +333,7 @@ seek_test (OGGZ * reader, long n)
   oggz_set_read_callback (reader, -1, read_packet_test, NULL);
 
   test_seek_to_units (reader, n, 3, SEEK_SET, 1, 2);
-  test_seek_to_units (reader, n, 9, SEEK_SET, 9, 9);
+  test_seek_to_units (reader, n, 9, SEEK_SET, 7, 8);
   test_seek_to_units (reader, n, 7, SEEK_SET, 7, 7);
   test_seek_to_units (reader, n, 24, SEEK_SET, 24, 24);
   test_seek_to_units (reader, n, 11, SEEK_SET, 11, 11);

@@ -64,7 +64,7 @@
 #include "oggz/oggz_stream.h"
 
 /* #define DEBUG */
-/* #define DEBUG_LEVEL 2 */
+#define DEBUG_LEVEL 2
 #include "debug.h"
 
 #define CHUNKSIZE 65536
@@ -94,7 +94,7 @@ oggz_read_init (OGGZ * oggz)
   reader->current_packet_pages = 1;
   reader->current_packet_begin_segment_index = 0;
 
-  reader->position_ready = 0;
+  reader->position_ready = OGGZ_POSITION_UNKNOWN;
   reader->expect_hole = 0;
 
   return oggz;
@@ -196,6 +196,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
   /* Increment oggz->offset by length of the last page processed */
   debug_printf (2, "IN, incrementing oggz->offset (0x%llx) by cached 0x%lx",
                 oggz->offset, reader->current_page_bytes);
+  debug_printf (2, "oggz_tell: (0x%11x)", oggz_tell (oggz));
   oggz->offset += reader->current_page_bytes;
   reader->current_page_bytes = 0;
 
@@ -408,7 +409,7 @@ oggz_read_sync (OGGZ * oggz)
             return OGGZ_ERR_HOLE_IN_DATA;
           }
 
-          if (reader->position_ready) {
+          if (reader->position_ready != OGGZ_POSITION_UNKNOWN) {
             if (skip_packets == 0) {
               debug_printf (1, "skip_packets 0 but first segment was a hole");
             } else {
@@ -433,7 +434,7 @@ oggz_read_sync (OGGZ * oggz)
           /* If this is the first read after oggz_seek_position(), then we are already
            * set up to deliver the next packet.
            */
-          if (reader->position_ready) {
+          if (reader->position_ready != OGGZ_POSITION_UNKNOWN) {
             if (skip_packets == 0) {
               debug_printf (1, "Position ready, skip_packets is 0, goto read_sync_deliver");
 
@@ -445,7 +446,7 @@ oggz_read_sync (OGGZ * oggz)
               pos->begin_segment_index = reader->current_packet_begin_segment_index;
 
               /* Clear position_ready flag, deliver */
-              reader->position_ready = 0;
+              reader->position_ready = OGGZ_POSITION_UNKNOWN;
               goto read_sync_deliver;
             } else {
               skip_packets--;
@@ -567,7 +568,7 @@ prepare_position:
             reader->current_packet_begin_segment_index = 1;
           }
 
-          if (!reader->position_ready)
+          if (reader->position_ready == OGGZ_POSITION_UNKNOWN)
             reader->current_packet_pages = 1;
 
           /* Mark this stream as having delivered a non b_o_s packet if so.
@@ -648,7 +649,11 @@ prepare_position:
         /* Clear the "expect hole" flag if this page finishes a packet */
         if (ogg_page_packets(&og) > 0)
           reader->expect_hole = 0;
-      } else if (reader->position_ready) {
+      } else if (reader->position_ready == OGGZ_POSITION_END) {
+        /* XXX: after seek_packet, pages is invalid but rest of position is ok.
+         * Need to update pages ...
+         */
+
         /* skip_packets is 1 if we are being asked to deliver either the first packet
          * beginning on this page (after the continued segment); or, if we have already
          * been around the packet processing loop at least once, the packet that
@@ -661,13 +666,20 @@ prepare_position:
     } else {
       debug_printf (2, "New non-cont page, setting next begin_page to 0x%llx", oggz->offset);
 
-      if (reader->position_ready) {
-        skip_packets++;
-      } else {
+      switch (reader->position_ready) {
+      case OGGZ_POSITION_UNKNOWN:
         /* Prepare the position of the next page */
         reader->current_packet_pages = 1;
         reader->current_packet_begin_page_offset = oggz->offset;
         reader->current_packet_begin_segment_index = 0;
+        break;
+      case OGGZ_POSITION_BEGIN:
+        break;
+      case OGGZ_POSITION_END:
+        skip_packets++;
+        break;
+      default:
+        break;
       }
     }
   }
@@ -696,7 +708,7 @@ oggz_read (OGGZ * oggz, long n)
 
   reader = &oggz->x.reader;
 
-  if (!reader->position_ready) {
+  if (reader->position_ready == OGGZ_POSITION_UNKNOWN) {
     cb_ret = oggz_read_sync (oggz);
     if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
       return cb_ret;
@@ -771,7 +783,7 @@ oggz_read_input (OGGZ * oggz, unsigned char * buf, long n)
 
   reader = &oggz->x.reader;
 
-  if (!reader->position_ready) {
+  if (reader->position_ready == OGGZ_POSITION_UNKNOWN) {
     cb_ret = oggz_read_sync (oggz);
     if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
       return cb_ret;

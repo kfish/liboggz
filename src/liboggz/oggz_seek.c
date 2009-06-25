@@ -306,27 +306,45 @@ packet_next (OggzSeekInfo * seek_info, oggz_off_t offset)
   OggzReader * reader;
   oggz_off_t ret;
   ogg_page * og;
+  long serialno;
+  oggz_stream_t * stream;
+  ogg_stream_state * os;
 
   debug_printf (1, "IN, offset 0x%08llx", offset);
 
   ret = page_at_or_after (seek_info, offset);
 
   og = &seek_info->og_at;
+  
+  serialno = ogg_page_serialno (og);
+
+  /* Load the page into the ogg_stream */
+  stream = oggz_get_stream (oggz, serialno);
+  os = &stream->ogg_stream;
+  ogg_stream_pagein(os, og);
 
   reader = &oggz->x.reader;
-  reader->expect_hole = ogg_page_continued(og);
 
-  reader->current_serialno = ogg_page_serialno(og);
+  reader->current_serialno = serialno;
   reader->current_page_bytes = seek_info->current_page_bytes;
 
   /* XXX: reader->current_granulepos = ?? */
-  reader->current_packet_pages = 0;
+  reader->current_packet_pages = 1;
   reader->current_packet_begin_page_offset = ret;
-  reader->current_packet_begin_segment_index = 0;
+
+  /* If this page is continued, we will not deliver the first segment */
+  reader->expect_hole = 0;
+  reader->current_packet_begin_segment_index = ogg_page_continued(og);
 
   debug_printf (1, "begin_seg... %d", reader->current_packet_begin_segment_index);
 
-  reader->position_ready = 1;
+#if 0
+  /* Reset the ogg_sync state, so that this page is loaded again by oggz_read */
+  ogg_sync_reset (&reader->ogg_sync);
+  oggz_vector_foreach(oggz->streams, oggz_seek_reset_stream);
+#endif
+
+  reader->position_ready = OGGZ_POSITION_BEGIN;
 
   return ret;
 }
@@ -756,7 +774,7 @@ oggz_seek_position (OGGZ * oggz, oggz_position * position)
    * deliver as normal.
    * The actual data fetching is ensured by the next invocation of
    * oggz_read*(). */
-  reader->position_ready = 1;
+  reader->position_ready = OGGZ_POSITION_END;
 
   return oggz->offset;
 }

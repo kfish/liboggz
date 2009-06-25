@@ -126,6 +126,17 @@ struct _oggz_stream_t {
   ogg_packet * last_packet;
 };
 
+enum oggz_position_ready {
+  /* Packet position is completely unknown */
+  OGGZ_POSITION_UNKNOWN = 0,
+
+  /* Packet begin_page info is known */
+  OGGZ_POSITION_BEGIN,
+
+  /* All packet position info, including end_page and pages are known */
+  OGGZ_POSITION_END
+};
+
 struct _OggzReader {
   ogg_sync_state ogg_sync;
 
@@ -155,7 +166,7 @@ struct _OggzReader {
 #endif
 
   /* After oggz_seek_position(), skip to packet delivery */
-  int position_ready;
+  enum oggz_position_ready position_ready;
 
   /* After oggz_seek(), is the next page continued? */
   int expect_hole;
