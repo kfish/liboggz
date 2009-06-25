@@ -334,13 +334,13 @@ seek_test (OGGZ * reader, long n)
 
   test_seek_to_units (reader, n, 3, SEEK_SET, 1, 2);
   test_seek_to_units (reader, n, 9, SEEK_SET, 7, 8);
-  test_seek_to_units (reader, n, 7, SEEK_SET, 7, 7);
+  test_seek_to_units (reader, n, 7, SEEK_SET, 6, 6);
   test_seek_to_units (reader, n, 24, SEEK_SET, 24, 24);
-  test_seek_to_units (reader, n, 11, SEEK_SET, 11, 11);
-  test_seek_to_units (reader, n, 23, SEEK_SET, 23, 23);
-  test_seek_to_units (reader, n, 17, SEEK_SET, 17, 17);
-  test_seek_to_units (reader, n, 14, SEEK_SET, 14, 14);
-  test_seek_to_units (reader, n, 19, SEEK_SET, 19, 19);
+  test_seek_to_units (reader, n, 11, SEEK_SET, 10, 11);
+  test_seek_to_units (reader, n, 23, SEEK_SET, 22, 23);
+  test_seek_to_units (reader, n, 17, SEEK_SET, 12, 13);
+  test_seek_to_units (reader, n, 14, SEEK_SET, 12, 13);
+  test_seek_to_units (reader, n, 19, SEEK_SET, 12, 13);
 
   for (i=MAX_PACKET-1; i>= 0; i--) {
     test_seek_to_units (reader, n, i, SEEK_SET, i, i);
