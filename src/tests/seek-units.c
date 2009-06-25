@@ -342,10 +342,6 @@ seek_test (OGGZ * reader, long n)
   test_seek_to_units (reader, n, 14, SEEK_SET, 12, 13);
   test_seek_to_units (reader, n, 19, SEEK_SET, 12, 13);
 
-  for (i=MAX_PACKET-1; i>= 0; i--) {
-    test_seek_to_units (reader, n, i, SEEK_SET, i, i);
-  }
-
   return 0;
 }
 
