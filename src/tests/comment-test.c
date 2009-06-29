@@ -47,6 +47,7 @@
 #define COPYRIGHT "Copyright (C) 2004. Some Rights Reserved."
 #define LICENSE "Creative Commons Attribute Share-Alike v1.0"
 #define COMMENT "Unstructured comments are evil."
+#define PERFORMER "Jack Mackerel"
 
 static OGGZ * oggz;
 
@@ -267,6 +268,16 @@ main (int argc, char * argv[])
   if(op) FAIL ("Returned comment packet for invalid serialno");
   oggz_packet_destroy(op);
 
+
+  INFO ("+ Adding duplicate tag");
+  err = oggz_comment_add_byname (oggz, serialno, "PERFORMER", PERFORMER);
+  if (err < 0) FAIL ("Operation failed");
+  err = oggz_comment_add_byname (oggz, serialno, "PERFORMER", PERFORMER);
+  if (err < 0) FAIL ("Operation failed");
+  INFO ("+ Scanning comments (should not hang on duplicate)");
+  for (comment = oggz_comment_first (oggz, serialno);
+       comment != NULL;
+       comment = oggz_comment_next (oggz, serialno, comment));
 
   INFO ("Closing OGGZ (writer)");
   oggz_close (oggz);
