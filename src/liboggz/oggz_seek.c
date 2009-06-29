@@ -67,7 +67,7 @@
 #include "oggz/oggz_packet.h"
 #include "oggz/oggz_table.h"
 
-#define DEBUG_LEVEL 2
+/*#define DEBUG_LEVEL 2*/
 #include "debug.h"
 
 /************************************************************
@@ -579,6 +579,7 @@ seek_bisect (OggzSeekInfo * seek_info)
   OggzReader * reader;
   ogg_int64_t result;
   oggz_off_t offset, ret, earliest_nogp=0;
+  oggz_off_t pre_offset_begin, pre_offset_end, pre_offset_at;
   int found=0, jumps=0, fwdscan;
 
   debug_printf (1, "IN");
@@ -591,12 +592,6 @@ seek_bisect (OggzSeekInfo * seek_info)
     return -1;
   }
 
-  if (seek_info->unit_target == reader->current_unit) {
-    debug_printf (1, "unit_target == current_unit");
-    result = seek_info->unit_target;
-    goto seek_current;
-  }
-
   do {
     debug_printf (1, "bisecting, jumps=%d\n", jumps);
 
@@ -604,6 +599,10 @@ seek_bisect (OggzSeekInfo * seek_info)
       debug_printf (1, "setup units failed");
       break;
     }
+
+    pre_offset_begin = seek_info->offset_begin;
+    pre_offset_end = seek_info->offset_end;
+    pre_offset_at = seek_info->offset_at;
 
     if ((offset = guess (seek_info)) == -1) {
       debug_printf (1, "guess failed");
@@ -638,10 +637,6 @@ seek_bisect (OggzSeekInfo * seek_info)
         debug_printf (1, "Setting offset_end to offset_at 0x%08llx", seek_info->offset_at);
         seek_info->offset_end = seek_info->offset_at;
         seek_info->offset_max = seek_info->offset_at + seek_info->current_page_bytes;
-      } else {
-        debug_printf (1, "Goddamn, what now?");
-        // XXX: secant search? move offset_begin up a lot, but not too far ... */
-        //seek_info->offset_begin += PAGESIZE;
       }
     } else {
       debug_printf (1, "We are before!");
@@ -650,23 +645,64 @@ seek_bisect (OggzSeekInfo * seek_info)
         seek_info->offset_begin -= PAGESIZE;
         if (seek_info->offset_begin < 0)
           seek_info->offset_begin = 0;
-        //found=1;
       }
+    }
+
+    if (pre_offset_begin == seek_info->offset_begin &&
+        pre_offset_end == seek_info->offset_end &&
+        pre_offset_at == seek_info->offset_at) {
+      debug_printf (1, "Ended bisection");
+      found = 1;
     }
 
     jumps++;
   } while (!found && jumps<5);
 
-  /* XXX: for test unit 24, just keeps looping without narrowing down search, then
-   * segfaults here having not found the answer */
-
   result = seek_info->unit_at;
-
   reader->current_unit = result;
 
-seek_current:
+  debug_printf (1, "OUT, returning 0x%08llx", result);
+  seek_info_dump (seek_info);
 
   return result;
+}
+
+static ogg_int64_t
+seek_scan (OggzSeekInfo * seek_info)
+{
+  OGGZ * oggz = seek_info->oggz;
+  OggzReader * reader;
+  ogg_int64_t unit, result;
+  oggz_off_t offset, ret, earliest_nogp=0;
+  ogg_page * og;
+
+  unit = seek_info->unit_at;
+  offset = seek_info->offset_at;
+
+  while (page_next (seek_info) > 0) {
+    if (seek_info->unit_at == -1)
+      continue;
+
+    if (seek_info->unit_at >= seek_info->unit_target) {
+      break;
+    } else {
+      unit = seek_info->unit_at;
+      offset = seek_info->offset_at;
+    }
+  }
+
+  offset = page_at_or_after (seek_info, offset);
+
+  reader = &oggz->x.reader;
+  reader->current_page_bytes = 0;
+
+  reader->expect_hole = ogg_page_continued(&seek_info->og_at);
+
+  oggz_seek_raw (oggz, offset, SEEK_SET);
+
+  reader->current_unit = seek_info->unit_at = unit;
+
+  return unit;
 }
 
 /************************************************************
@@ -776,19 +812,22 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 
   debug_printf (1, "Got last_page_offset 0x%08llx", seek_info.cache.last_page_offset);
 
-  seek_info.unit_target = units;
-  seek_info.unit_begin = -1;
-  seek_info.unit_end = -1;
-
   seek_info.offset_begin = 0;
   seek_info.offset_end = seek_info.cache.last_page_offset;
   seek_info.offset_max = seek_info.cache.size;
 
+  seek_info.unit_target = units;
+  seek_info.unit_begin = 0;
+  seek_info.unit_end = seek_info.cache.unit_end;
+
+
   seek_info_dump((&seek_info));
 
   result = seek_bisect (&seek_info);
-
   debug_printf (1, "seek_bisect() returned 0x%08llx\n", result);
+
+  result = seek_scan (&seek_info);
+  debug_printf (1, "seek_scan() returned 0x%08llx\n", result);
 
   oggz->offset = result;
 

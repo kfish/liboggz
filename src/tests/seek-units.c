@@ -13,7 +13,7 @@
 
 #include "oggz_tests.h"
 
-#define DEBUG
+/* #define DEBUG */
 
 #define DATA_BUF_LEN (4096*32)
 #define MAX_PACKET 25
@@ -338,9 +338,9 @@ seek_test (OGGZ * reader, long n)
   test_seek_to_units (reader, n, 24, SEEK_SET, 24, 24);
   test_seek_to_units (reader, n, 11, SEEK_SET, 10, 11);
   test_seek_to_units (reader, n, 23, SEEK_SET, 22, 23);
-  test_seek_to_units (reader, n, 17, SEEK_SET, 12, 13);
-  test_seek_to_units (reader, n, 14, SEEK_SET, 12, 13);
-  test_seek_to_units (reader, n, 19, SEEK_SET, 12, 13);
+  test_seek_to_units (reader, n, 17, SEEK_SET, 12, 12);
+  test_seek_to_units (reader, n, 14, SEEK_SET, 12, 12);
+  test_seek_to_units (reader, n, 19, SEEK_SET, 18, 14);
 
   return 0;
 }

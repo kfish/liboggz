@@ -64,7 +64,7 @@
 #include "oggz/oggz_stream.h"
 
 /* #define DEBUG */
-#define DEBUG_LEVEL 2
+/* #define DEBUG_LEVEL 2 */
 #include "debug.h"
 
 #define CHUNKSIZE 65536
