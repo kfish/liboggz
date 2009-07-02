@@ -683,7 +683,24 @@ seek_scan (OggzSeekInfo * seek_info)
     if (seek_info->unit_at == -1)
       continue;
 
-    if (seek_info->unit_at >= seek_info->unit_target) {
+    if (seek_info->unit_at == seek_info->unit_target) {
+      /* If this page has exactly the desired units, then it is ok to
+         update the desired position to here only if the packet with
+         that unit begins on this page. This can be determined in two
+         ways:
+           1. If the page is not continued, then the packet must begin
+              on this page.
+           2. If the page is continued and at least 2 packets end on
+              this page, then the first is the continued packet and
+              another is the desired packet.
+       */
+      if ((!ogg_page_continued(&seek_info->og_at)) ||
+          (ogg_page_packets(&seek_info->og_at) > 1)) {
+        unit = seek_info->unit_at;
+        offset = seek_info->offset_at;
+      }
+      break;
+    } else if (seek_info->unit_at >= seek_info->unit_target) {
       break;
     } else {
       unit = seek_info->unit_at;

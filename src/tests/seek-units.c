@@ -339,8 +339,8 @@ seek_test (OGGZ * reader, long n)
 
   INFO ("Comparing seek results against recorded positions");
 
-  test_seek_to_units (reader, n, 3, SEEK_SET, 1, 2);
-  test_seek_to_units (reader, n, 9, SEEK_SET, 7, 8);
+  test_seek_to_units (reader, n, 3, SEEK_SET, 3, 3);
+  test_seek_to_units (reader, n, 9, SEEK_SET, 9, 9);
   test_seek_to_units (reader, n, 7, SEEK_SET, 6, 6);
   test_seek_to_units (reader, n, 24, SEEK_SET, 24, 24);
   test_seek_to_units (reader, n, 11, SEEK_SET, 10, 11);
