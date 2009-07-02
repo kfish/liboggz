@@ -67,6 +67,7 @@
 #include "oggz/oggz_packet.h"
 #include "oggz/oggz_table.h"
 
+/*#define DEBUG*/
 /*#define DEBUG_LEVEL 2*/
 #include "debug.h"
 
@@ -125,11 +126,11 @@ struct _OggzSeekInfo {
 };
 
 #define seek_info_dump(si) \
-  debug_printf (1, "Got offset_begin 0x%08llx, offset_end 0x%08llx offset_max 0x%08llx", \
+  debug_printf (3, "Got offset_begin 0x%08llx, offset_end 0x%08llx offset_max 0x%08llx", \
                 si->offset_begin, si->offset_end, si->offset_max); \
-  debug_printf (1, "Got unit_begin %lld, unit_end %lld", si->unit_begin, si->unit_end); \
-  debug_printf (1, "At offset 0x%08llx, unit %lld", si->offset_at, si->unit_at); \
-  debug_printf (1, "For unit_target %lld", si->unit_target);
+  debug_printf (3, "Got unit_begin %lld, unit_end %lld", si->unit_begin, si->unit_end); \
+  debug_printf (3, "At offset 0x%08llx, unit %lld", si->offset_at, si->unit_at); \
+  debug_printf (3, "For unit_target %lld", si->unit_target);
 
 /************************************************************
  * Primitives
@@ -209,14 +210,14 @@ page_next (OggzSeekInfo * seek_info)
   oggz_off_t ret;
   int found = 0;
 
-  debug_printf (1, "IN");
+  debug_printf (2, "IN");
   seek_info_dump (seek_info);
 
   reader = &oggz->x.reader;
 
   remaining = seek_info->offset_max - seek_info->offset_at;
   if (remaining < seek_info->current_page_bytes) {
-    debug_printf (1, "remaining 0x%08llx < current_page_bytes 0x%08llx",
+    debug_printf (2, "remaining 0x%08llx < current_page_bytes 0x%08llx",
                   remaining, seek_info->current_page_bytes);
     return -1;
   }
@@ -224,7 +225,7 @@ page_next (OggzSeekInfo * seek_info)
   seek_info->offset_at += seek_info->current_page_bytes;
   seek_info->current_page_bytes = 0;
 
-  debug_printf (1, "Updated offset_at ...");
+  debug_printf (2, "Updated offset_at ...");
   seek_info_dump (seek_info);
 
   do {
@@ -268,7 +269,7 @@ page_next (OggzSeekInfo * seek_info)
   } while (!found && remaining > 0);
 
   if (remaining == 0) {
-    debug_printf (1, "remaining 0, got only page?");
+    debug_printf (2, "remaining 0, got only page?");
   }
 
   ret = seek_info->offset_at;
@@ -279,7 +280,7 @@ page_next_ok:
   granulepos = ogg_page_granulepos (og);
   seek_info->unit_at = oggz_get_unit (oggz, serialno, granulepos);
 
-  debug_printf (1, "ok: serialno %010ld, granulepos %lld", serialno, granulepos);
+  debug_printf (2, "ok: serialno %010ld, granulepos %lld", serialno, granulepos);
 
   seek_info_dump (seek_info);
 
@@ -287,7 +288,7 @@ page_next_ok:
 
 page_next_fail:
 
-  debug_printf (1, "fail");
+  debug_printf (2, "No page within bounds");
   seek_info_dump (seek_info);
 
   /* XXX: reset to oggz->offset etc. */
@@ -305,7 +306,7 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
   OGGZ * oggz = seek_info->oggz;
   oggz_off_t ret;
 
-  debug_printf (1, "IN: offset 0x%08llx", offset);
+  debug_printf (2, "IN: offset 0x%08llx", offset);
 
   seek_info->offset_at = oggz_seek_raw (oggz, offset, SEEK_SET);
   seek_info->unit_at = -1;
@@ -313,7 +314,7 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
 
   ret =  page_next (seek_info);
 
-  debug_printf (1, "OUT: wanted offset 0x%08llx, got 0x%08llx", offset, ret);
+  debug_printf (2, "OUT: wanted offset 0x%08llx, got 0x%08llx", offset, ret);
 
   return ret;
 }
@@ -333,7 +334,7 @@ packet_next (OggzSeekInfo * seek_info, oggz_off_t offset)
   oggz_stream_t * stream;
   ogg_stream_state * os;
 
-  debug_printf (1, "IN, offset 0x%08llx", offset);
+  debug_printf (2, "IN, offset 0x%08llx", offset);
 
   ret = page_at_or_after (seek_info, offset);
 
@@ -359,7 +360,7 @@ packet_next (OggzSeekInfo * seek_info, oggz_off_t offset)
   reader->expect_hole = 0;
   reader->current_packet_begin_segment_index = ogg_page_continued(og);
 
-  debug_printf (1, "begin_seg... %d", reader->current_packet_begin_segment_index);
+  debug_printf (2, "begin_seg... %d", reader->current_packet_begin_segment_index);
 
 #if 0
   /* Reset the ogg_sync state, so that this page is loaded again by oggz_read */
@@ -399,12 +400,12 @@ update_last_page (OggzSeekInfo * seek_info)
   seek_info->offset_max = seek_info->cache.size;
 
   while (page_next (seek_info) >= 0) {
-          debug_printf (1, "Setting last_page_offset to 0x%08llx", seek_info->offset_at);
+          debug_printf (2, "Setting last_page_offset to 0x%08llx", seek_info->offset_at);
           seek_info->cache.last_page_offset = seek_info->offset_at;
           seek_info->cache.unit_end = seek_info->unit_at;
   }
 
-  debug_printf (1, "OUT: last_page_offset is 0x%08llx", seek_info->cache.last_page_offset);
+  debug_printf (2, "OUT: last_page_offset is 0x%08llx", seek_info->cache.last_page_offset);
 
   return 0;
 }
@@ -474,18 +475,18 @@ guess (OggzSeekInfo * si)
         (si->unit_end - si->unit_begin);
     debug_printf (2, "unit_target %lld, unit_begin %lld, unit_end %lld",
                   si->unit_target, si->unit_begin, si->unit_end);
-    debug_printf (1, "(1) Guess ratio %lld * (target-begin)/(end-begin) = %lld",
+    debug_printf (2, "(1) Guess ratio %lld * (target-begin)/(end-begin) = %lld",
                   GUESS_MULTIPLIER, guess_ratio);
   } else {
     if (si->unit_at == si->unit_begin) {
-      debug_printf (1, "at unit_begin, FAIL");
+      debug_printf (2, "at unit_begin, FAIL");
       return si->offset_begin;
     }
 
     guess_ratio =
       GUESS_MULTIPLIER * (si->unit_target - si->unit_begin) /
         (si->unit_at - si->unit_begin);
-    debug_printf (1, "(2) Guess ratio %lld", guess_ratio);
+    debug_printf (2, "(2) Guess ratio %lld", guess_ratio);
   }
 
   offset_guess = si->offset_begin +
@@ -493,18 +494,18 @@ guess (OggzSeekInfo * si)
 
   debug_printf (2, "offset_begin 0x%08llx, offset_end 0x%08llx",
                 si->offset_begin, si->offset_end);
-  debug_printf (1, "Guessed offset (end-begin)*%lld / %lld = 0x%08llx",
+  debug_printf (2, "Guessed offset (end-begin)*%lld / %lld = 0x%08llx",
                 guess_ratio, GUESS_MULTIPLIER, offset_guess);
 
   if (offset_guess == si->offset_end) {
-    debug_printf (1, "Got it at the end. Found0?");
+    debug_printf (2, "Got it at the end. Found0?");
   } else if (offset_guess-GUESS_ROLLBACK > si->offset_begin) {
     offset_guess -= GUESS_ROLLBACK;
-    debug_printf (1, "Subtracting rollback 0x%08llx, offset_guess now 0x%08llx",
+    debug_printf (2, "Subtracting rollback 0x%08llx, offset_guess now 0x%08llx",
                   GUESS_ROLLBACK, offset_guess);
   } else {
     offset_guess = si->offset_begin;
-    debug_printf (1, "Sticking to the start! Found?");
+    debug_printf (2, "Sticking to the start! Found?");
   }
 
   return offset_guess;
@@ -517,28 +518,28 @@ seek_info_setup_units (OggzSeekInfo * si)
   oggz_off_t offset;
   ogg_page * og;
 
-  debug_printf (1, "IN");
+  debug_printf (2, "IN");
   seek_info_dump (si);
 
-  debug_printf (1, "Checking ...");
+  debug_printf (2, "Checking ...");
   if (si->offset_begin < 0) {
     si->offset_begin = 0;
     si->unit_begin = 0; /* XXX: cache.unit_begin */
   } else if (si->unit_begin == -1) {
     if (page_at_or_after (si, si->offset_begin) == -1) {
-      debug_printf (1, "page_at_or_after(offset_begin) failed");
+      debug_printf (2, "page_at_or_after(offset_begin) failed");
       return -1;
     }
     si->unit_begin = si->unit_at;
   }
 
   if (si->offset_end >= si->offset_max) {
-      debug_printf (1, "offset_end >= size, setting offset_end, unit_end");
+      debug_printf (2, "offset_end >= size, setting offset_end, unit_end");
       si->offset_end = si->cache.size;
       si->unit_end = si->cache.unit_end;
   } else if (si->unit_end == -1) {
     if (page_at_or_after (si, si->offset_end) == -1) {
-      debug_printf (1, "page_at_or_after(offset_end) failed");
+      debug_printf (2, "page_at_or_after(offset_end) failed");
       return -1;
     }
     si->unit_end = si->unit_at;
@@ -549,7 +550,7 @@ seek_info_setup_units (OggzSeekInfo * si)
   /* Fail if target isn't in specified range. */
   if (si->unit_target < si->unit_begin ||
       si->unit_target > si->unit_end) {
-    debug_printf (1, "Target not in specified range");
+    debug_printf (2, "Target not in specified range");
     return -1;
   }
 
@@ -557,12 +558,12 @@ seek_info_setup_units (OggzSeekInfo * si)
   if (si->offset_at >= si->offset_begin && si->offset_at < si->offset_end &&
       si->unit_at > si->unit_begin && si->unit_at < si->unit_end) {
     if (si->unit_target < si->unit_at) {
-      debug_printf (1, "Reducing range to (begin 0x%08llx, at 0x%08llx)",
+      debug_printf (2, "Reducing range to (begin 0x%08llx, at 0x%08llx)",
                     si->offset_begin, si->offset_at);
       si->unit_end = si->unit_at;
       si->offset_end = si->offset_at;
     } else {
-      debug_printf (1, "Reducing range to (at 0x%08llx, end 0x%08llx)",
+      debug_printf (2, "Reducing range to (at 0x%08llx, end 0x%08llx)",
                     si->offset_at, si->offset_end);
       si->unit_begin = si->unit_at;
       si->offset_begin = si->offset_at;
@@ -582,21 +583,21 @@ seek_bisect (OggzSeekInfo * seek_info)
   oggz_off_t pre_offset_begin, pre_offset_end, pre_offset_at;
   int found=0, jumps=0, fwdscan;
 
-  debug_printf (1, "IN");
+  debug_printf (2, "IN");
   seek_info_dump (seek_info);
 
   reader = &oggz->x.reader;
 
   if (seek_info->offset_begin > seek_info->offset_end) {
-    debug_printf (1, "offset_begin > offset_end");
+    debug_printf (2, "offset_begin > offset_end");
     return -1;
   }
 
   do {
-    debug_printf (1, "bisecting, jumps=%d\n", jumps);
+    debug_printf (2, "bisecting, jumps=%d\n", jumps);
 
     if (seek_info_setup_units (seek_info) == -1) {
-      debug_printf (1, "setup units failed");
+      debug_printf (2, "setup units failed");
       break;
     }
 
@@ -605,16 +606,16 @@ seek_bisect (OggzSeekInfo * seek_info)
     pre_offset_at = seek_info->offset_at;
 
     if ((offset = guess (seek_info)) == -1) {
-      debug_printf (1, "guess failed");
+      debug_printf (2, "guess failed");
       break;
     }
 
     fwdscan=0;
     earliest_nogp = 0;
     do {
-      debug_printf (1, "Doing fwdscan %d", fwdscan);
+      debug_printf (2, "Doing fwdscan %d", fwdscan);
       if ((ret = page_at_or_after (seek_info, offset)) == -1) {
-        debug_printf (1, "page_at_or_after failed");
+        debug_printf (2, "page_at_or_after failed");
         /* XXX: FAIL spectacularly */
         break;
       }
@@ -628,20 +629,20 @@ seek_bisect (OggzSeekInfo * seek_info)
     } while (ret != -2 && seek_info->unit_at == -1 && fwdscan < 3);
 
     if (seek_info->unit_at >= seek_info->unit_target) {
-      debug_printf (1, "We are beyond! fwdscan=%d", fwdscan);
+      debug_printf (2, "We are beyond! fwdscan=%d", fwdscan);
       if (earliest_nogp > 0) {
-        debug_printf (1, "Setting offset_end to earliest_nogp 0x%08llx", earliest_nogp);
+        debug_printf (2, "Setting offset_end to earliest_nogp 0x%08llx", earliest_nogp);
         seek_info->offset_end = earliest_nogp;
         seek_info->offset_max = seek_info->offset_at + seek_info->current_page_bytes;
       } else if (earliest_nogp == 0) {
-        debug_printf (1, "Setting offset_end to offset_at 0x%08llx", seek_info->offset_at);
+        debug_printf (2, "Setting offset_end to offset_at 0x%08llx", seek_info->offset_at);
         seek_info->offset_end = seek_info->offset_at;
         seek_info->offset_max = seek_info->offset_at + seek_info->current_page_bytes;
       }
     } else {
-      debug_printf (1, "We are before!");
+      debug_printf (2, "We are before!");
       if (ret == -2) {
-        debug_printf (1, "Found it?!?");
+        debug_printf (2, "Found it?!?");
         seek_info->offset_begin -= PAGESIZE;
         if (seek_info->offset_begin < 0)
           seek_info->offset_begin = 0;
@@ -651,7 +652,7 @@ seek_bisect (OggzSeekInfo * seek_info)
     if (pre_offset_begin == seek_info->offset_begin &&
         pre_offset_end == seek_info->offset_end &&
         pre_offset_at == seek_info->offset_at) {
-      debug_printf (1, "Ended bisection");
+      debug_printf (2, "Ended bisection");
       found = 1;
     }
 
@@ -661,7 +662,9 @@ seek_bisect (OggzSeekInfo * seek_info)
   result = seek_info->unit_at;
   reader->current_unit = result;
 
-  debug_printf (1, "OUT, returning 0x%08llx", result);
+  debug_printf (1, "Bisected in %d steps", jumps);
+
+  debug_printf (2, "OUT, returning 0x%08llx", result);
   seek_info_dump (seek_info);
 
   return result;
@@ -827,7 +830,7 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
     break;
   }
 
-  debug_printf (1, "Got last_page_offset 0x%08llx", seek_info.cache.last_page_offset);
+  debug_printf (2, "Got last_page_offset 0x%08llx", seek_info.cache.last_page_offset);
 
   seek_info.offset_begin = 0;
   seek_info.offset_end = seek_info.cache.last_page_offset;
@@ -841,10 +844,10 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   seek_info_dump((&seek_info));
 
   result = seek_bisect (&seek_info);
-  debug_printf (1, "seek_bisect() returned 0x%08llx\n", result);
+  debug_printf (2, "seek_bisect() returned 0x%08llx\n", result);
 
   result = seek_scan (&seek_info);
-  debug_printf (1, "seek_scan() returned 0x%08llx\n", result);
+  debug_printf (2, "seek_scan() returned 0x%08llx\n", result);
 
   oggz->offset = result;
 
@@ -871,7 +874,7 @@ oggz_seek_position (OGGZ * oggz, oggz_position * position)
     return OGGZ_ERR_INVALID;
 
   if (oggz_seek_raw (oggz, position->begin_page_offset, SEEK_SET) == -1) {
-     debug_printf (1, "oggz_seek_raw() returned -1\n");
+     debug_printf (2, "oggz_seek_raw() returned -1\n");
      return -1;
    }
 
