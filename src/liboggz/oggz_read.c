@@ -196,7 +196,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
   /* Increment oggz->offset by length of the last page processed */
   debug_printf (2, "IN, incrementing oggz->offset (0x%llx) by cached 0x%lx",
                 oggz->offset, reader->current_page_bytes);
-  debug_printf (2, "oggz_tell: (0x%11x)", oggz_tell (oggz));
+  debug_printf (2, "oggz_tell: (0x%llx)", oggz_tell (oggz));
   oggz->offset += reader->current_page_bytes;
   reader->current_page_bytes = 0;
 
@@ -207,7 +207,7 @@ oggz_read_get_next_page (OGGZ * oggz, ogg_page * og)
       /* No page available */
       return -2;
     } else if (more < 0) {
-      debug_printf (2, "%skipping; incrementing oggz->offset by 0x%lx bytes", -more);
+      debug_printf (2, "skipping; incrementing oggz->offset by 0x%lx bytes", -more);
       oggz->offset += (-more);
     } else {
       debug_printf (2, "page has %ld bytes", more);
