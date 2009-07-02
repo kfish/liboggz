@@ -213,6 +213,13 @@ read_packet_test (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data
   /* Got correct seek position, no need to check later packets */
   return OGGZ_STOP_OK;
 }
+
+static void
+my_io_reset (void)
+{
+  my_offset = 0;
+}
+
 static size_t
 my_io_read (void * user_handle, void * buf, size_t n)
 {
@@ -259,8 +266,6 @@ my_io_tell (void * user_handle)
 int
 read_setup (OGGZ * reader, long n)
 {
-  INFO ("Caching packet positions");
-
   oggz_set_read_callback (reader, -1, read_packet_stash, NULL);
 
   oggz_read (reader, n);
@@ -326,11 +331,13 @@ seek_test (OGGZ * reader, long n)
   int i;
 
   /* This is required so the reader knows about the serialno */
-  //oggz_read (reader, 1024);
+  oggz_read (reader, 1024);
 
   oggz_set_granulerate (reader, serialno, 1, 1);
 
   oggz_set_read_callback (reader, -1, read_packet_test, NULL);
+
+  INFO ("Comparing seek results against recorded positions");
 
   test_seek_to_units (reader, n, 3, SEEK_SET, 1, 2);
   test_seek_to_units (reader, n, 9, SEEK_SET, 7, 8);
@@ -363,14 +370,6 @@ main (int argc, char * argv[])
   if (oggz_write_set_hungry_callback (writer, hungry, 1, NULL) == -1)
     FAIL("Could not set hungry callback");
 
-  reader = oggz_new (OGGZ_READ);
-  if (reader == NULL)
-    FAIL("newly created OGGZ reader == NULL");
-
-  oggz_io_set_read (reader, my_io_read, data_buf);
-  oggz_io_set_seek (reader, my_io_seek, data_buf);
-  oggz_io_set_tell (reader, my_io_tell, data_buf);
-
   INFO ("Generating Ogg data with pathological paging");
   n = oggz_write_output (writer, data_buf, DATA_BUF_LEN);
 
@@ -392,7 +391,33 @@ main (int argc, char * argv[])
   }
 #endif
 
+  INFO ("Recording correct packet positions for comparison");
+  reader = oggz_new (OGGZ_READ);
+  if (reader == NULL)
+    FAIL("newly created OGGZ reader == NULL");
+
+  oggz_io_set_read (reader, my_io_read, data_buf);
+  oggz_io_set_seek (reader, my_io_seek, data_buf);
+  oggz_io_set_tell (reader, my_io_tell, data_buf);
+
   read_setup (reader, n);
+
+  INFO ("Destroying reader used for recording comparison data");
+  if (oggz_close (reader) != 0)
+    FAIL("Could not close OGGZ reader");
+
+  my_io_reset();
+
+  /* Now create a new reader to test seeking, comparing
+   * against the previously recorded positions */
+  INFO ("Creating a new reader to test seeking");
+  reader = oggz_new (OGGZ_READ);
+  if (reader == NULL)
+    FAIL("newly created OGGZ reader == NULL");
+
+  oggz_io_set_read (reader, my_io_read, data_buf);
+  oggz_io_set_seek (reader, my_io_seek, data_buf);
+  oggz_io_set_tell (reader, my_io_tell, data_buf);
 
   seek_test (reader, n);
 
