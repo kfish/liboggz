@@ -873,6 +873,33 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 }
 
 ogg_int64_t
+oggz_bounded_seek_set (OGGZ * oggz,
+                       ogg_int64_t unit_target,
+                       ogg_int64_t offset_begin,
+                       ogg_int64_t offset_end)
+{
+  OggzSeekInfo seek_info;
+
+  memset (&seek_info, 0, sizeof(OggzSeekInfo));
+
+  seek_info.oggz = oggz;
+
+  update_seek_cache (&seek_info);
+
+  seek_info.offset_begin = offset_begin;
+  seek_info.offset_end = offset_end;
+  seek_info.offset_max = offset_end;
+
+  seek_info.unit_target = unit_target;
+  seek_info.unit_begin = 0;
+  seek_info.unit_end = -1;
+
+  seek_info_dump((&seek_info));
+
+  return oggz_seek_bisect_scan (&seek_info);
+}
+
+ogg_int64_t
 oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   OggzSeekInfo seek_info;
