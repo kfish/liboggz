@@ -476,9 +476,9 @@ update_seek_cache (OggzSeekInfo * seek_info)
     seek_info->cache.size = statbuf.st_size;
   }
 
-  update_last_page (seek_info);
+  seek_info->offset_max = seek_info->cache.size;
 
-  return 1;
+  return update_last_page (seek_info);
 }
 
 #define GUESS_MULTIPLIER ((ogg_int64_t)(1<<16))
@@ -863,7 +863,8 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 
   seek_info.oggz = oggz;
 
-  update_seek_cache (&seek_info);
+  if (update_seek_cache (&seek_info) == -1)
+    return -1;
 
   switch (whence) {
   case SEEK_CUR:
@@ -886,7 +887,6 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   reader->expect_hole = ogg_page_continued(og);
 
   return oggz_seek_raw (oggz, result, SEEK_SET);
-  //return packet_next (&seek_info, result);
 }
 
 ogg_int64_t
@@ -901,7 +901,8 @@ oggz_bounded_seek_set (OGGZ * oggz,
 
   seek_info.oggz = oggz;
 
-  update_seek_cache (&seek_info);
+  if (update_seek_cache (&seek_info) == -1)
+    return -1;
 
   seek_info.offset_begin = offset_begin;
   seek_info.offset_end = offset_end;
@@ -932,7 +933,8 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 
   seek_info.oggz = oggz;
 
-  update_seek_cache (&seek_info);
+  if (update_seek_cache (&seek_info) == -1)
+    return -1;
 
   reader = &oggz->x.reader;
 
@@ -1009,7 +1011,8 @@ oggz_get_duration (OGGZ * oggz)
 
   seek_info.oggz = oggz;
 
-  update_seek_cache (&seek_info);
+  if (update_seek_cache (&seek_info) == -1)
+    return -1;
 
   return seek_info.cache.unit_end;
 }
