@@ -390,28 +390,45 @@ update_last_page (OggzSeekInfo * seek_info)
 {
   OGGZ * oggz = seek_info->oggz;
   OggzReader * reader;
+  oggz_off_t offset;
 
   reader = &oggz->x.reader;
 
-  if (oggz_io_seek (seek_info->oggz, -4096, SEEK_END) == -1) {
-    printf ("%s: oggz_io_seek() returned -1\n", __func__);
-    return -1;
-  }
+  seek_info->cache.last_page_offset = 0;
 
-  ogg_sync_reset (&reader->ogg_sync);
+  /* Walk backwards in steps of size PAGESIZE, looking for a page start */
+  offset = seek_info->cache.size;
+  do {
+    if (offset < PAGESIZE)
+      offset = 0;
+    else
+      offset -= PAGESIZE;
 
-  seek_info->offset_at = oggz_io_tell (seek_info->oggz);
-  seek_info->offset_max = seek_info->cache.size;
+    if (oggz_io_seek (seek_info->oggz, offset, SEEK_SET) == -1) {
+      printf ("%s: oggz_io_seek() returned -1\n", __func__);
+      return -1;
+    }
 
-  while (page_next (seek_info) >= 0) {
-          debug_printf (2, "Setting last_page_offset to 0x%08llx", seek_info->offset_at);
-          seek_info->cache.last_page_offset = seek_info->offset_at;
-          seek_info->cache.unit_end = seek_info->unit_at;
-  }
+    ogg_sync_reset (&reader->ogg_sync);
+
+    seek_info->offset_at = oggz_io_tell (seek_info->oggz);
+
+    while (page_next (seek_info) >= 0) {
+            debug_printf (2, "Setting last_page_offset to 0x%08llx", seek_info->offset_at);
+            seek_info->cache.last_page_offset = seek_info->offset_at;
+            seek_info->cache.unit_end = seek_info->unit_at;
+    }
+
+    if (seek_info->cache.last_page_offset != 0)
+      break;
+  } while (offset > 0);
 
   debug_printf (3, "OUT: last_page_offset is 0x%08llx", seek_info->cache.last_page_offset);
 
-  return 0;
+  if (seek_info->cache.last_page_offset != 0)
+    return 0;
+  else
+    return -1;
 }
 
 static int
