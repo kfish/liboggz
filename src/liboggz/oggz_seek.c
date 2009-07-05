@@ -118,9 +118,11 @@ struct _OggzSeekInfo {
   ogg_int64_t unit_at;
   ogg_int64_t unit_begin;
   ogg_int64_t unit_end;
-  
 
   ogg_page og_at;
+
+  /* State for guess */
+  int prev_guess_was_zoom;
 
   OggzTable * tracks;
 };
@@ -131,6 +133,8 @@ struct _OggzSeekInfo {
   debug_printf (3, "Got unit_begin %lld, unit_end %lld", si->unit_begin, si->unit_end); \
   debug_printf (3, "At offset 0x%08llx, unit %lld", si->offset_at, si->unit_at); \
   debug_printf (3, "For unit_target %lld", si->unit_target);
+
+#define NOT_FOUND_WITHIN_BOUNDS (-2)
 
 /************************************************************
  * Primitives
@@ -194,7 +198,7 @@ oggz_seek_raw (OGGZ * oggz, oggz_off_t offset, int whence)
  * position, and load that page.
  * \returns Offset of next page
  * \retval -1 Error
- * \retval -2 EOF
+ * \retval -2 Not found within bounds
  */
 static off_t
 page_next (OggzSeekInfo * seek_info)
@@ -237,9 +241,9 @@ page_next (OggzSeekInfo * seek_info)
       buffer = ogg_sync_buffer (&reader->ogg_sync, read_size);
       if ((bytes = (long) oggz_io_read (oggz, buffer, read_size)) == 0) {
 	if (oggz->file && feof (oggz->file)) {
-	  debug_printf (2, "feof (oggz->file), returning -2");
+	  debug_printf (2, "feof (oggz->file), returning NOT_FOUND_WITHIN_BOUNDS");
 	  clearerr (oggz->file);
-	  ret = -2;
+	  ret = NOT_FOUND_WITHIN_BOUNDS;
           goto page_next_fail;
 	}
       }
@@ -250,18 +254,18 @@ page_next (OggzSeekInfo * seek_info)
       }
 
       if (bytes == 0) {
-	debug_printf (2, "bytes == 0, returning -2");
-	ret = -2;
+	debug_printf (2, "bytes == 0, returning NOT_FOUND_WITHIN_BOUNDS");
+	ret = NOT_FOUND_WITHIN_BOUNDS;
         goto page_next_fail;
       }
 
       ogg_sync_wrote(&reader->ogg_sync, bytes);
 
     } else if (more < 0) {
-      debug_printf (2, "skipped %ld bytes", -more);
+      debug_printf (3, "skipped %ld bytes", -more);
       seek_info->offset_at += (-more);
     } else {
-      debug_printf (2, "page has %ld bytes", more);
+      debug_printf (3, "page has %ld bytes", more);
       seek_info->current_page_bytes = more;
       found = 1;
     }
@@ -469,10 +473,28 @@ guess (OggzSeekInfo * si)
   ogg_int64_t guess_ratio;
   oggz_off_t offset_guess;
 
+  debug_printf (2, "Guessing, at %lld in (%lld, %lld)", si->unit_at, si->unit_begin, si->unit_end);
+
   if (si->unit_end != -1) {
     guess_ratio =
       GUESS_MULTIPLIER * (si->unit_target - si->unit_begin) /
         (si->unit_end - si->unit_begin);
+
+    if (si->prev_guess_was_zoom) {
+      si->prev_guess_was_zoom = 0;
+    } else {
+      /* If we're near the extremes, try to zoom in */
+      if (guess_ratio < GUESS_MULTIPLIER/5) {
+        debug_printf (2, " << guess_ratio %lld near beginning", guess_ratio);
+        guess_ratio = 2 * GUESS_MULTIPLIER / 5;
+      } else if (guess_ratio > 4*GUESS_MULTIPLIER/5) {
+        debug_printf (2, " >> guess_ratio near end");
+        guess_ratio = 3 * GUESS_MULTIPLIER / 5;
+      }
+
+      /* Force next to not be zoom */
+      si->prev_guess_was_zoom = 1;
+    }
     debug_printf (2, "unit_target %lld, unit_begin %lld, unit_end %lld",
                   si->unit_target, si->unit_begin, si->unit_end);
     debug_printf (2, "(1) Guess ratio %lld * (target-begin)/(end-begin) = %lld",
@@ -558,7 +580,7 @@ seek_info_setup_units (OggzSeekInfo * si)
 
   /* Reduce the search range if possible using read cursor position. */
   if (si->offset_at >= si->offset_begin && si->offset_at < si->offset_end &&
-      si->unit_at > si->unit_begin && si->unit_at < si->unit_end) {
+      si->unit_at >= si->unit_begin && si->unit_at < si->unit_end) {
     if (si->unit_target < si->unit_at) {
       debug_printf (2, "Reducing range to (begin 0x%08llx, at 0x%08llx)",
                     si->offset_begin, si->offset_at);
@@ -595,6 +617,8 @@ seek_bisect (OggzSeekInfo * seek_info)
     return -1;
   }
 
+  seek_info->prev_guess_was_zoom = 0;
+
   do {
     debug_printf (2, "bisecting, jumps=%d\n", jumps);
 
@@ -628,7 +652,9 @@ seek_bisect (OggzSeekInfo * seek_info)
 
       offset = ret+1;
       fwdscan++;
-    } while (ret != -2 && seek_info->unit_at == -1 && fwdscan < 3);
+    } while (ret != NOT_FOUND_WITHIN_BOUNDS && seek_info->unit_at == -1 && fwdscan < 100);
+
+    debug_printf (2, " + Scanned forward %d pages", fwdscan);
 
     if (seek_info->unit_at >= seek_info->unit_target) {
       debug_printf (2, "We are beyond! fwdscan=%d", fwdscan);
@@ -636,18 +662,25 @@ seek_bisect (OggzSeekInfo * seek_info)
         debug_printf (2, "Setting offset_end to earliest_nogp 0x%08llx", earliest_nogp);
         seek_info->offset_end = earliest_nogp;
         seek_info->offset_max = seek_info->offset_at + seek_info->current_page_bytes;
+        seek_info->unit_end = seek_info->unit_at;
       } else if (earliest_nogp == 0) {
         debug_printf (2, "Setting offset_end to offset_at 0x%08llx", seek_info->offset_at);
         seek_info->offset_end = seek_info->offset_at;
         seek_info->offset_max = seek_info->offset_at + seek_info->current_page_bytes;
+        seek_info->unit_end = seek_info->unit_at;
       }
     } else {
       debug_printf (2, "We are before!");
-      if (ret == -2) {
-        debug_printf (2, "Found it?!?");
+      
+      if (ret == NOT_FOUND_WITHIN_BOUNDS) {
         seek_info->offset_begin -= PAGESIZE;
         if (seek_info->offset_begin < 0)
           seek_info->offset_begin = 0;
+      }
+
+      if (seek_info->unit_target - seek_info->unit_at < 500) {
+        debug_printf (1, "Within 500ms of target");
+        found = 1;
       }
     }
 
@@ -659,14 +692,14 @@ seek_bisect (OggzSeekInfo * seek_info)
     }
 
     jumps++;
-  } while (!found && jumps<5);
+  } while (!found && jumps<100);
 
   result = seek_info->unit_at;
   reader->current_unit = result;
 
   debug_printf (1, "Bisected in %d steps", jumps);
 
-  debug_printf (2, "OUT, returning 0x%08llx", result);
+  debug_printf (3, "OUT, returning 0x%08llx", result);
   seek_info_dump (seek_info);
 
   return result;
@@ -850,6 +883,11 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 
   result = seek_bisect (&seek_info);
   debug_printf (2, "seek_bisect() returned 0x%08llx\n", result);
+
+  /* Reset end */
+  seek_info.offset_end = seek_info.cache.last_page_offset;
+  seek_info.offset_max = seek_info.cache.size;
+  seek_info.unit_end = seek_info.cache.unit_end;
 
   result = seek_scan (&seek_info);
   debug_printf (2, "seek_scan() returned 0x%08llx\n", result);
