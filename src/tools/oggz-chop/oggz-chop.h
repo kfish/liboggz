@@ -57,6 +57,7 @@ typedef struct _OCState {
 
   FILE * outfile;
   int do_skeleton; /* Boolean: should output contain skeleton? */
+  OGGZ * oggz;
   OGGZ * skeleton_writer;
   long skeleton_serialno;
 
@@ -72,5 +73,9 @@ typedef struct _OCState {
 
 
 int chop (OCState * state);
+
+int chop_init (OCState * state);
+int chop_run (OCState * state);
+int chop_close (OCState * state);
 
 #endif /* __OGGZ_CHOP_H__ */

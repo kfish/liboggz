@@ -139,6 +139,7 @@ cgi_main (OCState * state)
   time_t since_time, last_time;
   struct stat statbuf;
   int built_path_translated=0;
+  double duration;
 
   httpdate_init ();
 
@@ -200,10 +201,23 @@ cgi_main (OCState * state)
 
   parse_query (state, query_string);
 
-  header_end();
+  /* Init */
 
   err = 0;
-  err = chop (state);
+  err = chop_init (state);
+
+  if (state->end == -1.0) {
+    duration = ((double)oggz_get_duration (state->oggz)/1000.0) - state->start;
+  } else {
+    duration = state->end - state->start;
+  }
+  header_content_duration (duration);
+
+  header_end();
+
+  chop_run (state);
+
+  chop_close (state);
 
   if (built_path_translated && path_translated != NULL)
     free (path_translated);

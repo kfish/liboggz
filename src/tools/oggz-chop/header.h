@@ -4,6 +4,7 @@
 int header_accept_timeuri_ogg (void);
 int header_content_type_ogg (void);
 int header_content_length (int len);
+int header_content_duration (double duration);
 int header_last_modified (time_t mtime);
 int header_not_modified (void);
 int header_end (void);

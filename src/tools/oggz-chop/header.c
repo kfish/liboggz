@@ -47,6 +47,12 @@ header_content_length (off_t len)
 }
 
 int
+header_content_duration (double duration)
+{
+  return printf ("Content-Duration: %06.3f\n", duration);
+}
+
+int
 header_end (void)
 {
   putchar('\n');

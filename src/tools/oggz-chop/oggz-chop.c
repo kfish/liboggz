@@ -835,10 +835,8 @@ read_bos (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 int
-chop (OCState * state)
+chop_init (OCState * state)
 {
-  OGGZ * oggz;
-
   if (state == NULL || state->infilename == NULL) {
     fprintf (stderr, "oggz-chop: Initialization state invalid\n");
     return -1;
@@ -847,12 +845,12 @@ chop (OCState * state)
   state_init (state);
 
   if (strcmp (state->infilename, "-") == 0) {
-    oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
+    state->oggz = oggz_open_stdio (stdin, OGGZ_READ|OGGZ_AUTO);
   } else {
-    oggz = oggz_open (state->infilename, OGGZ_READ|OGGZ_AUTO);
+    state->oggz = oggz_open (state->infilename, OGGZ_READ|OGGZ_AUTO);
   }
 
-  if (oggz == NULL) {
+  if (state->oggz == NULL) {
     perror (state->infilename);
     return -1;
   }
@@ -865,26 +863,42 @@ chop (OCState * state)
       if (state->outfile == NULL) {
         fprintf (stderr, "oggz-chop: unable to open output file %s\n",
   	       state->outfilename);
-        oggz_close(oggz);
+        oggz_close(state->oggz);
         return -1;
       }
     }
+  }
+
+  if (strcmp (state->infilename, "-") != 0) {
+    oggz_read (state->oggz, 4096);
+    oggz_seek (state->oggz, 0, SEEK_SET);
   }
 
   /* Only need the writer if creating skeleton */
   if (state->do_skeleton) {
     state->skeleton_writer = oggz_open_stdio (state->outfile, OGGZ_WRITE);
     /* Choose a serialno that does not appear in the input stream. */
-    state->skeleton_serialno = oggz_serialno_new (oggz);
+    state->skeleton_serialno = oggz_serialno_new (state->oggz);
   }
 
   /* set up a demux filter on the reader */
-  oggz_set_read_page (oggz, -1, read_bos, state);
+  oggz_set_read_page (state->oggz, -1, read_bos, state);
 
-  oggz_run_set_blocksize (oggz, 1024*1024);
-  oggz_run (oggz);
+  oggz_run_set_blocksize (state->oggz, 1024*1024);
 
-  oggz_close (oggz);
+  return 0;
+}
+
+int
+chop_run (OCState * state)
+{
+  return oggz_run (state->oggz);
+}
+
+int
+chop_close (OCState * state)
+{
+  oggz_close (state->oggz);
 
   if (state->outfilename != NULL && !state->dry_run) {
     fclose (state->outfile);
@@ -893,4 +907,17 @@ chop (OCState * state)
   state_clear (state);
 
   return 0; 
+}
+
+int
+chop (OCState * state)
+{
+  int ret;
+
+  if ((ret = chop_init (state)) < 0)
+    return ret;
+
+  chop_run (state);
+
+  return chop_close (state);
 }
