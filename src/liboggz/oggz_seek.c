@@ -845,7 +845,7 @@ oggz_purge (OGGZ * oggz)
   return -1;
 }
 
-off_t
+oggz_off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   OggzSeekInfo seek_info;
@@ -871,14 +871,15 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
     offset += oggz->offset;
     break;
   case SEEK_END:
-    offset = seek_info.cache.size - offset;
+    offset = seek_info.cache.size + offset;
     break;
   case SEEK_SET:
   default:
     break;
   }
 
-  result = page_at_or_after (&seek_info, offset);
+  if ((result = page_at_or_after (&seek_info, offset)) == -1)
+    return -1;
 
   reader = &oggz->x.reader;
   reader->current_page_bytes = 0;
@@ -943,7 +944,7 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
     units += reader->current_unit;
     break;
   case SEEK_END:
-    units = seek_info.cache.unit_end - units;
+    units = seek_info.cache.unit_end + units;
     break;
   case SEEK_SET:
   default:

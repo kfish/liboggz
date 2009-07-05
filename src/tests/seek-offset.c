@@ -271,11 +271,11 @@ read_setup (OGGZ * reader, long n)
   return 0;
 }
 
-off_t
-test_seek_to_offset (OGGZ * reader, long n, off_t offset, int whence, off_t correct, int i)
+oggz_off_t
+test_seek_to_offset (OGGZ * reader, long n, oggz_off_t offset, int whence, oggz_off_t correct, int i)
 {
   char buf[64];
-  off_t result, nread;
+  oggz_off_t result, nread;
   oggz_position * pos;
 
   snprintf (buf, 64, "+ Seeking to offset 0x%08llx %s", offset, whence_words[whence]);
@@ -321,7 +321,7 @@ test_seek_to_offset (OGGZ * reader, long n, off_t offset, int whence, off_t corr
 int
 seek_test (OGGZ * reader, long n)
 {
-  off_t offset;
+  oggz_off_t offset;
   int i;
 
   oggz_set_read_callback (reader, -1, read_packet_test, NULL);
@@ -331,8 +331,8 @@ seek_test (OGGZ * reader, long n)
   test_seek_to_offset (reader, n, 0x0a000, SEEK_SET, 0x0ac6a, 12);
   test_seek_to_offset (reader, n, 0x02000, SEEK_SET, 0x025c9, 3);
   test_seek_to_offset (reader, n, 0x0f000, SEEK_SET, 0x0ffcf, 22);
-  test_seek_to_offset (reader, n, 0x01000, SEEK_END, 0x1212d, 24);
-  test_seek_to_offset (reader, n, 0x10000, SEEK_END, 0x0365c, 5);
+  test_seek_to_offset (reader, n, -0x01000, SEEK_END, 0x1212d, 24);
+  test_seek_to_offset (reader, n, -0x10000, SEEK_END, 0x0365c, 5);
 
   offset = oggz_seek (reader, 0x01000, SEEK_SET);
   test_seek_to_offset (reader, n, 0x07000, SEEK_CUR, 0x08af1, 9);
