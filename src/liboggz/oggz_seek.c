@@ -210,7 +210,7 @@ page_next (OggzSeekInfo * seek_info)
   oggz_off_t ret;
   int found = 0;
 
-  debug_printf (2, "IN");
+  debug_printf (3, "IN");
   seek_info_dump (seek_info);
 
   reader = &oggz->x.reader;
@@ -225,7 +225,7 @@ page_next (OggzSeekInfo * seek_info)
   seek_info->offset_at += seek_info->current_page_bytes;
   seek_info->current_page_bytes = 0;
 
-  debug_printf (2, "Updated offset_at ...");
+  debug_printf (3, "Updated offset_at ...");
   seek_info_dump (seek_info);
 
   do {
@@ -280,7 +280,7 @@ page_next_ok:
   granulepos = ogg_page_granulepos (og);
   seek_info->unit_at = oggz_get_unit (oggz, serialno, granulepos);
 
-  debug_printf (2, "ok: serialno %010ld, granulepos %lld", serialno, granulepos);
+  debug_printf (3, "ok: serialno %010ld, granulepos %lld", serialno, granulepos);
 
   seek_info_dump (seek_info);
 
@@ -306,7 +306,7 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
   OGGZ * oggz = seek_info->oggz;
   oggz_off_t ret;
 
-  debug_printf (2, "IN: offset 0x%08llx", offset);
+  debug_printf (3, "IN: offset 0x%08llx", offset);
 
   seek_info->offset_at = oggz_seek_raw (oggz, offset, SEEK_SET);
   seek_info->unit_at = -1;
@@ -314,7 +314,7 @@ page_at_or_after (OggzSeekInfo * seek_info, oggz_off_t offset)
 
   ret =  page_next (seek_info);
 
-  debug_printf (2, "OUT: wanted offset 0x%08llx, got 0x%08llx", offset, ret);
+  debug_printf (3, "OUT: wanted offset 0x%08llx, got 0x%08llx", offset, ret);
 
   return ret;
 }
@@ -334,7 +334,7 @@ packet_next (OggzSeekInfo * seek_info, oggz_off_t offset)
   oggz_stream_t * stream;
   ogg_stream_state * os;
 
-  debug_printf (2, "IN, offset 0x%08llx", offset);
+  debug_printf (3, "IN, offset 0x%08llx", offset);
 
   ret = page_at_or_after (seek_info, offset);
 
@@ -405,7 +405,7 @@ update_last_page (OggzSeekInfo * seek_info)
           seek_info->cache.unit_end = seek_info->unit_at;
   }
 
-  debug_printf (2, "OUT: last_page_offset is 0x%08llx", seek_info->cache.last_page_offset);
+  debug_printf (3, "OUT: last_page_offset is 0x%08llx", seek_info->cache.last_page_offset);
 
   return 0;
 }
@@ -508,6 +508,8 @@ guess (OggzSeekInfo * si)
     debug_printf (2, "Sticking to the start! Found?");
   }
 
+  debug_printf (2, "Guessed 0x%08llx", offset_guess);
+
   return offset_guess;
 }
 
@@ -518,10 +520,10 @@ seek_info_setup_units (OggzSeekInfo * si)
   oggz_off_t offset;
   ogg_page * og;
 
-  debug_printf (2, "IN");
+  debug_printf (3, "IN");
   seek_info_dump (si);
 
-  debug_printf (2, "Checking ...");
+  debug_printf (3, "Checking ...");
   if (si->offset_begin < 0) {
     si->offset_begin = 0;
     si->unit_begin = 0; /* XXX: cache.unit_begin */
@@ -583,7 +585,7 @@ seek_bisect (OggzSeekInfo * seek_info)
   oggz_off_t pre_offset_begin, pre_offset_end, pre_offset_at;
   int found=0, jumps=0, fwdscan;
 
-  debug_printf (2, "IN");
+  debug_printf (3, "IN");
   seek_info_dump (seek_info);
 
   reader = &oggz->x.reader;
@@ -613,7 +615,7 @@ seek_bisect (OggzSeekInfo * seek_info)
     fwdscan=0;
     earliest_nogp = 0;
     do {
-      debug_printf (2, "Doing fwdscan %d", fwdscan);
+      debug_printf (3, "Doing fwdscan %d", fwdscan);
       if ((ret = page_at_or_after (seek_info, offset)) == -1) {
         debug_printf (2, "page_at_or_after failed");
         /* XXX: FAIL spectacularly */
@@ -687,6 +689,7 @@ seek_scan (OggzSeekInfo * seek_info)
       continue;
 
     if (seek_info->unit_at == seek_info->unit_target) {
+      debug_printf (2, "at target");
       /* If this page has exactly the desired units, then it is ok to
          update the desired position to here only if the packet with
          that unit begins on this page. This can be determined in two
@@ -703,9 +706,11 @@ seek_scan (OggzSeekInfo * seek_info)
         offset = seek_info->offset_at;
       }
       break;
-    } else if (seek_info->unit_at >= seek_info->unit_target) {
+    } else if (seek_info->unit_at > seek_info->unit_target) {
+      debug_printf (2, "beyond target");
       break;
     } else {
+      debug_printf (2, "before target");
       unit = seek_info->unit_at;
       offset = seek_info->offset_at;
     }
