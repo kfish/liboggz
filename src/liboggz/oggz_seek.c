@@ -763,6 +763,44 @@ seek_scan (OggzSeekInfo * seek_info)
   return unit;
 }
 
+static ogg_int64_t
+oggz_seek_bisect_scan (OggzSeekInfo * seek_info)
+{
+  OGGZ * oggz = seek_info->oggz;
+  OggzReader * reader;
+  ogg_int64_t result;
+  oggz_off_t offset_end, offset_max;
+  ogg_int64_t unit_end;
+  ogg_page * og;
+
+  offset_end = seek_info->offset_end;
+  offset_max = seek_info->offset_max;
+  unit_end = seek_info->unit_end;
+
+  result = seek_bisect (seek_info);
+  debug_printf (2, "seek_bisect() returned 0x%08llx\n", result);
+
+  /* Reset end */
+  seek_info->offset_end = offset_end;
+  seek_info->offset_max = offset_max;
+  seek_info->unit_end = unit_end;
+
+  result = seek_scan (seek_info);
+  debug_printf (2, "seek_scan() returned 0x%08llx\n", result);
+
+  oggz->offset = result;
+
+  reader = &oggz->x.reader;
+  reader->current_page_bytes = 0;
+
+  og = &seek_info->og_at;
+  reader->expect_hole = ogg_page_continued(og);
+
+  packet_next (seek_info, seek_info->offset_at);
+
+  return result;
+}
+
 /************************************************************
  * Public API
  */
@@ -839,8 +877,6 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   OggzSeekInfo seek_info;
   OggzReader * reader;
-  ogg_int64_t result;
-  ogg_page * og;
 
   if (oggz == NULL)
     return OGGZ_ERR_BAD_OGGZ;
@@ -878,31 +914,9 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   seek_info.unit_begin = 0;
   seek_info.unit_end = seek_info.cache.unit_end;
 
-
   seek_info_dump((&seek_info));
 
-  result = seek_bisect (&seek_info);
-  debug_printf (2, "seek_bisect() returned 0x%08llx\n", result);
-
-  /* Reset end */
-  seek_info.offset_end = seek_info.cache.last_page_offset;
-  seek_info.offset_max = seek_info.cache.size;
-  seek_info.unit_end = seek_info.cache.unit_end;
-
-  result = seek_scan (&seek_info);
-  debug_printf (2, "seek_scan() returned 0x%08llx\n", result);
-
-  oggz->offset = result;
-
-  reader->current_page_bytes = 0;
-
-  og = &seek_info.og_at;
-  reader->expect_hole = ogg_page_continued(og);
-
-  //return oggz_seek_raw (oggz, result, SEEK_SET);
-  packet_next (&seek_info, seek_info.offset_at);
-
-  return result;
+  return oggz_seek_bisect_scan (&seek_info);
 }
 
 off_t
