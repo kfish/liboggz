@@ -50,6 +50,24 @@ static int has_skeleton = 0;
 static int verbose = 0;
 
 static int
+print_time (ogg_int64_t units)
+{
+  ogg_int64_t hrs, min;
+  double sec;
+  char * sign;
+
+  sign = (units < 0) ? "-" : "";
+
+  if (units < 0) units = -units;
+
+  hrs = (int) (units/3600000);
+  min = (int) ((units - (hrs * 3600000)) / 60000);
+  sec = ((double)units - ((double)hrs * 3600000.0)- ((double)min * 60000.0)) / 1000.0;
+
+  return printf ("%s%02lld:%02lld:%06.3f", sign, hrs, min, sec);
+}
+
+static int
 read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
   ogg_packet * op = &zp->op;
@@ -73,18 +91,23 @@ try_seek_units (OGGZ * oggz, ogg_int64_t units)
 {
   ogg_int64_t result, diff;
 
-  if (verbose)
-    printf ("\tAttempt seek to %" PRId64 " ms:\n", units);
+  if (verbose) {
+    printf ("Attempting seek to ");
+    print_time (units);
+    printf (":\n");
+  }
 
   result = oggz_seek_units (oggz, units, SEEK_SET);
   diff = result - units;
 
-  if (verbose)
-    printf ("\t%0" PRId64 "x: %" PRId64 " ms (%+" PRId64 " ms)\n",
-	    oggz_tell (oggz), oggz_tell_units (oggz), diff);
-
   if (result < 0) {
     FAIL ("Seek failure\n");
+  }
+
+  if (verbose) {
+    printf ("\t0x%0" PRId64 ": ", oggz_tell (oggz));
+    print_time (oggz_tell_units (oggz));
+    printf (" (%+" PRId64 " ms)\n", diff);
   }
 
   if (result != oggz_tell_units (oggz))
@@ -133,10 +156,12 @@ main (int argc, char * argv[])
   while ((n = oggz_read (oggz, 1024)) > 0);
   oggz_set_data_start (oggz, oggz_tell (oggz));
   
-  max_units = oggz_seek_units (oggz, 0, SEEK_END);
-  if (verbose)
-    printf ("\t%0" PRId64 "x: %" PRId64 " ms\n",
-            oggz_tell (oggz), oggz_tell_units (oggz));
+  max_units = oggz_get_duration (oggz);
+  if (verbose) {
+    printf ("Duration: ");
+    print_time (max_units);
+    printf ("\n");
+  }
 
   try_seek_units (oggz, max_units / 2);
   try_seek_units (oggz, 0);
