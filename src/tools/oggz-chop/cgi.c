@@ -113,11 +113,11 @@ parse_range (OCState * state, char * range, oggz_off_t size)
 
   if (*start == '\0') {
     start_offset = size - strtol (end, NULL, 0);
-    end_offset = size;
+    end_offset = size-1;
   } else {
     start_offset = strtol (start, NULL, 0);
     if (*end == '\0') {
-      end_offset = size;
+      end_offset = size-1;
     } else {
       end_offset = strtol (end, NULL, 0);
     }
@@ -190,6 +190,7 @@ cgi_main (OCState * state)
   struct stat statbuf;
   int built_path_translated=0;
   double duration;
+  oggz_off_t size;
 
   httpdate_init ();
 
@@ -267,20 +268,19 @@ cgi_main (OCState * state)
   }
   header_content_duration (duration);
 
+  size = oggz_get_length (state->oggz);
+
   if (range != NULL) {
-    oggz_off_t range_end, size;
-
-    size = oggz_get_length (state->oggz);
-
     parse_range (state, range, size);
 
-    if (state->byte_range_end == -1) {
-      range_end = size;
-    } else {
-      range_end = state->byte_range_end;
-    }
+    header_content_range_bytes (state->byte_range_start, state->byte_range_end, size);
+    header_content_length (state->byte_range_end - state->byte_range_start + 1);
 
-    header_content_range_bytes (state->byte_range_start, range_end, size);
+    /* Now that the headers are done, increment byte_range_end so that it
+     * can be used as a counter of remaining bytes for fwrite */
+    state->byte_range_end++;
+  } else if (state->start == 0.0 && state->end == -1.0) {
+    header_content_length (size);
   }
 
   header_end();

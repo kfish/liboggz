@@ -44,9 +44,9 @@ header_accept_timeuri_ogg (void)
 }
 
 int
-header_content_length (off_t len)
+header_content_length (oggz_off_t len)
 {
-  return printf ("Content-Length: %ld\n", (long)len);
+  return printf ("Content-Length: %lld\n", len);
 }
 
 int
