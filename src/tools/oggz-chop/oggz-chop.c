@@ -53,6 +53,9 @@
 #define snprintf _snprintf
 #endif 
 
+#undef MIN
+#define MIN(a,b) (((a)<(b))?(a):(b))
+
 /************************************************************
  * OCTrackState
  */
@@ -189,6 +192,37 @@ _ogg_page_set_eos (const ogg_page * og)
   ogg_page_checksum_set ((ogg_page *)og);
 }
 
+static size_t
+fwrite_range (OCState * state, const unsigned char * buf, size_t len)
+{
+  size_t ret;
+  oggz_off_t bs, bl;
+
+  /* If we are already beyond the requested byte range, return */
+  if (state->byte_range_end == 0)
+    return 0;
+
+  /* If the requested byte range is after this, just decrement
+   * the byte range bounds. */
+  if (state->byte_range_start >= len) {
+    state->byte_range_start -= len;
+    if (state->byte_range_end != -1)
+      state->byte_range_end -= len;
+    return 0;
+  }
+
+  /* Else write the portion that is to be written */
+  bs = state->byte_range_start;
+  state->byte_range_start = 0;
+  if (state->byte_range_end == -1) {
+    bl = len;
+  } else {
+    bl = MIN (len, state->byte_range_end);
+    state->byte_range_end -= bl;
+  }
+  return fwrite (buf+bs, 1, bl-bs, state->outfile);
+}
+
 static void
 fwrite_ogg_page (OCState * state, const ogg_page * og)
 {
@@ -196,11 +230,10 @@ fwrite_ogg_page (OCState * state, const ogg_page * og)
 
   if (og == NULL) return;
 
-  if (!state->dry_run) {
-    n = fwrite (og->header, 1, og->header_len, state->outfile);
-    if (n == (size_t)og->header_len)
-      n = fwrite (og->body, 1, og->body_len, state->outfile);
-  }
+  if (state->dry_run) return;
+
+  n = fwrite_range (state, og->header, og->header_len);
+  n = fwrite_range (state, og->body, og->body_len);
 }
 
 /************************************************************

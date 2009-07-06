@@ -148,8 +148,10 @@ cgi_main (OCState * state)
   query_string = getenv ("QUERY_STRING");
   if_modified_since = getenv ("HTTP_IF_MODIFIED_SINCE");
 
+  /* Default values */
   memset (state, 0, sizeof(*state));
   state->end = -1.0;
+  state->byte_range_end = -1;
   state->do_skeleton = 1;
 
   if (path_translated == NULL) {

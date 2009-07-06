@@ -80,6 +80,7 @@ cmd_main (OCState * state, int argc, char * argv[])
 
   memset (state, 0, sizeof(*state));
   state->end = -1.0;
+  state->byte_range_end = -1;
   state->do_skeleton = 1;
 
   while (1) {
