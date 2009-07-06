@@ -250,6 +250,7 @@ cgi_main (OCState * state)
 
   header_last_modified (last_time);
 
+  header_accept_ranges ();
   header_accept_timeuri_ogg ();
 
   parse_query (state, query_string);

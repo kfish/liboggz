@@ -13,6 +13,7 @@
 
 #define CONTENT_TYPE_OGG "Content-Type: application/ogg\n"
 #define ACCEPT_TIMEURI_OGG "X-Accept-TimeURI: application/ogg\n"
+#define ACCEPT_RANGES "Accept-Ranges: bytes\n"
 
 int
 header_last_modified (time_t mtime)
@@ -59,6 +60,12 @@ header_content_range_bytes (oggz_off_t range_start, oggz_off_t range_end,
                             oggz_off_t size)
 {
   return printf ("Content-Range: bytes %lld-%lld/%lld\n", range_start, range_end, size);
+}
+
+int
+header_accept_ranges (void)
+{
+  return printf (ACCEPT_RANGES);
 }
 
 int
