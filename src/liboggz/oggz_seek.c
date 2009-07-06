@@ -84,7 +84,7 @@ struct _OggzSeekTrack {
 
 struct OggzSeekCache {
   time_t mtime;
-  off_t size;
+  oggz_off_t size;
   oggz_off_t last_page_offset;
   ogg_int64_t unit_end;
 };
@@ -1021,6 +1021,21 @@ oggz_get_duration (OGGZ * oggz)
     return -1;
 
   return seek_info.cache.unit_end;
+}
+
+oggz_off_t
+oggz_get_length (OGGZ * oggz)
+{
+  OggzSeekInfo seek_info;
+
+  memset (&seek_info, 0, sizeof(OggzSeekInfo));
+
+  seek_info.oggz = oggz;
+
+  if (update_seek_cache (&seek_info) == -1)
+    return -1;
+
+  return seek_info.cache.size;
 }
 
 long

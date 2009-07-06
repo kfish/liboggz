@@ -96,6 +96,13 @@
 long oggz_get_duration (OGGZ * oggz);
 
 /**
+ * Query the length in bytes of an Ogg resource.
+ * \param oggz An OGGZ handle
+ * \returns the length in bytes
+ */
+oggz_off_t oggz_get_length (OGGZ * oggz);
+
+/**
  * Query the current offset in milliseconds, or custom units as
  * specified by a Metric function you have provided.
  * \param oggz An OGGZ handle
