@@ -199,8 +199,9 @@ fwrite_range (OCState * state, const unsigned char * buf, size_t len)
   oggz_off_t bs, bl;
 
   /* If we are already beyond the requested byte range, return */
-  if (state->byte_range_end == 0)
+  if (state->byte_range_end == 0) {
     return 0;
+  }
 
   /* If the requested byte range is after this, just decrement
    * the byte range bounds. */
@@ -220,7 +221,8 @@ fwrite_range (OCState * state, const unsigned char * buf, size_t len)
     bl = MIN (len, state->byte_range_end);
     state->byte_range_end -= bl;
   }
-  return fwrite (buf+bs, 1, bl-bs, state->outfile);
+
+  return fwrite (&buf[bs], 1, (size_t)bl-bs, state->outfile);
 }
 
 static void
@@ -378,6 +380,14 @@ track_state_advance_page_accum (OCTrackState * ts)
 /************************************************************
  * Skeleton
  */
+
+static size_t
+skeleton_io_write (void * user_handle, void * buf, size_t n)
+{
+  OCState * state = (OCState *)user_handle;
+
+  return fwrite_range (state, buf, n);
+}
 
 static long
 skeleton_write_packet (OCState * state, ogg_packet * op)
@@ -909,7 +919,8 @@ chop_init (OCState * state)
 
   /* Only need the writer if creating skeleton */
   if (state->do_skeleton) {
-    state->skeleton_writer = oggz_open_stdio (state->outfile, OGGZ_WRITE);
+    state->skeleton_writer = oggz_new (OGGZ_WRITE);
+    oggz_io_set_write (state->skeleton_writer, skeleton_io_write, state);
     /* Choose a serialno that does not appear in the input stream. */
     state->skeleton_serialno = oggz_serialno_new (state->oggz);
   }
