@@ -273,12 +273,21 @@ cgi_main (OCState * state)
   if (range != NULL) {
     parse_range (state, range, size);
 
-    header_content_range_bytes (state->byte_range_start, state->byte_range_end, size);
-    header_content_length (state->byte_range_end - state->byte_range_start + 1);
+    if (state->byte_range_start > state->byte_range_end ||
+        state->byte_range_end >= size) {
+      header_status_416();
+      header_content_range_star (size);
+      header_end();
+      return 1;
+    } else {
+      header_status_206();
+      header_content_range_bytes (state->byte_range_start, state->byte_range_end, size);
+      header_content_length (state->byte_range_end - state->byte_range_start + 1);
 
-    /* Now that the headers are done, increment byte_range_end so that it
-     * can be used as a counter of remaining bytes for fwrite */
-    state->byte_range_end++;
+      /* Now that the headers are done, increment byte_range_end so that it
+       * can be used as a counter of remaining bytes for fwrite */
+      state->byte_range_end++;
+    }
   } else if (state->start == 0.0 && state->end == -1.0) {
     header_content_length (size);
   }

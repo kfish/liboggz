@@ -16,6 +16,18 @@
 #define ACCEPT_RANGES "Accept-Ranges: bytes\n"
 
 int
+header_status_206 (void)
+{
+  return printf ("Status: 206 Partial Content\n");
+}
+
+int
+header_status_416 (void)
+{
+  return printf ("Status: 416 Requested range not satisfiable\n");
+}
+
+int
 header_last_modified (time_t mtime)
 {
   char buf[30];
@@ -60,6 +72,12 @@ header_content_range_bytes (oggz_off_t range_start, oggz_off_t range_end,
                             oggz_off_t size)
 {
   return printf ("Content-Range: bytes %lld-%lld/%lld\n", range_start, range_end, size);
+}
+
+int
+header_content_range_star (oggz_off_t size)
+{
+  return printf ("Content-Range: bytes */%lld\n", size);
 }
 
 int
