@@ -37,7 +37,7 @@
 #include <errno.h>
 #include <math.h>
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "oggz-chop.h"
 #include "skeleton.h"

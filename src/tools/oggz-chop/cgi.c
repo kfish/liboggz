@@ -215,6 +215,20 @@ cgi_main (OCState * state)
   }
   header_content_duration (duration);
 
+  if (state->byte_range_start > 0) {
+    oggz_off_t range_end, size;
+
+    size = oggz_get_length (state->oggz);
+
+    if (state->byte_range_end == -1) {
+      range_end = size;
+    } else {
+      range_end = state->byte_range_end;
+    }
+
+    header_content_range_bytes (state->byte_range_start, range_end, size);
+  }
+
   header_end();
 
   chop_run (state);

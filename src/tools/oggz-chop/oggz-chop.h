@@ -32,7 +32,7 @@
 #ifndef __OGGZ_CHOP_H__
 #define __OGGZ_CHOP_H__
 
-#include <oggz/oggz.h>
+#include "oggz/oggz.h"
 
 #include "skeleton.h"
 

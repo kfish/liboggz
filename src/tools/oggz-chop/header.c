@@ -9,6 +9,8 @@
 
 #include "httpdate.h"
 
+#include "oggz/oggz_off_t.h"
+
 #define CONTENT_TYPE_OGG "Content-Type: application/ogg\n"
 #define ACCEPT_TIMEURI_OGG "X-Accept-TimeURI: application/ogg\n"
 
@@ -50,6 +52,13 @@ int
 header_content_duration (double duration)
 {
   return printf ("Content-Duration: %06.3f\n", duration);
+}
+
+int
+header_content_range_bytes (oggz_off_t range_start, oggz_off_t range_end,
+                            oggz_off_t size)
+{
+  return printf ("Content-Range: bytes %lld-%lld/%lld\n", range_start, range_end, size);
 }
 
 int
