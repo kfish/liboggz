@@ -81,6 +81,55 @@ parse_query (OCState * state, char * query)
 }
 
 int
+parse_range (OCState * state, char * range, oggz_off_t size)
+{
+  char * range_unit, * start, * end, * next;
+  oggz_off_t start_offset=0, end_offset=-1;
+
+  if (!range) return 0;
+
+  range_unit = range;
+
+  start = strchr (range, '=');
+  end = strchr (range, '-'); 
+  next = strchr (range, ',');
+
+  if (!start) return -1;
+
+  *start++ = '\0';
+
+  /* Only handle byte ranges */
+  if (strcmp (range_unit, "bytes")) {
+    fprintf (stderr, "oggz-chop: parse_range: not bytes\n");
+    return -1;
+  }
+
+  if (end == NULL) {
+    fprintf (stderr, "oggz-chop: range has no '-'\n");
+    return -1;
+  }
+
+  *end++ = '\0';
+
+  if (*start == '\0') {
+    start_offset = size - strtol (end, NULL, 0);
+    end_offset = size;
+  } else {
+    start_offset = strtol (start, NULL, 0);
+    if (*end == '\0') {
+      end_offset = size;
+    } else {
+      end_offset = strtol (end, NULL, 0);
+    }
+  }
+
+  state->byte_range_start = start_offset;
+  state->byte_range_end = end_offset;
+
+  return 0;
+}
+
+int
 cgi_test (void)
 {
   char * gateway_interface;
@@ -136,6 +185,7 @@ cgi_main (OCState * state)
   char * path_translated;
   char * query_string;
   char * if_modified_since;
+  char * range;
   time_t since_time, last_time;
   struct stat statbuf;
   int built_path_translated=0;
@@ -147,6 +197,7 @@ cgi_main (OCState * state)
   path_translated = getenv ("PATH_TRANSLATED");
   query_string = getenv ("QUERY_STRING");
   if_modified_since = getenv ("HTTP_IF_MODIFIED_SINCE");
+  range = getenv ("HTTP_RANGE");
 
   /* Default values */
   memset (state, 0, sizeof(*state));
@@ -215,10 +266,12 @@ cgi_main (OCState * state)
   }
   header_content_duration (duration);
 
-  if (state->byte_range_start > 0) {
+  if (range != NULL) {
     oggz_off_t range_end, size;
 
     size = oggz_get_length (state->oggz);
+
+    parse_range (state, range, size);
 
     if (state->byte_range_end == -1) {
       range_end = size;
