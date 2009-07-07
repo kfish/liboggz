@@ -493,6 +493,11 @@ guess (OggzSeekInfo * si)
   debug_printf (2, "Guessing, at %lld in (%lld, %lld)", si->unit_at, si->unit_begin, si->unit_end);
 
   if (si->unit_end != -1) {
+    if (si->unit_end == si->unit_begin) {
+      debug_printf (2, "unit_end == unit_begin");
+      return si->offset_begin;
+    }
+
     guess_ratio =
       GUESS_MULTIPLIER * (si->unit_target - si->unit_begin) /
         (si->unit_end - si->unit_begin);
@@ -518,7 +523,7 @@ guess (OggzSeekInfo * si)
                   GUESS_MULTIPLIER, guess_ratio);
   } else {
     if (si->unit_at == si->unit_begin) {
-      debug_printf (2, "at unit_begin, FAIL");
+      debug_printf (2, "at unit_begin");
       return si->offset_begin;
     }
 
