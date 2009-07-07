@@ -281,7 +281,11 @@ cgi_main (OCState * state)
       return 1;
     } else {
       header_status_206();
-      header_content_range_bytes (state->byte_range_start, state->byte_range_end, size);
+      if (state->start > 0.0 || state->end != -1.0) {
+        header_content_range_bytes (state->byte_range_start, state->byte_range_end, -1);
+      } else {
+        header_content_range_bytes (state->byte_range_start, state->byte_range_end, size);
+      }
       header_content_length (state->byte_range_end - state->byte_range_start + 1);
 
       /* Now that the headers are done, increment byte_range_end so that it

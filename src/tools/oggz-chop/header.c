@@ -71,7 +71,11 @@ int
 header_content_range_bytes (oggz_off_t range_start, oggz_off_t range_end,
                             oggz_off_t size)
 {
-  return printf ("Content-Range: bytes %lld-%lld/%lld\n", range_start, range_end, size);
+  if (size == -1) {
+    return printf ("Content-Range: bytes %lld-%lld/*\n", range_start, range_end);
+  } else {
+    return printf ("Content-Range: bytes %lld-%lld/%lld\n", range_start, range_end, size);
+  }
 }
 
 int
