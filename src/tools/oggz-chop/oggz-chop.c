@@ -591,22 +591,31 @@ read_plain (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 {
   OCState * state = (OCState *)user_data;
   OCTrackState * ts;
+  OCPageAccum * pa;
   double page_time;
   long gp;
+  int accum_size;
 
   ts = oggz_table_lookup (state->tracks, serialno);
+  accum_size = oggz_table_size (ts->page_accum);
 
   page_time = oggz_tell_units (oggz) / 1000.0;
 
 #ifdef DEBUG
   printf ("page_time: %g\tspan (%g, %g)\n", page_time, state->start, state->end);
-  printf ("\tpageno: %d, numheaders %d\n", ogg_page_pageno(og),
+  printf ("\tpageno: %ld, numheaders %d\n", ogg_page_pageno(og),
           oggz_stream_get_numheaders (oggz, serialno));
 #endif
 
   if (page_time < state->start) {
-    if ((gp = ogg_page_granulepos (OGG_PAGE_CONST(og))) != -1)
+    if ((gp = ogg_page_granulepos (OGG_PAGE_CONST(og))) == -1) {
+      /* Add a copy of this to the page accumulator */
+      pa = page_accum_new (og, page_time);
+      oggz_table_insert (ts->page_accum, accum_size, pa);
+    } else {
       ts->fisbone.start_granule = ogg_page_granulepos (OGG_PAGE_CONST(og));
+      track_state_remove_page_accum (ts);
+    }
   } else if (page_time >= state->start &&
       (state->end == -1 || page_time <= state->end)) {
 
@@ -766,13 +775,12 @@ read_headers (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
     ts->headers_remaining -= ogg_page_packets (OGG_PAGE_CONST(og));
 
     if (ts->headers_remaining <= 0) {
+      ts->page_accum = oggz_table_new();
       if (state->start == 0.0 || oggz_get_granuleshift (oggz, serialno) == 0) {
         oggz_set_read_page (oggz, serialno, read_plain, state);
       } else if (content_type == OGGZ_CONTENT_DIRAC) {
-        ts->page_accum = oggz_table_new();
         oggz_set_read_page (oggz, serialno, read_dirac, state);
       } else {
-        ts->page_accum = oggz_table_new();
         oggz_set_read_page (oggz, serialno, read_gs, state);
       }
     }
