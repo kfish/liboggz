@@ -277,7 +277,8 @@ track_state_advance_page_accum (OCTrackState * ts)
    */
   succ_continued = 1;
 
-  earliest_new = accum_size = oggz_table_size (ts->page_accum);
+  earliest_new = 0;
+  accum_size = oggz_table_size (ts->page_accum);
 
   /* Working backwards through the page accumulator ... */
   for (i = accum_size-1; i >= 0; i--) {
