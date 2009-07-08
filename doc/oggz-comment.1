@@ -44,6 +44,28 @@ specified \fBserialno\fR.
 Display usage information and exit. 
 .IP "\-v, \-\-version" 10 
 Output version information and exit. 
+
+.SH EXAMPLES
+.PP
+List all comments in file.ogg:
+.PP
+.RS
+\f(CWoggz comment -l file.ogg\fP
+.RE
+.PP
+List only the comments in the Theora bitstream in file.ogv:
+.PP
+.RS
+\f(CWoggz comment -l -c theora file.ogv\fP
+.RE
+.PP
+Add the comment "GENRE=Rock" to the Vorbis bitstream of file.ogv,
+writing output to output.ogv:
+.PP
+.RS
+\f(CWoggz comment -c vorbis -o output.ogv file.ogg GENRE=Rock\fP
+.RE
+
 .SH "AUTHOR" 
 .PP 
 Kangyuan Niu        August  5, 2007;      
