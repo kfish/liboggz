@@ -297,7 +297,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 
     packetno = (int)oggz_table_lookup (ovdata->packetno, serialno);
     headers = oggz_stream_get_numheaders (oggz, serialno);
-    if (packetno < headers) {
+    if (packetno < headers-1) {
       /* The previous page was headers, and more are expected */
       packetno += packets;
       if (oggz_table_insert (ovdata->packetno, serialno, (void *)packetno) == NULL)
