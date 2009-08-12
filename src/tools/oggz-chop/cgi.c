@@ -37,6 +37,9 @@ set_param (OCState * state, char * key, char * val)
     }
     state->start = parse_timespec (val);
   }
+
+  /* Append &download to set "Content-Disposition: attachment" */
+  if (!strncmp ("download", key, 8)) state->is_attachment = 1;
 }
 
 /**
@@ -260,6 +263,10 @@ cgi_main (OCState * state)
 
   err = 0;
   err = chop_init (state);
+
+  if (state->is_attachment) {
+    header_content_disposition_attachment (NULL);
+  }
 
   if (state->end == -1.0) {
     duration = ((double)oggz_get_duration (state->oggz)/1000.0) - state->start;

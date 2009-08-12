@@ -12,6 +12,7 @@
 #include "oggz/oggz_off_t.h"
 
 #define CONTENT_TYPE_OGG "Content-Type: application/ogg\n"
+#define CONTENT_DISPOSITION_ATTACHMENT_FMT "Content-Disposition: attachment; filename=%s\n"
 #define ACCEPT_TIMEURI_OGG "X-Accept-TimeURI: application/ogg\n"
 #define ACCEPT_RANGES "Accept-Ranges: bytes\n"
 
@@ -47,6 +48,20 @@ int
 header_content_type_ogg (void)
 {
   return printf (CONTENT_TYPE_OGG);
+}
+
+int
+header_content_disposition_attachment (char * filename)
+{
+  char * f;
+
+  if (filename == NULL) {
+    f = "myvideo.ogg";
+  } else {
+    f = filename;
+  }
+
+  return printf (CONTENT_DISPOSITION_ATTACHMENT_FMT, f);
 }
 
 int

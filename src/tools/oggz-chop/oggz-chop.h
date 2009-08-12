@@ -61,6 +61,8 @@ typedef struct _OCState {
   OGGZ * skeleton_writer;
   long skeleton_serialno;
 
+  int original_had_skeleton;
+
   /* Time range requested */
   double start;
   double end;
@@ -69,7 +71,7 @@ typedef struct _OCState {
   oggz_off_t byte_range_start;
   oggz_off_t byte_range_end;
 
-  int original_had_skeleton;
+  int is_attachment;
 
   /* Commandline options */
   int dry_run;

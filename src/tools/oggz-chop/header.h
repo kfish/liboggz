@@ -7,6 +7,7 @@ int header_accept_timeuri_ogg (void);
 int header_content_type_ogg (void);
 int header_content_length (oggz_off_t len);
 int header_content_duration (double duration);
+int header_content_disposition_attachment (char * filename);
 int header_content_range_bytes (oggz_off_t range_start,
                                 oggz_off_t range_end,
                                 oggz_off_t size);
