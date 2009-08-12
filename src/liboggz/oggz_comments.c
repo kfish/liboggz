@@ -587,8 +587,10 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
      if ((nvalue = oggz_strdup_len (c, len)) == NULL)
        return OGGZ_ERR_OUT_OF_MEMORY;
 
-     if (_oggz_comment_set_vendor (oggz, serialno, nvalue) == OGGZ_ERR_OUT_OF_MEMORY)
+     if (_oggz_comment_set_vendor (oggz, serialno, nvalue) == OGGZ_ERR_OUT_OF_MEMORY) {
+       oggz_free (nvalue);
        return OGGZ_ERR_OUT_OF_MEMORY;
+     }
 
      oggz_free (nvalue);
    }
@@ -626,16 +628,20 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
          printf ("oggz_comments_decode: %s -> %s (length %d)\n",
          name, nvalue, n);
 #endif
-         if (_oggz_comment_add_byname (stream, name, nvalue) == NULL)
+         if (_oggz_comment_add_byname (stream, name, nvalue) == NULL) {
+           oggz_free (nvalue);
            return OGGZ_ERR_OUT_OF_MEMORY;
+	 }
 
          oggz_free (nvalue);
       } else {
          if ((nvalue = oggz_strdup_len (name, len)) == NULL)
            return OGGZ_ERR_OUT_OF_MEMORY;
 
-         if (_oggz_comment_add_byname (stream, nvalue, NULL) == NULL)
+         if (_oggz_comment_add_byname (stream, nvalue, NULL) == NULL) {
+           oggz_free (nvalue);
            return OGGZ_ERR_OUT_OF_MEMORY;
+	 }
 
          oggz_free (nvalue);
       }
