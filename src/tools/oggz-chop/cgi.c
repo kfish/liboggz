@@ -6,6 +6,7 @@
 #include <errno.h>
 #include <sys/types.h>
 #include <sys/stat.h>
+#include <libgen.h> /* basename() */
 
 #include "oggz-chop.h"
 #include "header.h"
@@ -180,6 +181,55 @@ path_undefined (char * vars)
   return -1;
 }
 
+static int
+sprint_time (char * s, double seconds)
+{
+  int hrs, min;
+  double sec;
+  char * sign;
+
+  sign = (seconds < 0.0) ? "-" : "";
+
+  if (seconds < 0.0) seconds = -seconds;
+
+  hrs = (int) (seconds/3600.0);
+  min = (int) ((seconds - ((double)hrs * 3600.0)) / 60.0);
+  sec = seconds - ((double)hrs * 3600.0)- ((double)min * 60.0);
+
+  return sprintf (s, "%s%02d:%02d:%06.3f", sign, hrs, min, sec);
+}
+
+void
+set_disposition_attachment (OCState * state, char * path_translated)
+{
+  int n=0;
+  char *p, *b;
+  char buf[512];
+
+  p = strdup (path_translated);
+  b = basename (p);
+  if (state->end == -1.0) {
+    if (state->start == 0.0) {
+      strcpy (buf, b);
+    } else {
+      n = sprintf (buf, "%s_", b);
+      sprint_time (&buf[n], state->start);
+    }
+  } else {
+    if (state->start == 0.0) {
+      n = sprintf (buf, "%s_0-", b);
+      sprint_time (&buf[n], state->end);
+    } else {
+      n = sprintf (buf, "%s_", b);
+      n += sprint_time (&buf[n], state->start);
+      n += sprintf (&buf[n], "-");
+      sprint_time (&buf[n], state->end);
+    }
+  }
+  header_content_disposition_attachment (buf);
+  free (p);
+}
+
 int
 cgi_main (OCState * state)
 {
@@ -265,7 +315,7 @@ cgi_main (OCState * state)
   err = chop_init (state);
 
   if (state->is_attachment) {
-    header_content_disposition_attachment (NULL);
+    set_disposition_attachment (state, path_translated);
   }
 
   if (state->end == -1.0) {
