@@ -203,29 +203,40 @@ void
 set_disposition_attachment (OCState * state, char * path_translated)
 {
   int n=0;
-  char *p, *b;
+  char *p, *b, *ext;
   char buf[512];
 
   p = strdup (path_translated);
   b = basename (p);
+  ext = strrchr (b, '.');
+  if (ext != NULL) {
+    *ext++ = '\0';
+  }
+
   if (state->end == -1.0) {
     if (state->start == 0.0) {
       strcpy (buf, b);
     } else {
       n = sprintf (buf, "%s_", b);
-      sprint_time (&buf[n], state->start);
+      n += sprint_time (&buf[n], state->start);
     }
   } else {
     if (state->start == 0.0) {
       n = sprintf (buf, "%s_0-", b);
-      sprint_time (&buf[n], state->end);
+      n += sprint_time (&buf[n], state->end);
     } else {
       n = sprintf (buf, "%s_", b);
       n += sprint_time (&buf[n], state->start);
       n += sprintf (&buf[n], "-");
-      sprint_time (&buf[n], state->end);
+      n += sprint_time (&buf[n], state->end);
     }
   }
+
+  /* Append file extension if earlier removed */
+  if (ext) {
+      sprintf (&buf[n], ".%s", ext);
+  }
+
   header_content_disposition_attachment (buf);
   free (p);
 }
