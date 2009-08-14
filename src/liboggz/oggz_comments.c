@@ -366,7 +366,8 @@ _oggz_comment_add_byname (oggz_stream_t * stream, const char * name, const char 
     if (comment->name && !strcasecmp (name, comment->name)) {
       if (comment->value == NULL) {
         if (value == NULL) return comment;
-      } else if (!strcmp (value, comment->value)) {
+      } else if ((value && !strcmp (value, comment->value)) || 
+                 (value == NULL && comment->value == NULL)) {
         return comment;
       }
     }
