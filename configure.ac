@@ -63,7 +63,6 @@ AC_TRY_COMPILE([], [
 CFLAGS="$ac_save_CFLAGS"
 
 # Checks for library functions.
-AC_FUNC_REALLOC
 AC_CHECK_FUNCS([memmove])
 
 # Check for pkg-config
