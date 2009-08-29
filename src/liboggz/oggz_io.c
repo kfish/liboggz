@@ -100,7 +100,7 @@ oggz_io_seek (OGGZ * oggz, oggz_off_t offset, int whence)
   OggzIO * io;
 
   if (oggz->file != NULL) {
-    if (fseek (oggz->file, offset, whence) == -1) {
+    if (fseeko (oggz->file, offset, whence) == -1) {
       if (errno == ESPIPE) {
 	/*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
       } else {
@@ -128,7 +128,7 @@ oggz_io_tell (OGGZ * oggz)
   oggz_off_t offset;
 
   if (oggz->file != NULL) {
-    if ((offset = ftell (oggz->file)) == -1) {
+    if ((offset = ftello (oggz->file)) == -1) {
       if (errno == ESPIPE) {
 	/*oggz_set_error (oggz, OGGZ_ERR_NOSEEK);*/
       } else {

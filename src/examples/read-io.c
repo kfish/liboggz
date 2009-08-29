@@ -42,6 +42,17 @@
 #  define PRId64 "I64d"
 #endif
 
+#ifdef WIN32
+#  include <io.h>
+#  if sizeof(oggz_off_t) == 8
+#    undef fseeko
+#    define fseeko _fseeki64
+#    undef ftello
+#    define ftello _ftelli64
+#    undef _INC_STAT_INL
+#  endif
+#endif
+
 static int got_an_eos = 0;
 
 static int

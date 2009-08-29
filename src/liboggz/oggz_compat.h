@@ -36,4 +36,14 @@
 #  define oggz_stat_regular(mode) (S_ISREG((mode)) || S_ISLNK((mode)))
 #else
 #  define oggz_stat_regular(mode) ((mode) & S_IFREG)
+#  include <io.h>
+#  if sizeof(oggz_off_t) == 8
+#    define stat __stat64
+#    define fstat _fstat64
+#    undef fseeko
+#    define fseeko _fseeki64
+#    undef ftello
+#    define ftello _ftelli64
+#    undef _INC_STAT_INL
+#  endif
 #endif

@@ -52,7 +52,13 @@
 #include "oggz_tools.h"
 
 #ifdef WIN32                                                                   
-#define strcasecmp _stricmp
+#  define strcasecmp _stricmp
+#  include <io.h>
+#  if sizeof(oggz_off_t) == 8
+#    undef ftello
+#    define ftello _ftelli64
+#    undef _INC_STAT_INL
+#  endif
 #endif  
 
 #define READ_SIZE 4096
@@ -258,9 +264,9 @@ oggz_rip (ORData * ordata)
   
   while ((n = oggz_read (ordata->reader, READ_SIZE)) != 0) {
     if (ordata->verbose) {
-      fprintf (stderr, "\r Read %li k, wrote %li k ...\r",
-	       (long) (oggz_tell (ordata->reader)/1024),
-	       (long) (ftell (ordata->outfile)/1024));
+      fprintf (stderr, "\r Read %" PRI_OGGZ_OFF_T "dk, wrote %" PRI_OGGZ_OFF_T "dk ...\r",
+	       (oggz_tell (ordata->reader)/1024),
+	       (ftello (ordata->outfile)/1024));
     }
   }
 
