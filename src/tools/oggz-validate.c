@@ -312,7 +312,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
       }
     } else if (packetno == headers) {
       /* This is the next page after the page on which the last header finished */
-      if (ogg_page_continued (og)) {
+      if (ogg_page_continued ((ogg_page *)og)) {
         ret = log_error ();
         fprintf (stderr, "serialno %010lu: Terminal header page contains non-header segment\n", serialno);
       }

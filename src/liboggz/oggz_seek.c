@@ -141,7 +141,7 @@ oggz_reset_streams (OGGZ * oggz)
   oggz_vector_foreach (oggz->streams, oggz_stream_reset);
 }
 
-static long
+static off_t
 oggz_reset_seek (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 {
   OggzReader * reader = &oggz->x.reader;
@@ -162,7 +162,7 @@ oggz_reset_seek (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
   return offset_at;
 }
 
-static long
+static oggz_off_t
 oggz_reset (OGGZ * oggz, oggz_off_t offset, ogg_int64_t unit, int whence)
 {
   oggz_reset_streams (oggz);
@@ -648,7 +648,7 @@ oggz_bounded_seek_set (OGGZ * oggz,
 #ifdef DEBUG
     printf ("oggz_bounded_seek_set: unit_target == reader->current_unit, SKIP\n");
 #endif
-    return (long)reader->current_unit;
+    return reader->current_unit;
   }
 
   if (unit_target == 0) {
@@ -774,7 +774,7 @@ oggz_bounded_seek_set (OGGZ * oggz,
   printf ("oggz_bounded_seek_set: FOUND (%lld)\n", unit_at);
 #endif
 
-  return (long)reader->current_unit;
+  return reader->current_unit;
 }
 
 static ogg_int64_t
@@ -810,7 +810,7 @@ oggz_seek_end (OGGZ * oggz, ogg_int64_t unit_offset)
   return oggz_bounded_seek_set (oggz, unit_end + unit_offset, 0, -1);
 }
 
-off_t
+oggz_off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   OggzReader * reader;
@@ -831,7 +831,7 @@ oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
     reader->current_unit = -1;
   }
 
-  return (off_t)oggz_reset (oggz, offset, units, whence);
+  return oggz_reset (oggz, offset, units, whence);
 }
 
 ogg_int64_t
@@ -885,14 +885,14 @@ oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
   return r;
 }
 
-long
+oggz_off_t
 oggz_seek_byorder (OGGZ * oggz, void * target)
 {
   return -1;
 }
 
-long
-oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
+oggz_off_t
+oggz_seek_packets (OGGZ * oggz, long serialno, oggz_off_t packets, int whence)
 {
   return -1;
 }
@@ -902,26 +902,26 @@ oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
 #include <ogg/ogg.h>
 #include "oggz_private.h"
 
-off_t
+oggz_off_t
 oggz_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   return OGGZ_ERR_DISABLED;
 }
 
-long
+oggz_off_t
 oggz_seek_units (OGGZ * oggz, ogg_int64_t units, int whence)
 {
   return OGGZ_ERR_DISABLED;
 }
 
-long
+oggz_off_t
 oggz_seek_byorder (OGGZ * oggz, void * target)
 {
   return OGGZ_ERR_DISABLED;
 }
 
-long
-oggz_seek_packets (OGGZ * oggz, long serialno, long packets, int whence)
+oggz_off_t
+oggz_seek_packets (OGGZ * oggz, long serialno, off_t packets, int whence)
 {
   return OGGZ_ERR_DISABLED;
 }

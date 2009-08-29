@@ -152,7 +152,7 @@ my_io_read (void * user_handle, void * buf, size_t n)
 }
 
 static int
-my_io_seek (void * user_handle, long offset, int whence)
+my_io_seek (void * user_handle, oggz_off_t offset, int whence)
 {
   switch (whence) {
   case SEEK_SET:
@@ -171,7 +171,7 @@ my_io_seek (void * user_handle, long offset, int whence)
   return 0;
 }
 
-static long
+static oggz_off_t
 my_io_tell (void * user_handle)
 {
   return my_offset;

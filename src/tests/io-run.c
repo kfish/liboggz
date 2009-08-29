@@ -52,8 +52,8 @@
 static long serialno;
 static int read_called = 0;
 
-static int offset_end = 0;
-static int my_offset = 0;
+static oggz_off_t offset_end = 0;
+static oggz_off_t my_offset = 0;
 
 /* A nonsensical Vorbis ident header.  For testing purposes
    we may as well try to break something. */
@@ -177,7 +177,7 @@ my_io_read (void * user_handle, void * buf, size_t n)
 }
 
 static int
-my_io_seek (void * user_handle, long offset, int whence)
+my_io_seek (void * user_handle, oggz_off_t offset, int whence)
 {
   switch (whence) {
   case SEEK_SET:
@@ -196,7 +196,7 @@ my_io_seek (void * user_handle, long offset, int whence)
   return 0;
 }
 
-static long
+static oggz_off_t
 my_io_tell (void * user_handle)
 {
   return my_offset;

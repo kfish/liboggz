@@ -73,8 +73,8 @@ typedef int (*OggzWriteHungry) (OGGZ * oggz, int empty, void * user_data);
 /* oggz_io */
 typedef size_t (*OggzIORead) (void * user_handle, void * buf, size_t n);
 typedef size_t (*OggzIOWrite) (void * user_handle, void * buf, size_t n);
-typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
-typedef long (*OggzIOTell) (void * user_handle);
+typedef int (*OggzIOSeek) (void * user_handle, off_t offset, int whence);
+typedef off_t (*OggzIOTell) (void * user_handle);
 typedef int (*OggzIOFlush) (void * user_handle);
 
 struct _oggz_stream_t {
@@ -315,8 +315,8 @@ long oggz_comments_encode (OGGZ * oggz, long serialno,
 /* oggz_io */
 size_t oggz_io_read (OGGZ * oggz, void * buf, size_t n);
 size_t oggz_io_write (OGGZ * oggz, void * buf, size_t n);
-int oggz_io_seek (OGGZ * oggz, long offset, int whence);
-long oggz_io_tell (OGGZ * oggz);
+int oggz_io_seek (OGGZ * oggz, off_t offset, int whence);
+off_t oggz_io_tell (OGGZ * oggz);
 int oggz_io_flush (OGGZ * oggz);
 
 #endif /* __OGGZ_PRIVATE_H__ */

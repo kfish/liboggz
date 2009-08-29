@@ -90,7 +90,7 @@ typedef size_t (*OggzIOWrite) (void * user_handle, void * buf, size_t n);
  * \note If you provide an OggzIOSeek function, you MUST also provide
  * an OggzIOTell function, or else all your seeks will fail.
  */
-typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
+typedef int (*OggzIOSeek) (void * user_handle, oggz_off_t offset, int whence);
 
 /**
  * This is the signature of a function which you provide for Oggz
@@ -101,7 +101,7 @@ typedef int (*OggzIOSeek) (void * user_handle, long offset, int whence);
  * \retval ">= 0" The offset
  * \retval "<  0" An error condition
  */
-typedef long (*OggzIOTell) (void * user_handle);
+typedef oggz_off_t (*OggzIOTell) (void * user_handle);
 
 /**
  * This is the signature of a function which you provide for Oggz

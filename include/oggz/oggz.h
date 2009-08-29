@@ -38,6 +38,7 @@
 
 #include <ogg/ogg.h>
 #include <oggz/oggz_constants.h>
+#include <oggz/oggz_off_t.h>
 #include <oggz/oggz_table.h>
 
 #ifdef __cplusplus

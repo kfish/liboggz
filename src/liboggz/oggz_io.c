@@ -95,7 +95,7 @@ oggz_io_write (OGGZ * oggz, void * buf, size_t n)
 }
 
 int
-oggz_io_seek (OGGZ * oggz, long offset, int whence)
+oggz_io_seek (OGGZ * oggz, oggz_off_t offset, int whence)
 {
   OggzIO * io;
 
@@ -121,11 +121,11 @@ oggz_io_seek (OGGZ * oggz, long offset, int whence)
   return 0;
 }
 
-long
+oggz_off_t
 oggz_io_tell (OGGZ * oggz)
 {
   OggzIO * io;
-  long offset;
+  oggz_off_t offset;
 
   if (oggz->file != NULL) {
     if ((offset = ftell (oggz->file)) == -1) {
