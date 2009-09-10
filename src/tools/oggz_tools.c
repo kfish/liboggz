@@ -289,7 +289,11 @@ ot_dirac_info (unsigned char * data, long len)
   buf = malloc (80);
   info = malloc(sizeof(dirac_info));
 
-  dirac_parse_info(info, data, len);
+  if (dirac_parse_info(info, data, len) == -1) {
+    free (info);
+    free (buf);
+    return NULL;
+  }
 
   snprintf (buf, 80,
 	    "\tVideo-Framerate: %.3f fps\n"

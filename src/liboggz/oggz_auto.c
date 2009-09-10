@@ -371,7 +371,8 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
   info = oggz_malloc(sizeof(dirac_info));
   if (info == NULL) return -1;
 
-  dirac_parse_info(info, data, length);
+  if (dirac_parse_info(info, data, length) == -1)
+    return -1;
 
   /* the granulerate is twice the frame rate (in order to handle interlace) */
   oggz_set_granulerate (oggz, serialno,
