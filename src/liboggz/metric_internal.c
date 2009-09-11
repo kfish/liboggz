@@ -80,7 +80,8 @@ oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
 
   iframe = granulepos >> stream->granuleshift;
   pframe = granulepos - (iframe << stream->granuleshift);
-  granulepos = (iframe + pframe) - stream->first_granule;
+  granulepos = iframe + pframe;
+  if (granulepos > 0) granulepos -= stream->first_granule;
 
   units = granulepos * stream->granulerate_d / stream->granulerate_n;
 
