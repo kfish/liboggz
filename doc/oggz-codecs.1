@@ -1,6 +1,6 @@
 .TH "oggz-codecs" "1" 
 .SH "NAME" 
-oggz-info \(em Display a list of codecs found in one or more Ogg files and their bitstreams. 
+oggz-codecs \(em List codecs in one or more Ogg files and their bitstreams. 
  
 .SH "SYNOPSIS" 
 .PP 
@@ -9,8 +9,9 @@ oggz-info \(em Display a list of codecs found in one or more Ogg files and their
 \fBoggz-codecs\fR [\-h  | \-\-help ]  [\-v  | \-\-version ]  
 .SH "Description" 
 .PP 
-\fBoggz-codecs\fR displays a list of codecs found in one or more 
-Ogg files and their bitstreams. 
+\fBoggz-codecs\fR displays a list of codecs found in one or more Ogg files
+and their bitstreams. The default comma-separated output is designed for use
+in an HTML5 <video> codecs attribute.
  
 .SH "Options" 
 .PP 
@@ -18,11 +19,11 @@ Ogg files and their bitstreams.
  
 .SS "Display options" 
 .IP "\-a, \-\-all" 10 
-Display an entry for every bitstream, rather than displaying each codec once, even if present more than once. 
+Display codec names multiple times if present in multiple tracks.
 .IP "\-m, \-\-mime" 10 
-Display each codec's MIME type, instead of its name. 
+Display MIME types rather than codec names.
 .IP "\-1, \-\-one\-per\-line" 10 
-Display each entries on a separate line.
+Display one entry per line.
 .SS "Miscellaneous options" 
 .IP "\-h, \-\-help" 10 
 Display usage information and exit. 
@@ -30,10 +31,10 @@ Display usage information and exit.
 Output version information and exit. 
 .SH "AUTHOR" 
 .PP 
-Conrad Parker        March 10, 2005;      
+Conrad Parker        May 15, 2008;
 .SH "COPYRIGHT" 
 .PP 
-Copyright \(co 2005 CSIRO Australia 
+Copyright \(co 2009 Annodex Association
  
 .SH "SEE ALSO" 
 .PP 

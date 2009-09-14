@@ -65,11 +65,14 @@ static void
 usage (const char * progname)
 {
   printf ("Usage: %s [options] filename ...\n", progname);
-  printf ("Display codecs used in one or more Ogg files and their bitstreams\n");
+  printf ("List codecs in one or more Ogg files and their bitstreams. The default\n");
+  printf ("comma-separated output is designed for use in an HTML5 <video> codecs\n");
+  printf ("attribute.\n");
   printf ("\nDisplay options\n");
-  printf ("  -a, --all              Display an entry for all bitstreams, rather than collapsing codecs used more than once\n");
-  printf ("  -m, --mime             Displays MIME types rather than codec names\n");
-  printf ("  -1, --one-per-line     Displays one entry per line\n");
+  printf ("  -a, --all              Display codec names multiple times if present in\n");
+  printf ("                         multiple tracks.\n");
+  printf ("  -m, --mime             Display MIME types rather than codec names\n");
+  printf ("  -1, --one-per-line     Display one entry per line\n");
   printf ("\nMiscellaneous options\n");
   printf ("  -h, --help             Display this help and exit\n");
   printf ("  -v, --version          Output version information and exit\n");
