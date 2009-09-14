@@ -6,10 +6,27 @@ AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(liboggz, 0.9.9)
+AM_INIT_AUTOMAKE(liboggz, 1.0.0)
 AM_CONFIG_HEADER(config.h)
 
-SHARED_VERSION_INFO="6:0:5"
+################################################################################
+# Set the shared versioning info, according to section 6.3 of the libtool info #
+# pages. CURRENT:REVISION:AGE must be updated immediately before each release: #
+#                                                                              #
+#   * If the library source code has changed at all since the last             #
+#     update, then increment REVISION (`C:R:A' becomes `C:r+1:A').             #
+#                                                                              #
+#   * If any interfaces have been added, removed, or changed since the         #
+#     last update, increment CURRENT, and set REVISION to 0.                   #
+#                                                                              #
+#   * If any interfaces have been added since the last public release,         #
+#     then increment AGE.                                                      #
+#                                                                              #
+#   * If any interfaces have been removed since the last public release,       #
+#     then set AGE to 0.                                                       #
+#                                                                              #
+################################################################################
+SHARED_VERSION_INFO="7:0:6"
 SHLIB_VERSION_ARG=""
 
 # Checks for programs.

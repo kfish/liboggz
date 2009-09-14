@@ -1,3 +1,62 @@
+Tue Sep 15 07:27:18 JST 2009 Conrad Parker <conrad@metadecks.org>
+
+	* Version 1.0.0
+
+	This is a stable maintenance release, including build fixes and
+	updates for embedded platforms (ARM, SH4) and updated Visual Studio
+	project files for Microsoft Windows.
+
+	This release also includes a new "oggz codecs" command, which simply
+	lists the codecs present in one or more files. The default
+	comma-separated output is designed for use in an HTML5 <video> codecs
+	attribute.
+
+	Build:
+	* Updated Visual Studio project files (Barry Duncan)
+	* configure.ac: fix for arm, sh4 builds
+	* remove DocBook .sgml files, use .1 directly
+	* Debian #540360: use version script on GNU/kFreeBSD
+
+	oggz tools:
+	* oggz-chop: fix detection of accumulated continued pages, ie. when
+	  all accumulated pages have granulepos -1 and thus should all be
+	  kept when advancing the accumulator
+	* oggz-chop: add a page accumulator for plain pages. Accumulate pages
+	  even for start=0, or tracks with no granuleshift, for cases where
+	  continued pages occur at the chop time.
+	* oggz-codecs: New tool
+	* oggz-comment: Handle duplicate comments, with unit test
+
+	Documentation:
+	* add oggz.1 man page
+	* add examples to chop, comment, dump, info, merge, rip and sort
+	  man pages
+	* update ChangeLog with info from all release_notes
+	* Add PATCHES file, update README
+
+	Public API:
+	* Add ability to limit seeks to only search inside a specified byte
+	  range. Adds oggz_bounded_seek_set() public API call.
+	* Updated shared version info to 7:0:6
+
+	Internal:
+	* Handle Theora version > 3.2.0 initial granulepos 1|0
+	* Fix data alignment on ARM (Erik de Castro Lopo, Chris Double,
+	  Vladimir Vukicevic)
+	* Fix for inefficient oggz_seek_units() (Sean Young)
+	* oggz_read: always set the internal offset to the start of the
+	  current page. This is returned by oggz_tell() and can be queried
+	  within a ReadPage callback.
+	* oggz_read: Fix packetno check for holes in headers. The packetno
+	  has not yet been incremented, so the value to check is off-by-one.
+	* Annodex #1581: avoid _oggz_comment_add_byname() strcmp of NULL
+	  (keelerda)
+	* Mozilla #499604, Annodex #486: avoid uninitialized variable in
+	  oggz_seek_end()
+	* Mozilla #506870: fix leaks in oggz-comments.c
+	* Mozilla #506878: check oggz_stream_get_content() return values
+	* Mozilla #515376: Check index in dirac_parse_info()
+
 Thu Apr 10 11:14:43 JST 2009 Conrad Parker <conrad@metadecks.org>
 
 	* Version 0.9.9
