@@ -49,34 +49,73 @@ SYMBIAN_extra_dist = \
 # versions of Automake, and for portability with other vendors' make.
 WIN32_extra_dist = \
 	README.win32 \
-	win32/Makefile \
 	win32/attgetopt.c \
 	win32/config.h \
 	win32/getopt.h \
-	win32/strsep.c \
 	win32/liboggz.def \
 	win32/liboggz.dsp \
+	win32/liboggz.dsw \
+	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj \
+	win32/Makefile \
 	win32/oggzdump.dsp \
 	win32/oggzed.dsp \
 	win32/oggzinfo.dsp \
 	win32/oggzmerge.dsp \
-	win32/liboggz.dsw \
-	win32/VS2003/liboggz.sln \
-	win32/VS2005/liboggz.sln \
-	win32/VS2003/liboggz/libogg_importer.vcproj \
-	win32/VS2003/liboggz/liboggz.vcproj \
-	win32/VS2003/liboggz/oggzdump.vcproj \
-	win32/VS2003/liboggz/oggzinfo.vcproj \
-	win32/VS2003/liboggz/oggzmerge.vcproj \
-	win32/VS2003/liboggz/oggzrip.vcproj \
-	win32/VS2003/liboggz/oggzscan.vcproj \
-	win32/VS2003/liboggz/oggzvalidate.vcproj \
-	win32/VS2005/liboggz/libogg_importer.vcproj \
-	win32/VS2005/liboggz/liboggz.vcproj \
-	win32/VS2005/liboggz/oggzdump.vcproj \
-	win32/VS2005/liboggz/oggzinfo.vcproj \
-	win32/VS2005/liboggz/oggzmerge.vcproj \
-	win32/VS2005/liboggz/oggzrip.vcproj \
-	win32/VS2005/liboggz/oggzscan.vcproj \
-	win32/VS2005/liboggz/oggzvalidate.vcproj \
-	win32/liboggz_bin_installer/liboggz_bin_installer.vdproj
+	win32/strsep.c \
+	win32/VS2003/liboggz.suo \
+	win32/VS2003/liboggz/liboggz_dynamic.vcproj \
+	win32/VS2003/liboggz/liboggz_static.vcproj \
+	win32/VS2003/liboggz_dynamic.sln \
+	win32/VS2003/liboggz_dynamic.suo \
+	win32/VS2003/liboggz_static.sln \
+	win32/VS2003/liboggz_static.suo \
+	win32/VS2003/oggzdump/oggzdump_dynamic.vcproj \
+	win32/VS2003/oggzdump/oggzdump_static.vcproj \
+	win32/VS2003/oggzinfo/oggzinfo_dynamic.vcproj \
+	win32/VS2003/oggzinfo/oggzinfo_static.vcproj \
+	win32/VS2003/oggzmerge/oggzmerge_dynamic.vcproj \
+	win32/VS2003/oggzmerge/oggzmerge_static.vcproj \
+	win32/VS2003/oggzrip/oggzrip_dynamic.vcproj \
+	win32/VS2003/oggzrip/oggzrip_static.vcproj \
+	win32/VS2003/oggzscan/oggzscan_dynamic.vcproj \
+	win32/VS2003/oggzscan/oggzscan_static.vcproj \
+	win32/VS2003/oggzvalidate/oggzvalidate_dynamic.vcproj \
+	win32/VS2003/oggzvalidate/oggzvalidate_static.vcproj \
+	win32/VS2005/liboggz.suo \
+	win32/VS2005/liboggz/liboggz_dynamic.vcproj \
+	win32/VS2005/liboggz/liboggz_static.vcproj \
+	win32/VS2005/liboggz_dynamic.sln \
+	win32/VS2005/liboggz_dynamic.suo \
+	win32/VS2005/liboggz_static.sln \
+	win32/VS2005/liboggz_static.suo \
+	win32/VS2005/oggzdump/oggzdump_dynamic.vcproj \
+	win32/VS2005/oggzdump/oggzdump_static.vcproj \
+	win32/VS2005/oggzinfo/oggzinfo_dynamic.vcproj \
+	win32/VS2005/oggzinfo/oggzinfo_static.vcproj \
+	win32/VS2005/oggzmerge/oggzmerge_dynamic.vcproj \
+	win32/VS2005/oggzmerge/oggzmerge_static.vcproj \
+	win32/VS2005/oggzrip/oggzrip_dynamic.vcproj \
+	win32/VS2005/oggzrip/oggzrip_static.vcproj \
+	win32/VS2005/oggzscan/oggzscan_dynamic.vcproj \
+	win32/VS2005/oggzscan/oggzscan_static.vcproj \
+	win32/VS2005/oggzvalidate/oggzvalidate_dynamic.vcproj \
+	win32/VS2005/oggzvalidate/oggzvalidate_static.vcproj \
+	win32/VS2008/liboggz.suo \
+	win32/VS2008/liboggz/liboggz_dynamic.vcproj \
+	win32/VS2008/liboggz/liboggz_static.vcproj \
+	win32/VS2008/liboggz_dynamic.sln \
+	win32/VS2008/liboggz_dynamic.suo \
+	win32/VS2008/liboggz_static.sln \
+	win32/VS2008/liboggz_static.suo \
+	win32/VS2008/oggzdump/oggzdump_dynamic.vcproj \
+	win32/VS2008/oggzdump/oggzdump_static.vcproj \
+	win32/VS2008/oggzinfo/oggzinfo_dynamic.vcproj \
+	win32/VS2008/oggzinfo/oggzinfo_static.vcproj \
+	win32/VS2008/oggzmerge/oggzmerge_dynamic.vcproj \
+	win32/VS2008/oggzmerge/oggzmerge_static.vcproj \
+	win32/VS2008/oggzrip/oggzrip_dynamic.vcproj \
+	win32/VS2008/oggzrip/oggzrip_static.vcproj \
+	win32/VS2008/oggzscan/oggzscan_dynamic.vcproj \
+	win32/VS2008/oggzscan/oggzscan_static.vcproj \
+	win32/VS2008/oggzvalidate/oggzvalidate_dynamic.vcproj \
+	win32/VS2008/oggzvalidate/oggzvalidate_static.vcproj
