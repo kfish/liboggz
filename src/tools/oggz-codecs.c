@@ -115,7 +115,7 @@ print_codec_name (OI_Info * info, long serialno)
     }
     if (show_as_mime) {
       const char *mime_type = NULL;
-      if (content >= 0 && content < OGGZ_CONTENT_UNKNOWN)
+      if (content < OGGZ_CONTENT_UNKNOWN)
         mime_type = mime_type_names[content];
       if (!mime_type) mime_type = "application/octet-stream";
       printf("%s%s", mime_type, show_one_per_line?"\n":"");
