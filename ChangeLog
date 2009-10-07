@@ -1,3 +1,22 @@
+Wed Oct  7 10:57:17 JST 2009 Conrad Parker <conrad@metadecks.org>
+
+	* Version 1.0.1
+
+	This release corrects timestamp calculation for Theora files with duplicate
+	frames, which are produced by the recently-released libtheora-1.1 encoder.
+
+	Public API:
+	* Updated shared version info to 7:1:6
+
+	Internal:
+	* Mozilla #516847 - calc gp for duplicate frames
+	  Theora encodes duplicate frames as zero-length packets, so
+	  increment the calculated granulepos correctly for these.
+
+	Documentation:
+	* Escape minus signs in man pages
+	* Fix typo in oggz-dump man page
+
 Tue Sep 15 07:27:18 JST 2009 Conrad Parker <conrad@metadecks.org>
 
 	* Version 1.0.0
