@@ -87,9 +87,8 @@ presenting the following API niceties:
 
     * Developed and tested on GNU/Linux, Darwin/MacOSX, Win32 and
     Symbian OS. May work on other Unix-like systems via GNU autoconf.
-    For Win32: nmake Makefiles, Visual Studio .NET 2003 solution files
-    and Visual C++ 6.0 workspace files are provided in the source
-    distribution.
+    For Win32: nmake Makefiles, Visual Studio .NET 2003, 2005 and 2008
+    solution files are provided in the source distribution.
 
     * Strict adherence to the formatting requirements of Ogg bitstreams,
     to ensure that only valid bitstreams are generated; writes can fail
