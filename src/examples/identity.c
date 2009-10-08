@@ -42,8 +42,9 @@ static int flush_next = 0;
 #endif
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
   OGGZ * writer = (OGGZ *)user_data;
   int flush;
   int ret;

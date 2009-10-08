@@ -50,8 +50,9 @@ static int has_skeleton = 0;
 static int verbose = 0;
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
   unsigned char * header = op->packet;
 
   if (op->b_o_s) {

@@ -60,8 +60,9 @@ print_granulepos (ogg_int64_t granulepos, int granuleshift)
 
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
   int granuleshift;
 
   granuleshift = oggz_get_granuleshift (oggz, serialno);

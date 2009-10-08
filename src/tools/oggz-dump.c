@@ -254,9 +254,10 @@ bin_dump (unsigned char * buf, long n, int dump_char)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
   ODData * oddata = (ODData *) user_data;
+  ogg_packet * op = &zp->op;
   ogg_int64_t units;
   double time_offset;
   ogg_int64_t calced_gp = oggz_tell_granulepos (oggz);
@@ -342,10 +343,12 @@ filter_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 static int
-read_new_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_new_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
+
   if (op->b_o_s) {
-    read_packet (oggz, op, serialno, user_data);
+    read_packet (oggz, zp, serialno, user_data);
     return OGGZ_CONTINUE;
   } else {
     return OGGZ_STOP_OK;

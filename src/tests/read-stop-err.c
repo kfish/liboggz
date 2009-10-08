@@ -79,8 +79,9 @@ hungry (OGGZ * oggz, int empty, void * user_data)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
   static int iter = 0;
   static long b_o_s = 1;
   static long e_o_s = 0;

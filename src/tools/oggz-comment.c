@@ -265,9 +265,10 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
   OCData * ocdata = (OCData *)user_data;
+  ogg_packet * op = &zp->op;
   const char * vendor;
   int flush;
   int ret;
@@ -365,9 +366,10 @@ edit_comments (OCData * ocdata, char * outfilename)
 }
 
 static int
-read_comments(OGGZ *oggz, ogg_packet *op, long serialno, void *user_data)
+read_comments(OGGZ *oggz, oggz_packet * zp, long serialno, void *user_data)
 {
   OCData * ocdata = (OCData *)user_data;
+  ogg_packet * op = &zp->op;
   const OggzComment * comment;
   const char * codec_name;
 

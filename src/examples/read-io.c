@@ -45,8 +45,10 @@
 static int got_an_eos = 0;
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
+  ogg_packet * op = &zp->op;
+
 #if 0
   if (got_an_eos) {
     printf ("[%010lu]\t%ld bytes\tgranulepos %ld\n", serialno, op->bytes,

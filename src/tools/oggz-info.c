@@ -458,10 +458,11 @@ read_page_pass2 (OGGZ * oggz, const ogg_page * og, long serialno, void * user_da
 }
 
 static int
-read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
+read_packet_pass1 (OGGZ * oggz, oggz_packet * zp, long serialno,
 		   void * user_data)
 {
   OI_Info * info = (OI_Info *)user_data;
+  ogg_packet * op = &zp->op;
   OI_TrackInfo * oit;
 
   oit = oggz_table_lookup (info->tracks, serialno);
@@ -499,10 +500,11 @@ read_packet_pass1 (OGGZ * oggz, ogg_packet * op, long serialno,
 }
 
 static int
-read_packet_pass2 (OGGZ * oggz, ogg_packet * op, long serialno,
+read_packet_pass2 (OGGZ * oggz, oggz_packet * zp, long serialno,
 		   void * user_data)
 {
   OI_Info * info = (OI_Info *)user_data;
+  ogg_packet * op = &zp->op;
   OI_TrackInfo * oit;
   long deviation;
   

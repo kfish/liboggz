@@ -68,13 +68,13 @@ read_comments (OGGZ * oggz, long serialno)
 }
 
 static int
-read_packet (OGGZ * oggz, ogg_packet * op, long serialno, void * user_data)
+read_packet (OGGZ * oggz, oggz_packet * zp, long serialno, void * user_data)
 {
   if (previous_b_o_s) {
     read_comments (oggz, serialno);
   }
 
-  previous_b_o_s = op->b_o_s;
+  previous_b_o_s = zp->op.b_o_s;
 
   return 0;
 }
