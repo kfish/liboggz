@@ -1,3 +1,19 @@
+Thu Oct  8 16:48:47 JST 2009 Conrad Parker <conrad@metadecks.org>
+
+	* Version 1.1.0
+
+	This release introduces a new API structure for reporting the byte
+	offsets of the start and end pages for each packet.
+
+	Public API:
+	* Added <oggz/oggz_packet.h>: add oggz_packet definition, and
+	  implement reader to return oggz_packet in OggzReadPacket callback.
+	* Updated shared version info to 8.0.6
+
+	Internal:
+	* Improved accuracy of byte position tracking during reading,
+	  as reported by oggz_tell()
+
 Wed Oct  7 10:57:17 JST 2009 Conrad Parker <conrad@metadecks.org>
 
 	* Version 1.0.1
