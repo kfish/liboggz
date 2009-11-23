@@ -401,7 +401,7 @@ dnl Shared library symbol versioning and hiding
 dnl
 
 case "$target_os" in
-  linux* | solaris*|k*bsd*-gnu*|gnu-*)
+  linux* | solaris*|k*bsd*-gnu*|gnu*)
     SHLIB_VERSION_ARG="-Wl,--version-script=Version_script"
     ;;
   *)
