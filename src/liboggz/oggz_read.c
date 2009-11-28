@@ -315,11 +315,15 @@ oggz_read_deliver_packet(void *elem) {
     oggz_get_unit (p->oggz, p->serialno, p->zp.pos.calc_granulepos);
 
   if (p->stream->read_packet) {
-    p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
-                           p->stream->read_user_data);
+    if (p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
+			       p->stream->read_user_data) != 0) {
+      return DLIST_ITER_ERROR;
+    }
   } else if (p->reader->read_packet) {
-    p->reader->read_packet(p->oggz, &(p->zp), p->serialno, 
-                           p->reader->read_user_data);
+    if (p->reader->read_packet(p->oggz, &(p->zp), p->serialno, 
+			       p->reader->read_user_data) != 0) {
+      return DLIST_ITER_ERROR;
+    }
   }
 
   p->reader->current_granulepos = gp_stored;
@@ -475,7 +479,9 @@ oggz_read_sync (OGGZ * oggz)
               ogg_int64_t gp_stored = stream->last_granulepos;
               stream->last_packet = op;
               oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
-              oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet);
+              if (oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet) == -1) {
+		return OGGZ_ERR_HOLE_IN_DATA;
+	      }
 
               /* Fix up the stream granulepos. */
               stream->last_granulepos = gp_stored;
@@ -535,7 +541,10 @@ prepare_position:
     }
 
     /* If we've got a stop already, don't read more data in */
-    if (cb_ret == OGGZ_STOP_OK || cb_ret == OGGZ_STOP_ERR) return cb_ret;
+    if (cb_ret == OGGZ_STOP_OK || 
+	cb_ret == OGGZ_STOP_ERR || 
+	cb_ret == OGGZ_ERR_HOLE_IN_DATA) 
+      return cb_ret;
 
     if(oggz_read_get_next_page (oggz, &og) < 0)
       return OGGZ_READ_EMPTY; /* eof. leave uninitialized */
@@ -646,8 +655,9 @@ oggz_read (OGGZ * oggz, long n)
       nread += bytes_read;
       
       cb_ret = oggz_read_sync (oggz);
-      if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY)
+      if (cb_ret == OGGZ_ERR_OUT_OF_MEMORY || cb_ret == OGGZ_ERR_HOLE_IN_DATA) {
         return cb_ret;
+      }
     }
   }
 
