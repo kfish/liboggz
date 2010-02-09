@@ -147,11 +147,11 @@ The comment header is decoded as follows:
                                      buf[base+2]=(char)((val)&0xff);
 
 static int
-oggz_comment_validate_byname (const char * name, const char * value)
+oggz_comment_validate_byname (const char * name)
 {
   const char * c;
 
-  if (!name || !value) return 0;
+  if (!name) return 0;
 
   for (c = name; *c; c++) {
     if (*c < 0x20 || *c > 0x7D || *c == 0x3D) {
@@ -172,8 +172,8 @@ oggz_comment_new (const char * name, const char * value)
 {
   OggzComment * comment;
 
-  if (!oggz_comment_validate_byname (name, value)) return NULL;
-  /* Ensures that name != NULL, value != NULL, and validates strings */
+  if (!oggz_comment_validate_byname (name)) return NULL;
+  /* Ensures that name != NULL and contains only valid characters */
 
   comment = oggz_malloc (sizeof (OggzComment));
   if (comment == NULL) return NULL;
@@ -184,11 +184,15 @@ oggz_comment_new (const char * name, const char * value)
     return NULL;
   }
 
-  comment->value = oggz_strdup (value);
-  if (comment->value == NULL) {
-    oggz_free (comment->name);
-    oggz_free (comment);
-    return NULL;
+  if (value) {
+    comment->value = oggz_strdup (value);
+    if (comment->value == NULL) {
+      oggz_free (comment->name);
+      oggz_free (comment);
+      return NULL;
+    }
+  } else {
+    comment->value = NULL;
   }
 
   return comment;
@@ -302,7 +306,7 @@ oggz_comment_first_byname (OGGZ * oggz, long serialno, char * name)
 
   if (name == NULL) return oggz_vector_nth_p (stream->comments, 0);
 
-  if (!oggz_comment_validate_byname (name, ""))
+  if (!oggz_comment_validate_byname (name))
     return NULL;
 
   for (i = 0; i < oggz_vector_size (stream->comments); i++) {
@@ -397,7 +401,7 @@ oggz_comment_add (OGGZ * oggz, long serialno, const OggzComment * comment)
   if (oggz->flags & OGGZ_WRITE) {
     if (OGGZ_CONFIG_WRITE) {
 
-      if (!oggz_comment_validate_byname (comment->name, comment->value))
+      if (!oggz_comment_validate_byname (comment->name))
         return OGGZ_ERR_COMMENT_INVALID;
 
       if (_oggz_comment_add_byname (stream, comment->name, comment->value) == NULL)
@@ -430,7 +434,7 @@ oggz_comment_add_byname (OGGZ * oggz, long serialno,
   if (oggz->flags & OGGZ_WRITE) {
     if (OGGZ_CONFIG_WRITE) {
 
-      if (!oggz_comment_validate_byname (name, value))
+      if (!oggz_comment_validate_byname (name))
         return OGGZ_ERR_COMMENT_INVALID;
 
       if (_oggz_comment_add_byname (stream, name, value) == NULL)
@@ -615,19 +619,22 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
       c+=4;
       if (len>(size_t)(end-c)) return -1;
 
+      n = 0;
       name = c;
       value = oggz_index_len (c, '=', len);
       if (value) {
          *value = '\0';
          value++;
-
          n = c+len - value;
+      }
+
+      if (n != 0) {
          if ((nvalue = oggz_strdup_len (value, n)) == NULL)
            return OGGZ_ERR_OUT_OF_MEMORY;
 
 #ifdef DEBUG
-         printf ("oggz_comments_decode: %s -> %s (length %d)\n",
-         name, nvalue, n);
+         printf ("oggz_comments_decode: [%d] %s -> %s (length %d)\n",
+         i, name, nvalue, n);
 #endif
          if (_oggz_comment_add_byname (stream, name, nvalue) == NULL) {
            oggz_free (nvalue);
@@ -636,8 +643,18 @@ oggz_comments_decode (OGGZ * oggz, long serialno,
 
          oggz_free (nvalue);
       } else {
+        /* For the case of a comment which is not in key=value form,
+         * duplicate exactly the length of the comment, as it is
+         * not NUL-terminated. In the case of the last comment of the
+         * packet, it will be followed immediately by a framing bit.
+         */
          if ((nvalue = oggz_strdup_len (name, len)) == NULL)
            return OGGZ_ERR_OUT_OF_MEMORY;
+
+#ifdef DEBUG
+         printf ("oggz_comments_decode: [%d] %s (no value) (length %d)\n",
+         i, nvalue, len);
+#endif
 
          if (_oggz_comment_add_byname (stream, nvalue, NULL) == NULL) {
            oggz_free (nvalue);
