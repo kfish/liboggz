@@ -14,33 +14,13 @@ Documentation
 	* review: is all functionality covered?
 	* separate into intro/advanced topics
 	* rewrite intro so that newer, simpler functionality is covered.
-	
-
-Byte offsets
-------------
-(See master branch for updates)
-
-	* provide the byte offset of the page each packet started on.
-	* remember the previous page offset when delivering the first packet ending
-	on a continued page.
-	* handle gp -1 (no packets finished) pages by not updating that
-	prev page offset
-	* do this per track, in case of bad muxing
-
-	Extended packet info:
-	* byte offset of the page that started this packet
-	* byte span of pages containing this packet, OR byte offset of the page
-	after the page this packet ends on (ie. byte offset of end of page the
-	packet ends on + 1)
-	* nr of pages this packet spans.
-
-	State
-	* split the state out? keep track of byte offsets
-	* allow snapshotting of seek/scan state
 
 Seeking
 -------
 (See seek-rewrite branch for updates)
+
+	State
+	* add seek_packet() function to return to a previous packet
 
 	Keyframe seeking
 	* add seek_keyframe() (double-seek) function, using method from thread
