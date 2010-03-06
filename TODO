@@ -83,8 +83,6 @@ API
 ---
 	* rename all track-specific functions to oggz_track_*() ?
 
-	* add a function for getting the preroll of a track
-
 	* add a OGGZ_SORT option (flag w/ OGGZ_WRITE) which queues pages like
 	oggz-merge internally. Use this for oggz-merge (and libannodex ...)
 
