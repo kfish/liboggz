@@ -73,18 +73,6 @@ main (int argc, char * argv[])
     FAIL ("Comment add to fresh bitstream failed");
   if (err < 0) FAIL ("Operation failed");
 
-  INFO ("+ Testing add of invalid unstructured COMMENT byname");
-  err = oggz_comment_add_byname (oggz, serialno, COMMENT, NULL);
-  if (err != OGGZ_ERR_COMMENT_INVALID)
-    FAIL ("Invalid comment not detected");
-
-  INFO ("+ Testing add of invalid unstructured COMMENT from local storage");
-  mycomment.name = COMMENT;
-  mycomment.value = NULL;
-  err = oggz_comment_add (oggz, serialno, &mycomment);
-  if (err != OGGZ_ERR_COMMENT_INVALID)
-    FAIL ("Invalid comment not detected");
-
   INFO ("+ Adding COPYRIGHT byname");
   err = oggz_comment_add_byname (oggz, serialno, "COPYRIGHT", COPYRIGHT);
   if (err < 0) FAIL ("Operation failed");
@@ -268,6 +256,15 @@ main (int argc, char * argv[])
   if(op) FAIL ("Returned comment packet for invalid serialno");
   oggz_packet_destroy(op);
 
+  INFO ("+ Testing add of valid plain (not key=value) COMMENT byname");
+  err = oggz_comment_add_byname (oggz, serialno, COMMENT, NULL);
+  if (err < 0) FAIL ("Operation failed");
+
+  INFO ("+ Testing add of valid plain (not key=value) COMMENT from local storage");
+  mycomment.name = COMMENT;
+  mycomment.value = NULL;
+  err = oggz_comment_add (oggz, serialno, &mycomment);
+  if (err < 0) FAIL ("Operation failed");
 
   INFO ("+ Adding duplicate tag");
   err = oggz_comment_add_byname (oggz, serialno, "PERFORMER", PERFORMER);
