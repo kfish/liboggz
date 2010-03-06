@@ -19,9 +19,6 @@ Seeking
 -------
 (See seek-rewrite branch for updates)
 
-	State
-	* add seek_packet() function to return to a previous packet
-
 	Keyframe seeking
 	* add seek_keyframe() (double-seek) function, using method from thread
 	titled "ogg double seek algorithm" to a11y list 18/11/2008 including
@@ -33,7 +30,6 @@ Seeking
 	* seek_units (SET, CUR, END)
 
 	oggz_get_duration()
-	* add new public API call
 	* subtract file start / presentation time from duration
 
 	Large file offsets
