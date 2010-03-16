@@ -152,5 +152,10 @@ oggz-optimize
 
 oggz-validate
 -------------
+	* Throw an error for pages with gp -1 that have a packet finishing on them
+	(requested by derf 20100316, framing spec clearly states that "A special
+	value of '-1' (in two's complement) indicates that no packets finish on this
+	page."
+
 	* validate skeleton
 
