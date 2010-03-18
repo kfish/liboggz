@@ -164,12 +164,22 @@ oggz-optimize
 
 oggz-merge
 ----------
+	* Accumulate gp -1 pages rather than writing them out as soon as they
+	are available, so that single-packet continued pages are placed immediately
+	prior to the page their contained packet finishes on.
+	(reported by gmaxwell, 20100318)
+
 	* Dirac: take pt,dt into account. See
 	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
 	* but first, reject Dirac streams
 
 oggz-sort
 ---------
+	* Accumulate gp -1 pages rather than writing them out as soon as they
+	are available, so that single-packet continued pages are placed immediately
+	prior to the page their contained packet finishes on.
+	(reported by gmaxwell, 20100318)
+
 	* Dirac: take pt,dt into account. See
 	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
 	* but first, reject Dirac streams
