@@ -98,14 +98,6 @@ Tools
 
 	* use libexplain in tools, esp. oggz-chop logging errors.
 
-Dirac
------
-
-	oggz-sort, oggz-merge
-	* take pt,dt into account in oggz-merge, oggz-sort. See
-	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
-	* but first, make these tools reject Dirac streams
-
 oggz-addskel
 ------------
 	* new tool to add skeleton (though oggz-chop with no args does this)
@@ -169,6 +161,18 @@ oggz-optimize
 -------------
 	* new tool: optimize the flushing on an ogg stream. Give limits on page
 	duration or size.
+
+oggz-merge
+----------
+	* Dirac: take pt,dt into account. See
+	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
+	* but first, reject Dirac streams
+
+oggz-sort
+---------
+	* Dirac: take pt,dt into account. See
+	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
+	* but first, reject Dirac streams
 
 oggz-validate
 -------------
