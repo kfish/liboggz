@@ -74,14 +74,6 @@ Tools
 
 	* use libexplain in tools, esp. oggz-chop logging errors.
 
-Dirac
------
-
-	oggz-sort, oggz-merge
-	* take pt,dt into account in oggz-merge, oggz-sort. See
-	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
-	* but first, make these tools reject Dirac streams
-
 oggz-addskel
 ------------
 	* new tool to add skeleton (though oggz-chop with no args does this)
@@ -146,7 +138,34 @@ oggz-optimize
 	* new tool: optimize the flushing on an ogg stream. Give limits on page
 	duration or size.
 
+oggz-merge
+----------
+	* Accumulate gp -1 pages rather than writing them out as soon as they
+	are available, so that single-packet continued pages are placed immediately
+	prior to the page their contained packet finishes on.
+	(reported by gmaxwell, 20100318)
+
+	* Dirac: take pt,dt into account. See
+	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
+	* but first, reject Dirac streams
+
+oggz-sort
+---------
+	* Accumulate gp -1 pages rather than writing them out as soon as they
+	are available, so that single-packet continued pages are placed immediately
+	prior to the page their contained packet finishes on.
+	(reported by gmaxwell, 20100318)
+
+	* Dirac: take pt,dt into account. See
+	http://lists.xiph.org/pipermail/ogg-dev/2008-November/001264.html
+	* but first, reject Dirac streams
+
 oggz-validate
 -------------
+	* Throw an error for pages with gp -1 that have a packet finishing on them
+	(requested by derf 20100316, framing spec clearly states that "A special
+	value of '-1' (in two's complement) indicates that no packets finish on this
+	page."
+
 	* validate skeleton
 
