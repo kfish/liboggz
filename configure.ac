@@ -110,7 +110,7 @@ if test "x${ac_enable_valgrind}" = xyes ; then
 
   AC_CHECK_PROG(HAVE_VALGRIND, valgrind, yes, no)
   if test "x$HAVE_VALGRIND" = xyes ; then
-    VALGRIND_ENVIRONMENT="$VALGRIND_ENVIRONMENT valgrind -q --leak-check=yes --show-reachable=yes --num-callers=100"
+    VALGRIND_ENVIRONMENT="$VALGRIND_ENVIRONMENT valgrind -q --leak-check=yes --show-reachable=yes --num-callers=50"
     AC_SUBST(VALGRIND_ENVIRONMENT)
     TESTS_INFO="Test suite will be run under:
     ${VALGRIND_ENVIRONMENT}"
