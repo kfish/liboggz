@@ -2,6 +2,7 @@ Generating patches
 ------------------
 
 First ensure you have an up-to-date checkout of the git repository.
+liboggz is maintained in git at git://git.xiph.org/liboggz.git
 
 Please generate patches using git-format-patch. You'll just need to commit
 your changes to your local copy first:
