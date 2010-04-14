@@ -74,6 +74,18 @@ Source layout
     win32/             files necessary to compile the library and tools for
                        Microsoft Windows
 
+Developers
+----------
+
+liboggz is maintained in git at git://git.xiph.org/liboggz.git
+
+A list of outstanding tasks is maintained in the TODO file of this source
+distribution. When implementing anything listed in this file, please update
+it by deleting that entry, and include that as part of the patch or commit
+that implements the fix.
+
+Please send patches to ogg-dev@xiph.org
+
 Programming with liboggz
 ------------------------
 
