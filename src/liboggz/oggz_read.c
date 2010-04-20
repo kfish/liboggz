@@ -290,6 +290,7 @@ oggz_read_deliver_packet(void *elem) {
   OggzBufferedPacket *p = (OggzBufferedPacket *)elem;
   ogg_int64_t gp_stored;
   ogg_int64_t unit_stored;
+  int cb_ret;
 
   if (p->calced_granulepos == -1) {
     return DLIST_ITER_CANCEL;
@@ -304,14 +305,18 @@ oggz_read_deliver_packet(void *elem) {
     oggz_get_unit (p->oggz, p->serialno, p->calced_granulepos);
 
   if (p->stream->read_packet) {
-    if (p->stream->read_packet(p->oggz, &(p->packet), p->serialno, 
-			       p->stream->read_user_data) != 0) {
-      return DLIST_ITER_ERROR;
+    if ((cb_ret = p->stream->read_packet(p->oggz, &(p->packet), p->serialno, 
+			       p->stream->read_user_data)) != 0) {
+      p->oggz->cb_next = cb_ret;
+      if (cb_ret == -1)
+        return DLIST_ITER_ERROR;
     }
   } else if (p->reader->read_packet) {
-    if (p->reader->read_packet(p->oggz, &(p->packet), p->serialno, 
-			       p->reader->read_user_data) != 0) {
-      return DLIST_ITER_ERROR;
+    if ((cb_ret = p->reader->read_packet(p->oggz, &(p->packet), p->serialno, 
+			       p->reader->read_user_data)) != 0) {
+      p->oggz->cb_next = cb_ret;
+      if (cb_ret == -1)
+        return DLIST_ITER_ERROR;
     }
   }
 
@@ -464,9 +469,16 @@ oggz_read_sync (OGGZ * oggz)
               ogg_int64_t gp_stored = stream->last_granulepos;
               stream->last_packet = &packet;
               oggz_dlist_reverse_iter(oggz->packet_buffer, oggz_read_update_gp);
+	      oggz->cb_next = 0;
               if (oggz_dlist_deliter(oggz->packet_buffer, oggz_read_deliver_packet) == -1) {
-		return OGGZ_ERR_HOLE_IN_DATA;
+                return OGGZ_ERR_HOLE_IN_DATA;
 	      }
+	      if (oggz->cb_next > 0) {
+                cb_ret = oggz->cb_next;
+		oggz->cb_next = 0;
+		continue;
+	      }
+	      oggz->cb_next = 0;
 
               /*
                * fix up the stream granulepos 
