@@ -1090,7 +1090,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"Speex", 5, "Speex", auto_speex, auto_calc_speex, NULL},
   {"PCM     ", 8, "PCM", auto_oggpcm2, NULL, NULL},
   {"CMML\0\0\0\0", 8, "CMML", auto_cmml, NULL, NULL},
-  {"Annodex", 8, "Annodex", auto_annodex, NULL, NULL},
+  {"Annodex", 7, "Annodex", auto_annodex, NULL, NULL},
   {"fishead", 7, "Skeleton", auto_fishead, NULL, NULL},
   {"fLaC", 4, "Flac0", auto_flac0, auto_calc_flac, NULL},
   {"\177FLAC", 5, "Flac", auto_flac, auto_calc_flac, NULL},

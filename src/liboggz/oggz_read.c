@@ -317,14 +317,14 @@ oggz_read_deliver_packet(void *elem) {
 
   if (p->stream->read_packet) {
     if ((cb_ret = p->stream->read_packet(p->oggz, &(p->zp), p->serialno, 
-			       p->stream->read_user_data)) != 0) {
+			       p->stream->read_user_data)) < 0) {
       p->oggz->cb_next = cb_ret;
       if (cb_ret == -1)
         return DLIST_ITER_ERROR;
     }
   } else if (p->reader->read_packet) {
     if ((cb_ret = p->reader->read_packet(p->oggz, &(p->zp), p->serialno, 
-			       p->reader->read_user_data)) != 0) {
+			       p->reader->read_user_data)) < 0) {
       p->oggz->cb_next = cb_ret;
       if (cb_ret == -1)
         return DLIST_ITER_ERROR;
