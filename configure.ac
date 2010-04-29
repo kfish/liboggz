@@ -6,7 +6,7 @@ AC_PREREQ(2.53)
 
 AC_CANONICAL_TARGET
 
-AM_INIT_AUTOMAKE(liboggz, 1.0.1)
+AM_INIT_AUTOMAKE(liboggz, 1.0.2)
 AM_CONFIG_HEADER(config.h)
 
 ################################################################################
