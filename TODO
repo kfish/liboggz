@@ -191,5 +191,8 @@ oggz-validate
 	value of '-1' (in two's complement) indicates that no packets finish on this
 	page."
 
+	* Flag a discrepancy between continued flag and lack of a last < 255 segment
+	in the previous packet
+
 	* validate skeleton
 
