@@ -1,3 +1,12 @@
+Thu Apr 29 10:42:26 JST 2010 Conrad Parker <conrad@metadecks.org>
+
+	* Version 1.1.1
+
+	This is a maintenance release of the current 1.1.x series, containing fixes
+	for Mozilla bugs #498380, #496063, #487519, #559338 and Debian bug #557537.
+	Additionally, vorbiscomment parsing was modified to tolerate comments which
+	lack a value, ie. of form "KEY=" and "KEY".
+
 Thu Oct  8 16:48:47 JST 2009 Conrad Parker <conrad@metadecks.org>
 
 	* Version 1.1.0
