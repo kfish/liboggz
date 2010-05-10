@@ -61,7 +61,7 @@ fi
 
 echo "Stress testing Oggz seeking on all Ogg files in $COLLECTION..."
 
-for ext in ogg spx anx; do
+for ext in ogg ogv oga spx anx; do
     CMD="find $COLLECTION -follow -name '*.$ext'"
     FILES="$FILES `eval $CMD`"
 done
