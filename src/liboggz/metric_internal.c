@@ -68,6 +68,32 @@ oggz_metric_dirac (OGGZ * oggz, long serialno,
 }
 
 static ogg_int64_t
+oggz_metric_vp8 (OGGZ * oggz, long serialno,
+                 ogg_int64_t granulepos, void * user_data)
+{
+  oggz_stream_t * stream;
+//  ogg_int64_t iframe, pframe;
+  ogg_uint32_t pt;
+  ogg_int64_t units;
+
+  stream = oggz_get_stream (oggz, serialno);
+  if (stream == NULL) return -1;
+
+  pt = granulepos >> stream->granuleshift;
+//  pframe = granulepos - (iframe << stream->granuleshift);
+ // pt = (iframe + pframe) >> 2;
+
+  units = pt * stream->granulerate_d / stream->granulerate_n;
+
+#ifdef DEBUG
+  printf ("oggz_..._granuleshift: serialno %010lu Got frame or field %lld (%lld + %lld): %lld units\n",
+	  serialno, pt, iframe, pframe, units);
+#endif
+
+  return units;
+}
+
+static ogg_int64_t
 oggz_metric_default_granuleshift (OGGZ * oggz, long serialno,
 				  ogg_int64_t granulepos, void * user_data)
 {
@@ -130,6 +156,10 @@ oggz_metric_update (OGGZ * oggz, long serialno)
     return oggz_set_metric_internal (oggz, serialno,
 				     oggz_metric_dirac,
 				     NULL, 1);
+  } else if (oggz_stream_get_content (oggz, serialno) == OGGZ_CONTENT_VP8) {
+    return oggz_set_metric_internal (oggz, serialno,
+            oggz_metric_vp8,
+            NULL, 1);
   } else {
     return oggz_set_metric_internal (oggz, serialno,
 				     oggz_metric_default_granuleshift,

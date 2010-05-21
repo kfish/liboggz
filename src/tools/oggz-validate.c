@@ -177,7 +177,10 @@ gp_to_granule (OGGZ * oggz, long serialno, ogg_int64_t granulepos)
 
   if (oggz_stream_get_content (oggz, serialno) == OGGZ_CONTENT_DIRAC)
     granule >>= 9;
-
+  
+  if (oggz_stream_get_content (oggz, serialno) == OGGZ_CONTENT_VP8)
+    granule = iframe;
+    
   return granule;
 }
 

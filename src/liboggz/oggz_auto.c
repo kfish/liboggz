@@ -389,6 +389,25 @@ auto_dirac (OGGZ * oggz, long serialno, unsigned char * data, long length, void 
 }
 
 static int
+auto_vp8 (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
+{
+  int             granule_shift = 32;
+  unsigned char * header        = data;
+  ogg_uint32_t    fps_numerator, fps_denominator;
+  
+  fps_numerator = int32_be_at(&header[18]);
+  fps_denominator = int32_be_at(&header[22]);
+  
+  oggz_set_granulerate (oggz, serialno, (ogg_int64_t)fps_numerator,
+			 OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
+  oggz_set_granuleshift (oggz, serialno, granule_shift);
+
+  oggz_stream_set_numheaders (oggz, serialno, 2);
+  
+  return 1;
+}
+
+static int
 auto_fisbone (OGGZ * oggz, long serialno, unsigned char * data, long length, void * user_data)
 {
   unsigned char * header = data;
@@ -1098,6 +1117,7 @@ const oggz_auto_contenttype_t oggz_auto_codec_ident[] = {
   {"CELT    ", 8, "CELT", auto_celt, auto_calc_celt, NULL},
   {"\200kate\0\0\0", 8, "Kate", auto_kate, NULL, NULL},
   {"BBCD\0", 5, "Dirac", auto_dirac, NULL, NULL},
+  {"OVP80", 5, "VP8", auto_vp8, NULL, NULL},
   {"", 0, "Unknown", NULL, NULL, NULL}
 };
 
