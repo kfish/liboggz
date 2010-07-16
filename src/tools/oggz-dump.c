@@ -406,6 +406,17 @@ revert_file (char * infilename)
     infile = fopen (infilename, "rb");
   }
 
+  if (infile == NULL) {
+    if (errno == 0) {
+      fprintf (stderr, "%s: %s: error opening input file\n",
+               progname, infilename);
+    } else {
+      fprintf (stderr, "%s: %s: %s\n",
+               progname, infilename, strerror (errno));
+    }
+    exit(1);
+  }
+
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT|OGGZ_AUTO);
   if (oggz == NULL)
     exit_out_of_memory();
@@ -420,10 +431,16 @@ revert_file (char * infilename)
     is_packetinfo = 0;
     if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %" PRId64 ", packetno %" PRId64 "%n",
 		&offset, &serialno, &granulepos, &packetno,
+		&line_offset) >= 4 ||
+        sscanf (&line[line_offset], "%x: serialno %ld, calc. gpos %" PRId64 ", packetno %" PRId64 "%n",
+		&offset, &serialno, &granulepos, &packetno,
 		&line_offset) >= 4) {
       is_packetinfo = 1;
     } else {
-      if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %" PRId64 "%" PRId64 ", packetno %" PRId64 "%n",
+      if (sscanf (&line[line_offset], "%x: serialno %ld, granulepos %" PRId64 "|%" PRId64 ", packetno %" PRId64 "%n",
+		  &offset, &serialno, &iframe, &pframe, &packetno,
+		  &line_offset) >= 5 ||
+          sscanf (&line[line_offset], "%x: serialno %ld, calc. gpos %" PRId64 "|%" PRId64 ", packetno %" PRId64 "%n",
 		  &offset, &serialno, &iframe, &pframe, &packetno,
 		  &line_offset) >= 5) {
 	int granuleshift = oggz_get_granuleshift (oggz, serialno);
