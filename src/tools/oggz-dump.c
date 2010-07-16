@@ -403,6 +403,17 @@ revert_file (char * infilename)
     infile = fopen (infilename, "rb");
   }
 
+  if (infile == NULL) {
+    if (errno == 0) {
+      fprintf (stderr, "%s: %s: error opening input file\n",
+               progname, infilename);
+    } else {
+      fprintf (stderr, "%s: %s: %s\n",
+               progname, infilename, strerror (errno));
+    }
+    exit(1);
+  }
+
   oggz = oggz_new (OGGZ_WRITE|OGGZ_NONSTRICT|OGGZ_AUTO);
   if (oggz == NULL)
     exit_out_of_memory();
