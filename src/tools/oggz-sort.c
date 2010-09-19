@@ -334,11 +334,14 @@ oggz_sort (OSData * osdata, FILE * outfile)
 	    if (osdata->verbose)
 	      printf ("Moo\n");
 	  }
-	} else if (osdata->verbose) {
+	} else {
 	  if (input == NULL) {
-	    printf ("*** index %d NULL\n", i);
+            if (osdata->verbose)
+              printf ("*** index %d NULL, removing\n", i);
+            i--;
 	  } else {
-	    printf ("*** No page from index %d\n", i);
+            if (osdata->verbose)
+              printf ("*** No page from index %d\n", i);
 	  }
 	}
       }
@@ -351,6 +354,7 @@ oggz_sort (OSData * osdata, FILE * outfile)
     if (min_i != -1) {
       input = (OSInput *) oggz_table_nth (osdata->inputs, min_i, &key);
       og = input->og;
+
       checked_fwrite (og->header, 1, og->header_len, outfile);
       checked_fwrite (og->body, 1, og->body_len, outfile);
 
