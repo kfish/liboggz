@@ -74,10 +74,11 @@ oggz_codecs_LDADD = $(OGGZ_LIBS)
 # Add symlinks for deprecated tool names, if they are already installed;
 # see http://lists.xiph.org/pipermail/ogg-dev/2008-July/001083.html
 install-exec-local:
+	cd $(DESTDIR)$(bindir) && \
 	for p in dump diff info merge rip ; do \
-	  if test -e $(exec_prefix)/bin/oggz$$p ; then \
-	    $(RM) $(exec_prefix)/bin/oggz$$p ; \
-	    $(LN_S) $(exec_prefix)/bin/oggz-$$p $(exec_prefix)/bin/oggz$$p ; \
+	  if test -e oggz$$p ; then \
+	    $(RM) oggz$$p ; \
+	    $(LN_S) oggz-$$p oggz$$p ; \
 	  fi ; \
 	done
 
@@ -89,7 +90,7 @@ install-exec-local:
 # such systems.
 uninstall-local:
 	for p in dump diff info merge rip ; do \
-	  if test -L $(exec_prefix)/bin/oggz$$p ; then \
-	    $(RM) $(exec_prefix)/bin/oggz$$p ; \
+	  if test -L $(DESTDIR)$(bindir)/oggz$$p ; then \
+	    $(RM) $(DESTDIR)$(bindir)/oggz$$p ; \
 	  fi ; \
 	done
