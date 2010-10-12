@@ -73,7 +73,7 @@ my_io_read (void * user_handle, void * buf, size_t n)
 {
   FILE * f = (FILE *)user_handle;
 
-  return fread (buf, 1, n, f);
+  return read (fileno(f), buf, n);
 }
 
 static int
