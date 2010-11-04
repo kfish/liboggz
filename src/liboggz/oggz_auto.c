@@ -1211,6 +1211,7 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
         offset = 7;
       break;
     case OGGZ_CONTENT_SPEEX:
+    case OGGZ_CONTENT_PCM:
       offset = 0; break;
     case OGGZ_CONTENT_THEORA:
       if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)
