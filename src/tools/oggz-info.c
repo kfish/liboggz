@@ -301,7 +301,7 @@ ot_fisbone_print(OI_Info * info, OI_TrackInfo *oit) {
       if (token == NULL)
         break;
       *token = '\0';
-      printf("\t %s", token);
+      printf("\t %s\n", messages);
 
       token++;
       if (*token == '\n')
