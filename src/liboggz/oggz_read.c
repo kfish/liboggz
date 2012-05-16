@@ -394,7 +394,7 @@ oggz_read_sync (OGGZ * oggz)
           /* We can't tolerate holes in headers, so bail out. NB. as stream->packetno
            * has not yet been incremented, the current value refers to how many packets
            * have been processed prior to this one. */
-          if (stream->packetno < 2) return OGGZ_ERR_HOLE_IN_DATA;
+          if (stream->packetno < stream->numheaders - 1) return OGGZ_ERR_HOLE_IN_DATA;
 
           /* Holes in content occur in some files and pretty much don't matter,
            * so we silently swallow the notification and reget the packet. */
