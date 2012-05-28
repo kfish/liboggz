@@ -174,8 +174,15 @@ auto_theora (OGGZ * oggz, long serialno, unsigned char * data, long length, void
 			OGGZ_AUTO_MULT * (ogg_int64_t)fps_denominator);
   oggz_set_granuleshift (oggz, serialno, keyframe_shift);
 
-  if (version > THEORA_VERSION(3,2,0))
-    oggz_set_first_granule (oggz, serialno, 1);
+  /* the theora granpos->time calculation always adds one to the
+     index, but 3.2.0 streams count from zero and later versions count
+     from one.  So... for a 3.2.0 stream, the intitial frame number is
+     zero, but we add one (or in this case, subtract -1 in
+     oggz_metric_default_granuleshift).  For 3.2.1 and later, we
+     subtract one from the first frame number (1) to get an initial index
+     of zero, then add one to compute time for a net change of zero */
+  if (version < THEORA_VERSION(3,2,0))
+    oggz_set_first_granule (oggz, serialno, -1);
 
   oggz_stream_set_numheaders (oggz, serialno, 3);
 
@@ -1204,6 +1211,7 @@ oggz_auto_read_comments (OGGZ * oggz, oggz_stream_t * stream, long serialno,
         offset = 7;
       break;
     case OGGZ_CONTENT_SPEEX:
+    case OGGZ_CONTENT_PCM:
       offset = 0; break;
     case OGGZ_CONTENT_THEORA:
       if (op->bytes > 7 && memcmp (op->packet, "\201theora", 7) == 0)

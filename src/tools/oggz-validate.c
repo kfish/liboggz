@@ -310,7 +310,7 @@ read_page (OGGZ * oggz, const ogg_page * og, long serialno, void * user_data)
         ret = log_error ();
         fprintf (stderr, "serialno %010lu: Terminal header page contains non-header packet\n", serialno);
       }
-    } else if (packetno == headers) {
+    } else if (packetno == headers-1) {
       /* This is the next page after the page on which the last header finished */
       if (ogg_page_continued (og)) {
         ret = log_error ();
