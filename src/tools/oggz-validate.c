@@ -47,6 +47,7 @@
 #include "oggz/oggz.h"
 
 #include "oggz_tools.h"
+#include "oggz-validate.h"
 
 #define MAX_ERRORS 10
 
@@ -593,4 +594,11 @@ main (int argc, char ** argv)
 
  exit_err:
   exit (1);
+}
+
+int validate_ogg(const char *filename) {
+    exit_status = 0;
+    max_errors = 0;
+    int ret = validate((char *)filename);
+    return exit_status != 0 ? exit_status : ret;
 }
