@@ -37,12 +37,13 @@
 #include <sys/types.h>
 
 #include <ogg/ogg.h>
-#include <oggz/oggz_constants.h>
-#include <oggz/oggz_table.h>
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#include <oggz/oggz_constants.h>
+#include <oggz/oggz_table.h>
 
 /** \mainpage
  *
